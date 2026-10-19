@@ -7,6 +7,7 @@ import { Button } from "@/components/button";
 import { describeProblem } from "@/lib/quiz/errors";
 import { getQuizProblems } from "@/lib/quiz/api";
 import type { QuizProblem } from "@/lib/quiz/types";
+import { endSessionAndNotify } from "@/lib/live/notify";
 import { host } from "@/lib/live/rpc";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import styles from "./host.module.css";
@@ -81,7 +82,7 @@ export function StartSession({ quizId, problems: knownProblems = null }: { quizI
     if (!supabase || busy) return;
     setBusy(true);
     setError(null);
-    const result = await host.end(supabase, id);
+    const result = await endSessionAndNotify(supabase, id);
     setBusy(false);
     setConfirmingEnd(false);
     if (!result.ok && result.reason !== "session_ended") {

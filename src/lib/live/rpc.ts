@@ -73,6 +73,13 @@ export const host = {
   close: (supabase: SupabaseClient, sessionId: string) =>
     isUuid(sessionId) ? action(supabase, "host_close_question", { p_session: sessionId }) : Promise.resolve(BAD_SESSION),
 
+  /** Tự đóng khi hết giờ: máy chủ chỉ đóng nếu giờ của nó đã qua hạn. `closed` false nghĩa là chưa tới hạn hoặc đã đóng rồi. */
+  async closeIfExpired(supabase: SupabaseClient, sessionId: string): Promise<LiveResult<{ closed: boolean }>> {
+    if (!isUuid(sessionId)) return BAD_SESSION;
+    const { data, error } = await call(supabase, "host_close_if_expired", { p_session: sessionId });
+    return error ? fail(error, false) : { ok: true, closed: data === true };
+  },
+
   next: (supabase: SupabaseClient, sessionId: string) =>
     isUuid(sessionId) ? action(supabase, "host_next", { p_session: sessionId }) : Promise.resolve(BAD_SESSION),
 

@@ -14,8 +14,8 @@ type QuestionViewProps = {
   busy: boolean;
   /** Giáo viên bấm "Hiện đáp án" (đóng câu sớm). */
   onShowAnswer: () => void;
-  /** Hết giờ: tự đóng câu một lần. */
-  onTimeUp: () => void;
+  /** Hết giờ: nhờ máy chủ đóng câu. Trả true khi đã đóng (hoặc không cần nữa); false thì thử lại sau ít lâu. */
+  onTimeUp: () => Promise<boolean>;
 };
 
 /** Câu đang mở: đề cỡ lớn, đếm giờ theo giờ máy chủ, số người đã trả lời. KHÔNG có khoá đáp án (màn hình này được chiếu). */
@@ -23,7 +23,6 @@ export function QuestionView({ state, clock, busy, onShowAnswer, onTimeUp }: Que
   const question = state.question;
   const now = useNow(250);
   const timeUpRef = useRef(onTimeUp);
-  const firedFor = useRef(-1);
 
   const total = (question?.time_limit_seconds ?? 0) * 1000;
   const closesAt = parseServerTime(state.closes_at);
@@ -35,11 +34,21 @@ export function QuestionView({ state, clock, busy, onShowAnswer, onTimeUp }: Que
   useEffect(() => {
     timeUpRef.current = onTimeUp;
   });
+  // Máy chủ chỉ đóng khi giờ của nó đã qua hạn nên nếu đồng hồ trình duyệt đi trước thì lần này trả false và ta thử lại
+  // mỗi giây; mất mạng cũng thử lại (lỗi được báo ở màn hình).
   useEffect(() => {
-    if (late && firedFor.current !== state.question_index) {
-      firedFor.current = state.question_index;
-      timeUpRef.current();
-    }
+    if (!late) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const attempt = async () => {
+      const done = await timeUpRef.current();
+      if (!cancelled && !done) timer = setTimeout(attempt, 1000);
+    };
+    void attempt();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [late, state.question_index]);
 
   if (!question) return null;

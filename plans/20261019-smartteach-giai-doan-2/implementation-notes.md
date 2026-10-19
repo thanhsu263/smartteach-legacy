@@ -236,3 +236,18 @@ Kết quả kiểm tra (chưa commit): typecheck, lint đạt; **206 unit**; 115
 - Người chơi tự rời (`left`) và người bị loại không hiện trong danh sách phòng chờ và không tính vào "đã trả lời / tổng".
 - Kết quả chi tiết sau buổi, xuất báo cáo và xoá dữ liệu sau 90 ngày là phase 7.
 - **Chưa kiểm tra:** máy chiếu thật và độ đọc từ cuối lớp (chữ PIN và đề dùng `clamp` theo chiều rộng, chưa đo ngoài đời); điện thoại thật.
+
+### Sửa sau review phase 6
+
+Review (`hs-code-review`, commit `edf3fc2`) không có Critical hay High. Đã xử lý cả bốn mục:
+
+| Mục | Cách sửa | Kiểm chứng |
+|---|---|---|
+| Medium: nhấn Space lại ngay sau khi câu mới mở sẽ đóng luôn câu đó (thăm dò: câu 2 chuyển sang `reveal` sau 1,5 giây) | Bỏ qua Space trong 1,2 giây sau mỗi lần đổi pha (`SPACE_COOLDOWN_MS`); các e2e có người thật chờ qua khoảng này trước khi nhấn | e2e mới: nhấn lặp sau 500ms không đóng câu, sau khoảng chờ thì Space dùng lại được; phá thử (bỏ khoảng chờ) thì hỏng |
+| Low: tự đóng khi hết giờ dựa vào đồng hồ ước lượng của trình duyệt, lỗi thì im lặng không thử lại | Hàm mới `host_close_if_expired` (sửa tại chỗ migration phase 3): chỉ đóng nếu giờ **máy chủ** đã qua hạn, trả true/false. Màn hình thử lại mỗi giây tới khi đóng được và báo lỗi khi mất mạng | 2 test DB (chưa tới hạn thì không đóng, qua hạn thì đóng và chấm điểm một lần, người khác 404, khách 401); e2e: lỗi mạng khi tự đóng thì báo rồi tự đóng được sau khi có mạng; phá thử (bỏ kiểm tra giờ) thì hỏng |
+| Low: "Kết thúc phiên cũ" từ danh sách quiz không phát tin báo | `endSessionAndNotify` (`src/lib/live/notify.ts`) kết thúc rồi báo `{ seq }` qua kênh tạm | e2e: điện thoại ở phòng chờ thấy "Kết thúc!" trong 4 giây (polling là 10 giây); phá thử thì hỏng |
+| Verification Gap | Các test trên | Đạt |
+
+Kết quả: typecheck, lint, 206 unit, 117 test DB (hai lần liên tiếp), 170 e2e (hai lần liên tiếp) đạt.
+
+Còn mở: máy chiếu thật và độ đọc từ cuối lớp, WebKit và điện thoại thật.

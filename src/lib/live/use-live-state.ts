@@ -44,11 +44,11 @@ function useLiveSync<T extends SyncState>(sync: LiveSync<T> | null): SyncSnapsho
  * Sau một thao tác điều khiển thành công: hỏi lại trạng thái rồi báo `{ seq }` cho người chơi. Gửi tin
  * thất bại không làm hỏng thao tác vì người chơi vẫn hỏi định kỳ.
  */
-export async function runHostAction(
+export async function runHostAction<T extends object = object>(
   sync: Pick<LiveSync<HostState>, "refresh" | "getSnapshot">,
   channel: Pick<SessionChannel, "notify">,
-  run: () => Promise<LiveResult<object>>,
-): Promise<LiveResult<object>> {
+  run: () => Promise<LiveResult<T>>,
+): Promise<LiveResult<T>> {
   const result = await run();
   if (result.ok) {
     await sync.refresh();
@@ -70,7 +70,7 @@ export function hostPollMs(status: string | undefined): number {
 export type HostLive = SyncSnapshot<HostState> & {
   refresh: () => Promise<void>;
   /** Chạy một thao tác điều khiển rồi báo cho người chơi. */
-  act: (run: () => Promise<LiveResult<object>>) => Promise<LiveResult<object>>;
+  act: <T extends object>(run: () => Promise<LiveResult<T>>) => Promise<LiveResult<T>>;
 };
 
 /** Trạng thái phiên cho màn hình giáo viên (đồng thời là màn chiếu). */
@@ -94,7 +94,7 @@ export function useHostLive(sessionId: string): HostLive {
   const snapshot = useLiveSync(sync);
   const refresh = useCallback(() => (sync ? sync.refresh() : Promise.resolve()), [sync]);
   const act = useCallback(
-    async (run: () => Promise<LiveResult<object>>) => (sync && channel ? runHostAction(sync, channel, run) : run()),
+    async <T extends object>(run: () => Promise<LiveResult<T>>) => (sync && channel ? runHostAction(sync, channel, run) : run()),
     [sync, channel],
   );
   return { ...snapshot, refresh, act };

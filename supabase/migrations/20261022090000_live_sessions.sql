@@ -670,6 +670,27 @@ begin
 end;
 $$;
 
+-- Tự đóng câu khi hết giờ: CHỈ đóng nếu giờ MÁY CHỦ đã qua hạn chót. Màn hình giáo viên ước lượng giờ máy chủ bằng đồng
+-- hồ của trình duyệt (sai số tối đa nửa độ trễ khứ hồi) nên không được tự quyết hạn chót, nếu không mạng chậm sẽ chốt câu
+-- trước hạn thật và học sinh mất những giây cuối. Trả true nếu vừa đóng; false nếu chưa tới hạn hoặc câu đã đóng rồi.
+create function public.host_close_if_expired(p_session uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_session public.live_sessions := private.host_session(p_session);
+begin
+  if v_session.status <> 'question' or clock_timestamp() < v_session.question_closes_at then
+    return false;
+  end if;
+  perform private.score_question(v_session);
+  update public.live_sessions set status = 'reveal', seq = seq + 1 where id = v_session.id;
+  return true;
+end;
+$$;
+
 -- Sau khi hiện đáp án: sang câu kế, hoặc kết thúc nếu hết câu.
 create function public.host_next(p_session uuid)
 returns void
@@ -1102,6 +1123,7 @@ revoke execute on function
   public.host_remove_participant(uuid, uuid),
   public.host_open_question(uuid),
   public.host_close_question(uuid),
+  public.host_close_if_expired(uuid),
   public.host_next(uuid),
   public.host_end_session(uuid),
   public.host_state(uuid)
@@ -1112,6 +1134,7 @@ grant execute on function
   public.host_remove_participant(uuid, uuid),
   public.host_open_question(uuid),
   public.host_close_question(uuid),
+  public.host_close_if_expired(uuid),
   public.host_next(uuid),
   public.host_end_session(uuid),
   public.host_state(uuid)

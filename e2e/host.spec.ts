@@ -146,10 +146,13 @@ test.describe("giáo viên: điều khiển và chiếu", () => {
     await expect(heading(page, "Mặt Trời quay quanh Trái Đất.")).toBeVisible();
     await lan.answer(1);
     await huy.answer(1);
+    // Người thật không nhấn Space ngay lúc câu vừa mở: chờ qua khoảng chống bấm lặp (1,2 giây).
+    await page.waitForTimeout(1300);
     await page.keyboard.press("Space");
     await expect(page.getByRole("button", { name: "Câu tiếp theo" })).toBeVisible();
 
     // Câu 3 (nhiều đáp án): Lan thiếu một ý nên sai, Huy đúng.
+    await page.waitForTimeout(1300);
     await page.keyboard.press("Space");
     await expect(heading(page, "Những số nào là số chẵn?")).toBeVisible();
     await lan.answer([0]);
@@ -255,6 +258,77 @@ test.describe("giáo viên: điều khiển và chiếu", () => {
 
     await page.goto("/host/khong-phai-uuid");
     await expect(heading(page, "Không tìm thấy phiên chơi này")).toBeVisible();
+  });
+
+  test("nhấn Space liên tiếp sau khi đổi pha không đóng luôn câu vừa mở; sau khoảng chờ thì Space dùng lại được", async ({ page }) => {
+    await teacherWithQuiz(page);
+    const pin = await startFromUi(page);
+    await joinPlayer(pin, "Một bạn");
+    await expect(page.getByRole("heading", { name: "Người chơi (1)" })).toBeVisible();
+    await page.getByRole("button", { name: "Bắt đầu" }).click();
+    await expect(heading(page, "Thủ đô của Việt Nam là gì?")).toBeVisible();
+    await page.getByRole("button", { name: "Hiện đáp án" }).click();
+    await expect(page.getByRole("button", { name: "Câu tiếp theo" })).toBeVisible();
+
+    await page.locator("body").click({ position: { x: 5, y: 400 } });
+    await page.waitForTimeout(1300);
+    await page.keyboard.press("Space");
+    await expect(heading(page, "Mặt Trời quay quanh Trái Đất.")).toBeVisible();
+    // Bấm đúp hay bộ điều khiển từ xa gửi lặp ngay sau đó: bị bỏ qua, câu 2 vẫn mở.
+    await page.waitForTimeout(500);
+    await page.keyboard.press("Space");
+    await page.waitForTimeout(1000);
+    await expect(heading(page, "Mặt Trời quay quanh Trái Đất.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Hiện đáp án" })).toBeVisible();
+
+    // Hết thời gian chờ: Space hiện đáp án như bình thường.
+    await page.waitForTimeout(800);
+    await page.keyboard.press("Space");
+    await expect(page.getByRole("button", { name: "Câu tiếp theo" })).toBeVisible();
+  });
+
+  test("tự đóng câu gặp lỗi mạng thì báo lỗi rồi thử lại tới khi đóng được", async ({ page }) => {
+    await teacherWithQuiz(page, [fourKinds[0]]);
+    const pin = await startFromUi(page);
+    await joinPlayer(pin, "Chậm");
+    const { createClient } = await import("@supabase/supabase-js");
+    const { localConfig } = await import("./helpers/live");
+    const service = createClient(localConfig().url, localConfig().serviceRoleKey);
+    const sessionId = page.url().split("/").pop()!;
+    const row = await service.from("live_sessions").select("quiz_snapshot").eq("id", sessionId).single();
+    const snapshot = (row.data as { quiz_snapshot: { questions: { time_limit_seconds: number }[] } }).quiz_snapshot;
+    for (const q of snapshot.questions) q.time_limit_seconds = 3;
+    await service.from("live_sessions").update({ quiz_snapshot: snapshot }).eq("id", sessionId);
+
+    await page.route("**/rest/v1/rpc/host_close_if_expired", (route) => route.abort("failed"));
+    await expect(page.getByRole("heading", { name: "Người chơi (1)" })).toBeVisible();
+    await page.getByRole("button", { name: "Bắt đầu" }).click();
+    await expect(heading(page, "Thủ đô của Việt Nam là gì?")).toBeVisible();
+    await expect(page.getByRole("alert").filter({ hasText: "Mất kết nối" })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("Hết giờ, đang chốt đáp án…")).toBeVisible();
+
+    await page.unroute("**/rest/v1/rpc/host_close_if_expired");
+    await expect(page.getByRole("button", { name: "Xem kết quả" })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole("alert").filter({ hasText: "Mất kết nối" })).toHaveCount(0);
+  });
+
+  test("kết thúc phiên cũ từ danh sách quiz báo ngay cho học sinh", async ({ page, browser }) => {
+    await teacherWithQuiz(page);
+    const pin = await startFromUi(page);
+    const phone = await (await browser.newContext({ viewport: { width: 375, height: 812 } })).newPage();
+    await phone.goto(`/play?pin=${pin}`);
+    await phone.getByLabel("Biệt danh").fill("Chờ trong phòng");
+    await phone.getByRole("button", { name: "Vào phòng" }).click();
+    await expect(heading(phone, "Bạn đã vào phòng")).toBeVisible();
+
+    await page.goto("/my-quizzes");
+    await page.getByRole("listitem").filter({ hasText: "Quiz kiểm thử" }).getByRole("button", { name: "Chơi ngay" }).click();
+    await page.getByRole("button", { name: "Kết thúc phiên cũ" }).click();
+    await page.getByRole("group", { name: "Xác nhận kết thúc phiên cũ" }).getByRole("button", { name: "Kết thúc phiên cũ" }).click();
+    await expect(page.getByRole("button", { name: "Bắt đầu phiên" })).toBeVisible();
+    // Tin báo tới ngay (polling của học sinh khi kênh sống là 10 giây, dài hơn hạn chờ này).
+    await expect(heading(phone, "Kết thúc!")).toBeVisible({ timeout: 4000 });
+    await phone.context().close();
   });
 
   test("chiếu toàn màn hình vào và thoát được; mất kết nối thì báo rồi tự phục hồi", async ({ page }) => {

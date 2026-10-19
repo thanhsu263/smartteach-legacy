@@ -789,6 +789,48 @@ commit;`);
 });
 
 // ---------------------------------------------------------------------------------------------
+describe("host_close_if_expired: chỉ đóng khi giờ máy chủ đã qua hạn", () => {
+  it("chưa tới hạn thì không đóng; qua hạn thì đóng và chấm điểm; gọi lại thì không làm gì", async () => {
+    const t = await signUp("live-expire");
+    const s = await startSession(t, await newQuiz(t, [questions[0]]), false);
+    const token = await joinOk(s.pin, "Kịp giờ");
+    await setTimeLimit(s.id, 2);
+
+    // Còn ở phòng chờ: không có câu nào đang mở.
+    expect((await t.client.rpc("host_close_if_expired", { p_session: s.id })).data).toBe(false);
+    await hostOk(t, "host_open_question", { p_session: s.id });
+    await submitOk(token, 0);
+
+    // Chưa tới hạn (trình duyệt có thể tưởng đã hết giờ nhưng máy chủ biết rõ hơn): không đóng.
+    const early = await t.client.rpc("host_close_if_expired", { p_session: s.id });
+    expect(early.error).toBeNull();
+    expect(early.data).toBe(false);
+    expect((await hostState(t, s.id)).status).toBe("question");
+
+    await sleep(2300);
+    const late = await t.client.rpc("host_close_if_expired", { p_session: s.id });
+    expect(late.data).toBe(true);
+    const state = await hostState(t, s.id);
+    expect(state.status).toBe("reveal");
+    expect((state.players as { score: number }[])[0].score).toBe(1000);
+    // Đã đóng rồi: không đóng lần hai, không chấm hai lần.
+    expect((await t.client.rpc("host_close_if_expired", { p_session: s.id })).data).toBe(false);
+    expect(((await hostState(t, s.id)).players as { score: number }[])[0].score).toBe(1000);
+    await hostOk(t, "host_end_session", { p_session: s.id });
+  });
+
+  it("người khác và khách bị từ chối", async () => {
+    const t = await signUp("live-expire2");
+    const other = await signUp("live-expire3");
+    const s = await startSession(t, await newQuiz(t));
+    expect((await other.client.rpc("host_close_if_expired", { p_session: s.id })).error?.message).toContain("session_not_found");
+    expect((await anon.rpc("host_close_if_expired", { p_session: s.id })).error?.code).toBe("42501");
+    expect((await rpcStatus("host_close_if_expired", { p_session: s.id }, other)).status).toBe(404);
+    await hostOk(t, "host_end_session", { p_session: s.id });
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
 describe("học sinh tự rời phòng", () => {
   let t: TestUser;
   beforeAll(async () => {

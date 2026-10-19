@@ -28,6 +28,9 @@ function announcement(state: HostState | null): string {
   }
 }
 
+/** Khoảng bỏ qua phím Space sau mỗi lần đổi pha (ms). */
+const SPACE_COOLDOWN_MS = 1200;
+
 const INTERACTIVE = new Set(["BUTTON", "INPUT", "TEXTAREA", "SELECT", "A", "SUMMARY"]);
 
 /** Cả màn chiếu lẫn bảng điều khiển của một phiên chơi trực tiếp, trên một trang. */
@@ -39,6 +42,8 @@ export function HostScreen({ sessionId }: { sessionId: string }) {
   const [confirmEnd, setConfirmEnd] = useState(false);
   const focusRef = useRef<HTMLDivElement>(null);
   const primaryRef = useRef<(() => void) | null>(null);
+  // Lúc đổi pha gần nhất: phím Space ngay sau đó bị bỏ qua để bấm đúp hay phím lặp không đóng luôn câu vừa mở.
+  const phaseChangedAt = useRef(0);
 
   async function run(task: (supabase: SupabaseClient) => Promise<LiveResult<object>>) {
     const supabase = getBrowserSupabase();
@@ -50,10 +55,20 @@ export function HostScreen({ sessionId }: { sessionId: string }) {
     if (!result.ok) setMessage(result.message);
   }
 
-  /** Hết giờ: tự đóng câu. Đã đóng rồi (giáo viên bấm trước) thì bỏ qua lỗi. */
-  function closeOnTimeUp() {
+  /**
+   * Hết giờ: nhờ máy chủ đóng câu (chỉ đóng khi giờ máy chủ đã qua hạn). Trả true nếu đã đóng; false nếu chưa tới
+   * hạn hoặc gặp lỗi (lỗi được báo cho giáo viên và sẽ thử lại).
+   */
+  async function closeOnTimeUp(): Promise<boolean> {
     const supabase = getBrowserSupabase();
-    if (supabase) void live.act(() => host.close(supabase, sessionId));
+    if (!supabase) return false;
+    const result = await live.act(() => host.closeIfExpired(supabase, sessionId));
+    if (!result.ok) {
+      setMessage(result.message);
+      return false;
+    }
+    setMessage(null);
+    return result.closed;
   }
 
   const activeCount = state ? state.players.filter((player) => !player.removed).length : 0;
@@ -73,6 +88,7 @@ export function HostScreen({ sessionId }: { sessionId: string }) {
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (event.code !== "Space" || event.repeat) return;
+      if (performance.now() - phaseChangedAt.current < SPACE_COOLDOWN_MS) return;
       const target = event.target as HTMLElement | null;
       if (target && (INTERACTIVE.has(target.tagName) || target.isContentEditable)) return;
       if (!primaryRef.current) return;
@@ -87,7 +103,9 @@ export function HostScreen({ sessionId }: { sessionId: string }) {
   const phaseKey = state ? `${state.status}-${state.question_index}` : "none";
   const firstKey = useRef(phaseKey);
   useEffect(() => {
-    if (phaseKey === firstKey.current || phaseKey === "none") return;
+    if (phaseKey === "none") return;
+    phaseChangedAt.current = performance.now();
+    if (phaseKey === firstKey.current) return;
     focusRef.current?.focus({ preventScroll: true });
   }, [phaseKey]);
 
