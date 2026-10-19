@@ -11,5 +11,5 @@ export const siteConfig = {
    * Chủ dự án đặt true sau khi đã đọc và duyệt trang Quyền riêng tư (và rà theo quy định hiện hành
    * về bảo vệ dữ liệu cá nhân). Khi còn false, trang hiện biểu ngữ "bản nháp".
    */
-  privacyReviewed: false as boolean,
+  privacyReviewed: true as boolean,
 };

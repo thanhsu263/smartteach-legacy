@@ -349,3 +349,22 @@ Chủ dự án chọn **không khoá nữa**: học sinh gõ sai bao nhiêu lầ
 - Test: phần "3.5" của `tests/db/live.test.ts` viết lại (40 lần sai qua API rồi vào được; 60 lần sai liên tiếp từ cùng một địa chỉ qua psql rồi vào được; không còn bảng, hàm, muối lưu hay băm IP); bỏ `clearJoinAttempts`, `clientWithForwardedFor`; `e2e/privacy.spec.ts` kiểm câu mới.
 - Kết quả: typecheck, lint, 211 unit, 130 test DB, 177 e2e (hai lần liên tiếp) đạt.
 - **Rủi ro chấp nhận:** PIN chỉ có 6 số (1.000.000 giá trị) và không còn gì cản việc thử liên tục. Một người ngoài có thể đoán trúng PIN của một phiên đang mở và vào phòng chờ với biệt danh bất kỳ; xác suất mỗi lần đoán bằng (số phiên đang mở)/1.000.000, và giáo viên khoá phòng hoặc loại người lạ được. Phiên chỉ nhận người vào khi còn ở phòng chờ, nên cửa sổ rủi ro là lúc phòng chờ mở. Nếu sau này lo ngại: nâng PIN lên 7-8 số, hoặc giới hạn mềm theo PIN (không theo IP), hoặc dùng Cloudflare/Vercel Firewall ở phía trước.
+
+### 8.3 và 8.4: xác nhận của chủ dự án (2026-10-19)
+
+Chủ dự án xác nhận **cả sáu mục** sau là đã xong và đạt. Các mục này do chủ dự án thực hiện hoặc xác nhận; chủ dự án không gửi kèm số liệu hay ảnh chụp, nên ghi chú chỉ lưu kết luận, không có số đo mới.
+
+| Mục | Kết quả |
+|---|---|
+| Migration lên Supabase thật | `supabase db push` (dry-run trước, đúng ba migration `20261021090000_quizzes`, `20261022090000_live_sessions`, `20261023090000_results_retention`), do trợ lý chạy theo yêu cầu "duyệt tất cả". Trợ lý không kiểm tra lại được trạng thái bằng lệnh vì lệnh bị chặn; chủ dự án xác nhận `unaccent` trả `Da Nang` |
+| Mã nguồn và triển khai | 18 commit đã push lên `origin/main` (`e578d06..24381eb`); Vercel triển khai xong; `npm run scan:bundle -- --url` trên bản thật sạch |
+| `pg_cron` | Bật và có lịch `smartteach-purge-old-sessions` (3:17 UTC) |
+| Realtime | Kênh công khai hoạt động |
+| Nghiệm thu thiết bị thật | Chơi trọn một phiên trên điện thoại thật; kèm phép đo hai lớp cùng bấm một lúc |
+| Trang Quyền riêng tư | Chủ dự án đã đọc và duyệt; `contactEmail` đã điền và `privacyReviewed: true` |
+
+Mục Medium của review phase 8 (tin báo bị chặn thì học sinh nhận đề chậm tới 10 giây): chủ dự án xác nhận phép đo hai lớp đạt, nhưng không có số liệu nên **không thêm thay đổi nào** vào `livePollMs`; nếu sau này gặp học sinh nhận đề chậm khi nhiều lớp dùng cùng lúc thì áp hướng sửa đã ghi (hỏi dự phòng 3-4 giây ở pha `question`).
+
+### Trạng thái cuối giai đoạn 2
+
+Phase 1-8 hoàn tất và đã triển khai. Còn mở (không chặn): chưa chạy `hs-code-review` cho toàn giai đoạn; chưa quyết SMTP riêng (Supabase giới hạn 2 email xác nhận mỗi giờ); WebKit/Safari iOS chưa kiểm bằng Playwright (chỉ thử trên điện thoại thật); PIN 6 số không giới hạn thử (rủi ro đã chấp nhận, xem mục "Quyết định sau phase 8").

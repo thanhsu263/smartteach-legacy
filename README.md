@@ -85,7 +85,7 @@ Giới hạn gói miễn phí theo trang giá ngày 2026-10-19; kiểm tra lại
 
 1. **Hoàn tất hai việc của chủ dự án trước khi công khai:**
    - *Bản quyền game.* Game `Gargamel bắt Xì Trum` có nhân vật Peyo/IMPS và nhạc Ubisoft, tự ghi "nội bộ, phi thương mại". Chủ dự án đã chọn giữ game và công khai kèm ghi nguồn (hub hiển thị đúng dòng ghi nguồn của game, ở `src/data/games.ts`); chủ dự án chịu trách nhiệm về nội dung của bên thứ ba và nên chuẩn bị phương án gỡ game nếu bên sở hữu yêu cầu.
-   - *Quyền riêng tư.* Trang `/privacy` hiện là bản nháp (có biểu ngữ). Đọc và sửa nội dung cho đúng thực tế và quy định hiện hành về bảo vệ dữ liệu cá nhân (đặc biệt dữ liệu của trẻ em), điền `contactEmail`, rồi đặt `privacyReviewed: true` trong `src/config/site.ts` để bỏ biểu ngữ. Nếu sau này truyền danh sách lớp vào game nhúng, phải cập nhật đoạn "Game do bên khác cung cấp".
+   - *Quyền riêng tư.* Trang `/privacy` đã được chủ dự án duyệt (2026-10-19, `privacyReviewed: true`); khi nội dung dữ liệu đổi thì đọc lại và sửa nội dung cho đúng thực tế và quy định hiện hành về bảo vệ dữ liệu cá nhân (đặc biệt dữ liệu của trẻ em), điền `contactEmail`, rồi đặt `privacyReviewed: true` trong `src/config/site.ts` để bỏ biểu ngữ. Nếu sau này truyền danh sách lớp vào game nhúng, phải cập nhật đoạn "Game do bên khác cung cấp".
 2. **Tạo dự án Supabase** trên supabase.com. Lấy URL và khoá anon ở Project Settings, mục API.
 3. **Áp migration lên dự án thật:**
    ```bash
