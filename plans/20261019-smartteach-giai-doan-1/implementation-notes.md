@@ -34,3 +34,34 @@ Playwright phủ: thương hiệu đọc từ `src/config/site.ts`, không cuộ
 - `npm audit` báo 5 lỗ hổng mức cao, đều nằm trong chuỗi công cụ lint của scaffold (`eslint-config-next` → `fast-glob` → `braces`, DoS khi xử lý mẫu glob lồng sâu). Chỉ chạy lúc lint, không vào bản chạy thật. Gợi ý `npm audit fix --force` hạ `eslint-config-next` xuống 14, sai hướng nên không áp dụng; xem lại khi có bản vá.
 - Playwright dùng cổng 3100 và `npm run dev`; có thể đổi sang build + start khi thiết lập CI ở phase 5.
 - Còn một kiểm tra của phase 1 chưa làm được: "từ trang chủ tới game hoặc tiện ích trong tối đa 2 lần bấm" cần trang game và tiện ích thật, nên chuyển sang nghiệm thu ở phase 2-3.
+
+## Phase 2 - Kho game và nhúng game
+
+Kết quả kiểm tra (chưa commit, working tree còn thay đổi so với `30a79ba`):
+
+| Kiểm tra | Kết quả |
+|---|---|
+| `npm run typecheck`, `npm run lint` | Đạt |
+| `npm test` (Vitest) | 36/36 đạt: thêm 16 test cho `src/lib/catalog.ts` (lọc theo môn, lớp, từ khoá không dấu, tính toàn vẹn danh mục) |
+| `npm run build` | Đạt; `/games/gargamel-bat-xi-trum` được dựng tĩnh |
+| `npm run test:e2e` | 20/20 đạt, chạy hai lần liên tiếp trên bản build thật |
+| Kiểm tra bằng mắt | Đã xem `/games` ở 375px và 1280px, trang chơi ở 1280px và 375px với game thật đã tải trong iframe |
+| Game thật trong iframe | Kiểm tra bằng script Playwright: iframe `src` đúng, lớp phủ "Đang tải" ẩn sau khi tải, game hiển thị trong khung ở cả hai viewport |
+
+Các test e2e về trạng thái tải dùng game giả (chặn mạng); việc game thật chạy được kiểm tra riêng như bảng trên.
+
+### Quyết định và lệch so với plan
+
+- **Bỏ trường `thumbnail`.** Chưa có ảnh đại diện thật cho game, và ảnh trong game có nhân vật của bên thứ ba. Thẻ game dùng khối biểu tượng chung. Thêm trường này khi có ảnh phù hợp.
+- **Thêm trường `featured`** để trang chủ biết game nào hiện ở "Trò chơi nổi bật". Khi không có game nổi bật, trang chủ quay về trạng thái trống như phase 1.
+- **Môn và lớp rỗng nghĩa là "mọi môn" / "mọi lớp".** Game gọi tên dùng được ở mọi lớp nên để rỗng; bộ lọc luôn giữ lại các game như vậy. Danh sách môn và lớp (`SUBJECTS`, `GRADES`) là quyết định tạm, sửa trong `src/lib/catalog.ts`.
+- **Mô tả game viết từ việc xem game chạy thật**, không phải từ tài liệu của game; chủ dự án nên đọc lại cho đúng ý.
+- **Tắt `partialPrefetching` trong `next.config.ts`.** Scaffold bật sẵn nhưng dự án không dùng. Khi bật, id không có trong danh mục trả về HTTP 200 (trang chuyển luồng rồi mới gọi `notFound()`), chỉ có thẻ `noindex`; khi tắt, đúng mã 404. `cacheComponents` vẫn bật. Phát hiện nhờ chạy e2e trên bản build thật (chế độ dev lại trả 404 nên che mất lỗi).
+- **Thêm `src/app/not-found.tsx` bằng tiếng Việt** để mọi trang 404 (kể cả id game sai) không rơi về trang mặc định tiếng Anh.
+- **Playwright chạy bản build thật** (`npm run build && npm run start`) thay cho `next dev`. Lần chạy dev trước đó dùng chung thư mục `.next` với `next build` và từng báo `SyntaxError: Unexpected end of JSON input`, làm hai test thất bại; sau khi xoá `.next` và chạy lại thì đạt. Bản build thật cũng bỏ vấn đề đó.
+- **Iframe chỉ dựng sau khi hydrate** (`useSyncExternalStore`), để sự kiện `load` không bị bỏ lỡ. `sandbox="allow-scripts allow-same-origin allow-popups allow-forms"`; nút "Mở trong tab mới" luôn hiện vì không thể phát hiện lỗi tải iframe khác origin. Sau 8 giây chưa tải xong, lớp phủ gợi ý dùng nút đó. Nút "Toàn màn hình" ẩn khi trình duyệt không hỗ trợ (ví dụ iPhone).
+
+### Còn lại cho phase này
+
+- Chưa kiểm tra trên điện thoại thật (âm thanh, toàn màn hình, cảm ứng): plan yêu cầu kiểm tra thủ công.
+- Quyết định bản quyền của game (Peyo/IMPS, Ubisoft) vẫn chờ chủ dự án trước khi công khai ở phase 5. Trang chơi đang hiển thị đúng dòng ghi nguồn của chính game.

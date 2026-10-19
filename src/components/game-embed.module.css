@@ -1,0 +1,52 @@
+.embed {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.frame {
+  position: relative;
+  width: 100%;
+  height: clamp(480px, 78dvh, 900px);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  background: var(--color-primary-tint);
+  text-align: center;
+  pointer-events: none;
+}
+
+.loadingTitle {
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+
+.loadingText {
+  max-width: 44ch;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}

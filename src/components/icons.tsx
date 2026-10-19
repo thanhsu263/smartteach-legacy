@@ -58,6 +58,31 @@ export function PencilIcon(props: IconProps) {
   );
 }
 
+export function GamepadIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M7 8h10a4 4 0 0 1 3.9 4.8l-.8 4a2.5 2.5 0 0 1-4.3 1.2L14 16H10l-1.8 2a2.5 2.5 0 0 1-4.3-1.2l-.8-4A4 4 0 0 1 7 8z" />
+      <path d="M8 10.5v3M6.5 12h3M15.5 11h.01M17.5 13h.01" />
+    </Icon>
+  );
+}
+
+export function ExternalLinkIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+    </Icon>
+  );
+}
+
+export function FullscreenIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+    </Icon>
+  );
+}
+
 export function MenuIcon(props: IconProps) {
   return (
     <Icon {...props}>

@@ -1,4 +1,4 @@
-Mode: local
+﻿Mode: local
 Status: active
 
 # SmartTeach - Giai đoạn 1 (MVP)
@@ -32,7 +32,7 @@ Ngoài phạm vi: quiz tự soạn và chơi bằng PIN (giai đoạn 2), đề 
 | Phase | Tên | Phụ thuộc | Trạng thái |
 |---|---|---|---|
 | 1 | [Nền tảng và giao diện](./phase-01-nen-tang-giao-dien.md) | không | Done (chờ review) |
-| 2 | [Kho game và nhúng game](./phase-02-kho-game.md) | 1 | Pending |
+| 2 | [Kho game và nhúng game](./phase-02-kho-game.md) | 1 | Done (chờ kiểm tra điện thoại thật và review) |
 | 3 | [Tiện ích lớp học](./phase-03-tien-ich.md) | 1 | Pending |
 | 4 | [Đăng nhập, lớp và yêu thích](./phase-04-dang-nhap-lop.md) | 1, 2, 3 | Pending |
 | 5 | [Triển khai và nghiệm thu](./phase-05-trien-khai.md) | 1-4 | Pending |

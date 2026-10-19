@@ -1,7 +1,11 @@
 import { ButtonLink } from "@/components/button";
 import { ClassroomPreview } from "@/components/classroom-preview";
+import { GameCard } from "@/components/game-card";
 import { ClockIcon, PencilIcon, ShuffleIcon, UsersIcon } from "@/components/icons";
+import { games } from "@/data/games";
 import styles from "./page.module.css";
+
+const featuredGames = games.filter((game) => game.featured).slice(0, 3);
 
 const tools = [
   {
@@ -82,15 +86,30 @@ export default function HomePage() {
         <h2 id="games-title" className={styles.sectionTitle}>
           Trò chơi nổi bật
         </h2>
-        <div className={styles.empty}>
-          <p className={styles.emptyTitle}>Trò chơi đầu tiên đang được chuẩn bị</p>
-          <p className={styles.emptyText}>
-            Khi kho game sẵn sàng, các trò chơi được chọn lọc sẽ hiện ở đây để thầy cô mở ngay.
-          </p>
-          <ButtonLink href="/games" variant="secondary">
-            Đến kho game
-          </ButtonLink>
-        </div>
+        {featuredGames.length > 0 ? (
+          <>
+            <ul className={styles.gameGrid}>
+              {featuredGames.map((game) => (
+                <li key={game.id}>
+                  <GameCard game={game} />
+                </li>
+              ))}
+            </ul>
+            <ButtonLink href="/games" variant="secondary" className={styles.allGames}>
+              Xem toàn bộ kho game
+            </ButtonLink>
+          </>
+        ) : (
+          <div className={styles.empty}>
+            <p className={styles.emptyTitle}>Trò chơi đầu tiên đang được chuẩn bị</p>
+            <p className={styles.emptyText}>
+              Khi kho game sẵn sàng, các trò chơi được chọn lọc sẽ hiện ở đây để thầy cô mở ngay.
+            </p>
+            <ButtonLink href="/games" variant="secondary">
+              Đến kho game
+            </ButtonLink>
+          </div>
+        )}
       </section>
 
       <section className={`container ${styles.section}`} aria-labelledby="account-title">

@@ -95,6 +95,24 @@
   font-size: var(--text-sm);
 }
 
+.gameGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-4);
+}
+
+.gameGrid > li {
+  display: flex;
+}
+
+.gameGrid > li > * {
+  flex: 1;
+}
+
+.allGames {
+  justify-self: start;
+}
+
 .empty {
   display: grid;
   gap: var(--space-2);

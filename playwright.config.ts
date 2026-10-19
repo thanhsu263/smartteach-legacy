@@ -12,9 +12,10 @@ export default defineConfig({
     ...devices["Desktop Chrome"],
   },
   webServer: {
-    command: `npm run dev -- --port ${port}`,
+    // Chạy bản build thật: không dùng chung thư mục .next với `next dev`, và kiểm thử đúng thứ sẽ triển khai.
+    command: `npm run build && npm run start -- --port ${port}`,
     url: `http://localhost:${port}`,
     reuseExistingServer: true,
-    timeout: 120_000,
+    timeout: 240_000,
   },
 });
