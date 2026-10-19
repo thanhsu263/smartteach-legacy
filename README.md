@@ -126,17 +126,17 @@ Mức Free của Supabase Realtime: **200 kết nối đồng thời, 100 tin m�
 
 `npm run test:load` dựng giáo viên và người chơi thật (mỗi người một client Supabase, một WebSocket, dùng đúng mã đồng bộ của ứng dụng), chơi 5 câu (4 dạng), học sinh vào phòng rải trong 3 giây và trả lời sau 0,5-3 giây. Đặt `LOAD_SESSIONS` (số lớp cùng lúc), `LOAD_PLAYERS` (học sinh mỗi lớp), `LOAD_JOIN_SPREAD_MS=0` để thử cả lớp vào đúng một lúc. Kết quả ghi ở `test-results/load-last.txt`. Số đo ngày 2026-10-19 trên một máy phát triển Windows, Supabase cục bộ:
 
-| Cấu hình | Kết nối | Tin Realtime cao nhất / giây | Yêu cầu HTTP cao nhất / giây | Lỗi yêu cầu | Người chơi thấy đủ 5 câu | Độ trễ mở câu tới khi thấy đề (trung vị / p95) |
+| Cấu hình | Kết nối Realtime | Tin Realtime cao nhất / giây | Yêu cầu HTTP cao nhất / giây | Lỗi yêu cầu | Người chơi thấy đủ 5 câu | Độ trễ từ lúc giáo viên bấm mở câu tới khi thấy đề (trung vị / p95; gồm cả lệnh gọi của giáo viên nên là cận trên) |
 |---|---|---|---|---|---|---|
-| 1 lớp x 40 | 41 | 41 | 85 | 0 | 40/40 | 48 / 67 ms |
-| 4 lớp x 40, đổi pha cùng giây | 164 | 164 | 328 | 0 | 160/160 | 48 / 77 ms |
-| 6 lớp x 32 | 198 | 198 | 397 | 53 (xem lưu ý) | 192/192 | 46 / 78 ms |
-| 5 lớp x 40 (vượt trần) | 205 | 123 | 250 | 5 (xem lưu ý) | 200/200 | 47 / 86 ms, lớn nhất 2,0 s |
+| 1 lớp x 40 | 41 cần, 41 sống | 41 | 85 | 0 | 40/40 | 48 / 67 ms |
+| 4 lớp x 40, đổi pha cùng giây | 164 cần, 164 sống | 164 | 328 | 0 | 160/160 | 48 / 77 ms |
+| 6 lớp x 32 | 198 cần, 198 sống | 198 | 397 | 53-181, tuỳ lần chạy (xem lưu ý) | 192/192 | 46 / 78 ms |
+| 5 lớp x 40 (vượt trần) | 205 cần, **200 sống** | 123 | 250 | 5-11 (xem lưu ý) | 200/200 | 47 / 86 ms, lớn nhất 2,0 s |
 
 Đọc kết quả:
 
 - **Một lớp 40 người:** mỗi lần đổi pha có 1 tin gửi và tối đa 40 tin nhận, tức đỉnh 41 tin/giây, dưới trần 100. Trung bình khoảng 12 tin/giây. Cả lớp vào phòng trong cùng một giây (`LOAD_JOIN_SPREAD_MS=0`) vẫn đạt.
-- **Số lớp cùng lúc:** trần cứng là 200 kết nối, tức khoảng 4 lớp 40 người hoặc 6 lớp 32 người. Ở 205 kết nối, đúng 5 kết nối cuối không có kênh nhưng vẫn chơi trọn nhờ polling (độ trễ lớn nhất 2 giây trong thử nghiệm). Khi 160 học sinh của 4 lớp cùng vào phòng trong đúng một giây (`LOAD_JOIN_SPREAD_MS=0`), lần thử đầu có kênh chưa sống sau 20 giây, nên số liệu trên dùng cách vào rải trong 3 giây như lớp học thật; chưa tách được nguyên nhân là trần 100 lượt tham gia kênh mỗi giây hay giới hạn của máy thử. Người chơi chưa có kênh vẫn chơi được bằng polling.
+- **Số lớp cùng lúc:** trần cứng là 200 kết nối, tức khoảng 4 lớp 40 người hoặc 6 lớp 32 người. Ở 205 kết nối cần có, đúng 200 kênh sống (đếm kênh đã tham gia thật) và 5 kết nối cuối không có kênh nhưng vẫn chơi trọn nhờ polling (độ trễ lớn nhất 2 giây trong thử nghiệm). Khi 160 học sinh của 4 lớp cùng vào phòng trong đúng một giây (`LOAD_JOIN_SPREAD_MS=0`), lần thử đầu có kênh chưa sống sau 20 giây, nên số liệu trên dùng cách vào rải trong 3 giây như lớp học thật; chưa tách được nguyên nhân là trần 100 lượt tham gia kênh mỗi giây hay giới hạn của máy thử. Người chơi chưa có kênh vẫn chơi được bằng polling.
 - **Tin mỗi giây khi nhiều lớp đổi pha trùng giây:** tổng tin nhận cộng dồn (4 lớp x 41 = 164 > 100). Stack cục bộ vẫn chuyển hết, nhưng **chưa rõ Supabase đếm mức 100 tin/giây theo tin gửi hay cả tin nhận**; nếu dự án thật chặn, học sinh vẫn nhận đề nhờ polling, chậm tới 10 giây khi kênh vẫn còn sống. Nên kiểm lại ở bước nghiệm thu với hai lớp cùng bấm một lúc.
 - **Tải cơ sở dữ liệu:** trung bình 28 yêu cầu/giây cho một lớp đang chơi (đỉnh 85 khi đổi pha), chủ yếu `player_state`; `player_state` có p95 dưới 70 ms, `submit_answer` dưới 20 ms.
 - **Lưu ý về lỗi ở 198-205 kết nối:** các lỗi là `UND_ERR_SOCKET`, kết nối bị reset ở cổng 54321 của Docker Desktop trên máy thử khi hơn ~170 máy khách cùng mở kết nối mới; Kong và PostgREST không ghi lỗi nào, `Connection: close` không làm hết lỗi. Kịch bản gửi lại một lần như trình duyệt rồi mới tính lỗi, và chỉ khẳng định "không lỗi" ở tối đa 170 kết nối. Đây là giới hạn của máy thử chứ không phải của dịch vụ thật; số kết nối và số tin mới là phần đáng tin, độ trễ chỉ là cận dưới vì không có mạng thật.
@@ -144,7 +144,7 @@ Mức Free của Supabase Realtime: **200 kết nối đồng thời, 100 tin m�
 ### Rà soát trước khi triển khai
 
 - `npm audit --omit=dev`: 0 lỗ hổng.
-- `npm run build` rồi `npm run scan:bundle`: không có khoá `service_role`, khoá bí mật Supabase, chuỗi kết nối Postgres hay Google client secret trong `.next/static` và trang dựng sẵn (kịch bản đã được thử bằng cách cài một khoá giả vào và phải báo lỗi).
+- `npm run build` rồi `npm run scan:bundle`: không có khoá `service_role`, khoá bí mật Supabase, chuỗi kết nối Postgres hay Google client secret trong `.next/static` và trang dựng sẵn (kịch bản đã được thử bằng cách cài một khoá giả vào và phải báo lỗi). Báo cáo chỉ nêu tệp và loại phát hiện, không in giá trị khớp. Sau khi triển khai, quét luôn bản thật: `npm run scan:bundle -- --url https://<địa chỉ Vercel>` (chỉ gửi GET tới vài trang công khai rồi tải các tệp JS/CSS chúng nhắc tới), vì biến môi trường trên Vercel có thể khác máy phát triển.
 - Đáp án đúng không nằm trong mã nguồn mà trong Postgres; `host_state` và `player_state` khi câu đang mở không có khoá đáp án (`tests/db/live.test.ts`, `FORBIDDEN_KEYS`), cả với người chơi, khách và giáo viên khác.
 
 ### Bước triển khai thêm (cần chủ dự án làm hoặc xác nhận)

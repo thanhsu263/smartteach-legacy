@@ -14,6 +14,9 @@ import { buildQuiz, cleanupUsers, config, signUp, type QuestionInput } from "../
  *
  * Biến môi trường: LOAD_PLAYERS (mặc định 40), LOAD_SESSIONS (mặc định 1), LOAD_QUESTIONS (mặc định 5).
  *
+ * Độ trễ tính từ lúc giáo viên bấm mở câu, nên gồm cả lệnh gọi `host_open_question`, lần đồng bộ lại và tin báo: đây
+ * là cận trên của độ trễ truyền tin.
+ *
  * Lưu ý: stack cục bộ chạy trên một máy, không có độ trễ mạng thật. Số kết nối, số tin Realtime và số
  * yêu cầu là phần đáng tin; độ trễ chỉ là cận dưới.
  */
@@ -54,8 +57,9 @@ const metrics = {
   /** Thời gian từ lúc giáo viên mở câu tới lúc người chơi thấy đề (ms). */
   questionLatency: [] as number[],
   missedQuestions: 0,
-  socketsOpen: 0,
-  socketsPeak: 0,
+  /** Kết nối cần có theo kế hoạch (người chơi + giáo viên) và số kênh Realtime thật sự đã sống. */
+  socketsWanted: 0,
+  socketsLive: 0,
   submitFailures: 0,
   notLive: 0,
   socketRetries: 0,
@@ -239,13 +243,13 @@ async function runClass(label: string): Promise<ClassSummary> {
       const status = bot.sync.getSnapshot().status;
       byStatus[status] = (byStatus[status] ?? 0) + 1;
     }
-    process.stderr.write(`Lớp ${label}: không đủ kênh sống: ${JSON.stringify(byStatus)} (${(error as Error).message})
-`);
+    process.stderr.write(`Lớp ${label}: không đủ kênh sống: ${JSON.stringify(byStatus)} (${(error as Error).message})\n`);
     // Vượt trần 200 kết nối thì phần dư vẫn phải chơi được bằng polling; ghi lại để báo cáo, không dừng.
     metrics.notLive += bots.filter((bot) => bot.sync.getSnapshot().status !== "live").length;
   });
-  metrics.socketsOpen += bots.length + 1;
-  metrics.socketsPeak = Math.max(metrics.socketsPeak, metrics.socketsOpen);
+  // Đếm kênh đã sống thật chứ không cộng theo kế hoạch: vượt trần 200 thì số này nhỏ hơn số cần có.
+  metrics.socketsWanted += bots.length + 1;
+  metrics.socketsLive += bots.filter((bot) => bot.sync.getSnapshot().status === "live").length + (hostSync.getSnapshot().status === "live" ? 1 : 0);
 
   for (let index = 1; index <= quizQuestions.length; index += 1) {
     const open = index === 1 ? () => host.open(teacherClient, sessionId) : () => host.next(teacherClient, sessionId);
@@ -297,7 +301,8 @@ function report(sessions: ClassSummary[], elapsedS: number) {
     "số phiên đồng thời": SESSIONS,
     "người chơi mỗi phiên": PLAYERS,
     "số câu": quizQuestions.length,
-    "kết nối WebSocket cùng lúc (cao nhất)": metrics.socketsPeak,
+    "kết nối Realtime cần có (người chơi + giáo viên)": metrics.socketsWanted,
+    "kết nối Realtime đã sống cùng lúc": metrics.socketsLive,
     "thời gian chạy (giây)": Math.round(elapsedS),
     "tin Realtime cao nhất / giây (gửi + nhận)": peakMessages,
     "tin Realtime trung bình / giây": Number((totalMessages / Math.max(1, elapsedS)).toFixed(1)),
@@ -309,9 +314,9 @@ function report(sessions: ClassSummary[], elapsedS: number) {
     "nộp đáp án lỗi": metrics.submitFailures,
     "lượt người-câu không thấy đề": metrics.missedQuestions,
     "người chơi chưa có kênh Realtime sau 30 giây (chơi bằng polling)": metrics.notLive,
-    "độ trễ mở câu -> thấy đề, trung vị (ms)": Math.round(percentile(lat, 50)),
-    "độ trễ mở câu -> thấy đề, p95 (ms)": Math.round(percentile(lat, 95)),
-    "độ trễ mở câu -> thấy đề, lớn nhất (ms)": Math.round(Math.max(...lat)),
+    "độ trễ từ lúc giáo viên bấm mở câu tới khi thấy đề, trung vị (ms)": Math.round(percentile(lat, 50)),
+    "độ trễ từ lúc giáo viên bấm mở câu tới khi thấy đề, p95 (ms)": Math.round(percentile(lat, 95)),
+    "độ trễ từ lúc giáo viên bấm mở câu tới khi thấy đề, lớn nhất (ms)": Math.round(Math.max(...lat)),
     "player_state: số lần gọi": metrics.httpByFn.get("player_state") ?? 0,
     "player_state p95 (ms)": Math.round(percentile(metrics.rpcLatency.get("player_state") ?? [], 95)),
     "submit_answer p95 (ms)": Math.round(percentile(metrics.rpcLatency.get("submit_answer") ?? [], 95)),

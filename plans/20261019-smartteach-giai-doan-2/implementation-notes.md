@@ -303,12 +303,12 @@ Trạng thái: 8.1 và 8.2 xong ở máy phát triển. **8.3 và 8.4 chưa làm
 - Mỗi người chơi là một client Supabase riêng (một WebSocket). Đo: kết nối, tin Realtime mỗi giây (gửi + nhận), yêu cầu HTTP mỗi giây và theo hàm, lỗi, độ trễ từ lúc giáo viên mở câu tới lúc người chơi thấy đề, người chơi thấy đủ mọi câu.
 - Số đo (2026-10-19, máy Windows, Supabase cục bộ có tenant 200 kết nối / 100 tin giây / 100 lượt tham gia giây):
 
-| Cấu hình | Kết nối | Tin cao nhất/giây | HTTP cao nhất/giây | Lỗi | Thấy đủ 5 câu | Độ trễ trung vị / p95 |
+| Cấu hình | Kết nối (cần có / kênh sống) | Tin cao nhất/giây | HTTP cao nhất/giây | Lỗi | Thấy đủ 5 câu | Độ trễ trung vị / p95 (từ lúc bấm mở câu, cận trên) |
 |---|---|---|---|---|---|---|
-| 1 x 40 | 41 | 41 | 85 | 0 | 40/40 | 48 / 67 ms |
-| 4 x 40 (đổi pha cùng giây) | 164 | 164 | 328 | 0 | 160/160 | 48 / 77 ms |
-| 6 x 32 | 198 | 198 | 397 | 53* | 192/192 | 46 / 78 ms |
-| 5 x 40 (vượt trần) | 205 | 123 | 250 | 5* | 200/200 | 47 / 86 ms (lớn nhất 2,0 s) |
+| 1 x 40 | 41/41 | 41 | 85 | 0 | 40/40 | 48 / 67 ms |
+| 4 x 40 (đổi pha cùng giây) | 164/164 | 164 | 328 | 0 | 160/160 | 48 / 77 ms |
+| 6 x 32 | 198/198 | 198 | 397 | 53-181* | 192/192 | 46 / 78 ms |
+| 5 x 40 (vượt trần) | 205 cần, 200 sống | 123 | 250 | 5* | 200/200 | 47 / 86 ms (lớn nhất 2,0 s) |
 
 \* `UND_ERR_SOCKET` do cổng Docker Desktop của máy thử reset kết nối mới khi hơn ~170 máy khách cùng bắn hàng trăm yêu cầu/giây; Kong và PostgREST không ghi lỗi, `Connection: close` không làm hết. Kịch bản gửi lại một lần như trình duyệt, và chỉ khẳng định "không lỗi / thấy đủ câu" khi tổng kết nối ≤ 170 (`VERIFIED_SOCKETS`).
 
@@ -327,3 +327,15 @@ Trạng thái: 8.1 và 8.2 xong ở máy phát triển. **8.3 và 8.4 chưa làm
 ### 8.3 và 8.4: chờ chủ dự án
 
 Danh sách bước và cách kiểm tra (áp migration bằng `supabase db push`, `unaccent`, bật `pg_cron`, Realtime kênh công khai, vị trí phần tử `x-forwarded-for`, nghiệm thu thiết bị thật) nằm ở README. Cần ghi xác nhận từng mục vào đây khi làm xong.
+
+### Sửa sau review phase 8
+
+Review không có Critical hay High; hai mục Low đã sửa, mục Medium chờ đo trên dự án thật.
+
+| Mục | Cách sửa | Kiểm chứng |
+|---|---|---|
+| Low: `scan:bundle` in 24 ký tự đầu của giá trị khớp (lộ ~14 ký tự khoá thật vào log CI) và chỉ quét bản build ở máy | Báo cáo chỉ nêu tệp và loại phát hiện. Thêm chế độ `--url <địa chỉ>`: chỉ GET vài trang công khai rồi tải các tệp `/_next/static` chúng nhắc tới, để quét bản đã triển khai. Thoát bằng `process.exitCode` vì `process.exit` làm tiến trình chết với mã 127 (assert của libuv trên Windows) khi còn kết nối fetch đang đóng, che mất mã 1 | Cài khoá giả `sb_secret_...` vào `.next/static` và vào một máy chủ giả: thoát mã 1, đầu ra không chứa giá trị; bản sạch thoát mã 0; địa chỉ sai thoát mã 2 |
+| Low: báo cáo tải ghi "kết nối" theo kế hoạch (205), nhãn độ trễ không nói đã gồm lệnh gọi của giáo viên, có chuỗi xuống dòng thật | Đếm kênh đã sống thật (`status === "live"`), báo cả "cần có" và "đã sống"; nhãn độ trễ ghi rõ tính từ lúc bấm mở câu (cận trên); nối lại chuỗi | Chạy lại 1x40, 4x40, 6x32 và 5x40: kết nối sống 41, 164, 198 và **đúng 200** (cần có 205), nên trần 200 được xác nhận bằng số đếm chứ không suy ra |
+| Medium (chưa sửa): tin bị chặn mà kênh còn sống thì học sinh nhận đề chậm tới 10 giây | Chờ đo trên dự án thật ở 8.4 (hai lớp cùng bấm một lúc). Nếu có chặn: hỏi dự phòng 3-4 giây ở pha `question` thay vì 10 giây | - |
+
+Số lỗi yêu cầu của 6 lớp x 32 dao động 53-181 giữa các lần chạy (reset kết nối của cổng Docker trên máy thử); số người thấy đủ câu vẫn 192/192.
