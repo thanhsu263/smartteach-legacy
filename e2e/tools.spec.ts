@@ -184,6 +184,23 @@ test.describe("bốc thăm tên", () => {
     await expect(draw).toBeDisabled();
   });
 
+  test("hiệu ứng quay tên (mặc định) chạy rồi dừng ở một bạn, nút khoá trong lúc quay", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto("/tools/draw");
+    await waitForHydration(page);
+    await page.getByLabel("Danh sách tên").fill("An\nBình\nChi");
+
+    const draw = page.getByRole("button", { name: "Bốc thăm" });
+    await draw.click();
+    await expect(draw).toBeDisabled();
+    await expect(page.getByRole("status")).toHaveText("");
+
+    await expect(page.getByRole("status")).toContainText("Đã bốc:", { timeout: 4000 });
+    await expect(draw).toBeEnabled();
+    await expect(page.getByText("Còn 2 / 3 bạn")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Đã bốc" })).toBeVisible();
+  });
+
   test("sửa danh sách thì kết quả đã bốc được làm mới", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/tools/draw");

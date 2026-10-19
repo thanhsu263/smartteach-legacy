@@ -167,3 +167,51 @@ Review `hs-code-review` (commit dd963e4) tìm ra một lỗi High, một lỗi M
 Kết quả sau sửa: typecheck, lint đạt; 87 unit, 22 test RLS/DB, 78 e2e (hai lần liên tiếp trên bản build thật với Supabase cục bộ). Migration mới đã áp lên stack cục bộ bằng `npx supabase migration up`; áp lên dự án thật vẫn thuộc phase 5 và cần xác nhận.
 
 Còn lại từ review phase 4: chưa có thông báo quyền riêng tư cho dữ liệu tên học sinh (cần chủ dự án quyết định trước khi công khai); Google OAuth và dự án Supabase thật chưa được thử; CSP đầy đủ cho script; một test RLS cho "khách đọc `students`" (đã có ở nhóm khách chưa đăng nhập).
+
+## Phase 5 - Triển khai và nghiệm thu
+
+Phần làm được ở máy đã xong (5.1 và phần cục bộ của 5.3). Việc triển khai thật (5.2) chưa làm: cần quyết định bản quyền của game, tài khoản Vercel và Supabase, và Google Cloud của chủ dự án; mọi bước ghi ra bên ngoài cần xác nhận.
+
+### Đã làm
+
+- **`README.md`:** chạy ở máy (chế độ khách và có Supabase cục bộ), bảng lệnh, biến môi trường, cấu trúc thư mục, và quy trình triển khai Vercel + Supabase (có ghi rõ chưa chạy thật), cách xử lý khi Supabase tạm dừng dự án, danh sách nghiệm thu sau triển khai.
+- **Đối chiếu gói miễn phí theo trang giá ngày 2026-10-19:** Supabase Free: 2 dự án hoạt động, 500 MB cơ sở dữ liệu, 50.000 người dùng hoạt động hằng tháng, 5 GB băng thông, **tạm dừng sau 1 tuần không hoạt động**. Vercel Hobby: dành cho mục đích cá nhân, phi thương mại; 100 GB băng thông, 1 triệu yêu cầu mỗi tháng; hết hạn mức thì bị giới hạn, không mua thêm được. Dự án miễn phí cho giáo viên phù hợp điều kiện phi thương mại; nếu sau này thu phí thì phải đổi gói. Cần kiểm tra lại trước khi triển khai.
+- **Rà soát WCAG A/AA bằng axe** (`e2e/a11y.spec.ts`, `e2e/a11y-auth.spec.ts`): mọi trang công khai ở 375px và 1280px (kể cả trang 404), các trạng thái (đăng ký, lời mời đăng nhập khi yêu thích, không có kết quả lọc, đồng hồ hết giờ và lỗi, bốc thăm đã hết, chia nhóm lỗi và có kết quả, bảng trắng, menu điện thoại mở) và khi đã đăng nhập (Lớp của tôi, xác nhận xoá, chi tiết lớp, sửa tên, đổi tên lớp, chọn lớp trong tiện ích, điều hướng). Không có vi phạm. Đã kiểm tra bộ quét có tác dụng: chèn cố ý nút không tên, chữ nhạt và ảnh thiếu alt thì axe báo `button-name`, `color-contrast`, `image-alt`. Axe không thay thế kiểm tra bằng trình đọc màn hình và bàn phím thủ công.
+- **Không có khoá bí mật:** khoá `service_role` và khoá secret của Supabase không có trong file được theo dõi, và không có trong gói chạy trên trình duyệt (so sánh trực tiếp giá trị thật); JWT duy nhất trong gói là vai trò `anon`. `.env.local` bị bỏ qua khỏi git. `npm audit --omit=dev` báo 0 lỗ hổng.
+- **Dọn các mục review còn lại:** thêm token `on-primary-muted` vào DESIGN.md; Playwright chỉ tái dùng server đang chạy khi không ở CI (tránh báo đạt giả trên server cũ); thêm test cho đường quay tên có hiệu ứng.
+
+### Quyết định của chủ dự án trong phase 5
+
+- **Bản quyền game:** giữ game và công khai kèm ghi nguồn; chủ dự án chịu trách nhiệm về nội dung của bên thứ ba. Không có thay đổi mã; README ghi rõ để có phương án gỡ nếu bên sở hữu yêu cầu.
+- **Quyền riêng tư:** soạn bản nháp để chủ dự án xem lại. Đã thêm trang `/privacy` (liên kết ở chân trang và trang đăng nhập) nêu dữ liệu lưu, mục đích, nơi lưu, cookie, game bên khác và cách xoá. Trang hiện biểu ngữ "bản nháp" cho tới khi đặt `privacyReviewed: true` trong `src/config/site.ts`; email liên hệ lấy từ `contactEmail` (chưa điền thì trang nói thẳng là chưa có địa chỉ). Đây không phải tư vấn pháp lý: cần rà theo quy định hiện hành về bảo vệ dữ liệu cá nhân của Việt Nam, đặc biệt dữ liệu trẻ em. Chưa có chức năng tự xoá tài khoản trong ứng dụng, chỉ xoá lớp, học sinh và yêu thích.
+- **Cách triển khai:** chủ dự án tự thao tác trên Vercel, Supabase, Google Cloud theo README; tôi chỉ hướng dẫn và chạy kiểm tra, không cần quyền truy cập các dịch vụ đó.
+
+### Lệch so với plan
+
+- **Không chạy Playwright trên URL công khai** như 5.3 viết: các test đăng nhập tạo tài khoản và dữ liệu thật trong dự án. Nghiệm thu trên môi trường thật làm tay theo danh sách trong README, dùng tài khoản thử rồi xoá; toàn bộ bộ test chạy trên bản build thật với Supabase cục bộ.
+
+### Kết quả kiểm tra
+
+typecheck, lint đạt; 87 unit, 22 test RLS/DB, 115 e2e (hai lần liên tiếp trên bản build thật, có Supabase cục bộ); build đạt.
+
+### Nghiệm thu giai đoạn 1 theo tiêu chí của Decision Brief
+
+| Tiêu chí | Bằng chứng | Trạng thái |
+|---|---|---|
+| Khách mở trang chủ và danh mục game, lọc theo môn và lớp | Unit `catalog.test.ts`; e2e `games.spec.ts`, `home.spec.ts` | Đạt (cục bộ) |
+| Game quyentran.online mở được từ hub trên điện thoại và máy tính | E2E kiểm tra iframe ở 375px và 1280px (game giả); script riêng tải game thật và thấy hiển thị ở cả hai viewport (phase 2) | Đạt trên trình duyệt giả lập. **Chưa thử điện thoại thật** (âm thanh, toàn màn hình, cảm ứng) |
+| Tiện ích dùng được không cần đăng nhập | Unit logic; e2e `tools.spec.ts`; `auth.spec.ts` kiểm tra khách không bị hỏi đăng nhập | Đạt (cục bộ) |
+| Giáo viên đăng ký, đăng nhập, đăng xuất; học sinh không cần tài khoản | E2E `auth.spec.ts` bằng email trên Supabase cục bộ | Email đạt (cục bộ). **Google chưa thử** (cần OAuth thật) |
+| Lưu danh sách lớp, dùng lại cho bốc thăm/chia nhóm, chỉ xem/sửa dữ liệu của mình | 22 test RLS trên Postgres thật (đã thử phá bảo vệ thì test hỏng); e2e hai giáo viên | Đạt (cục bộ). **Chưa chạy trên dự án Supabase thật** |
+| Yêu thích bật/tắt; khách được gợi ý đăng nhập | E2E `auth.spec.ts` | Đạt (cục bộ) |
+| Triển khai công khai trên free tier, chi phí hạ tầng 0 | Đã đối chiếu trang giá (xem trên) | **Chưa triển khai** (5.2) |
+| Trạng thái giao diện và WCAG AA | Axe trên 30 trang/trạng thái công khai và 2 luồng đã đăng nhập; unit tương phản token; e2e menu, focus, tiêu đề | Đạt bằng công cụ. **Chưa thử trình đọc màn hình** |
+
+### Việc còn lại trước khi công khai (cần chủ dự án)
+
+1. **Quyết định bản quyền của game** (Peyo/IMPS, Ubisoft; game tự ghi "nội bộ, phi thương mại"): đưa lên hub công khai, thay bằng game khác, hay chỉ cho phép nội bộ.
+2. **Thông báo quyền riêng tư:** ứng dụng lưu tên học sinh (trẻ em) trên cơ sở dữ liệu đám mây nhưng chưa có điều khoản hay chính sách quyền riêng tư. Cần quyết định nội dung và nơi đặt trước khi công khai.
+3. **Tạo dự án Supabase và Vercel, cấu hình Google OAuth, áp migration** theo README; sau đó chạy danh sách nghiệm thu sau triển khai bằng tài khoản thử.
+4. **Tên thương hiệu và tên miền** (hiện là "SmartTeach" tạm); thêm `metadataBase` khi có domain.
+5. **CSP đầy đủ cho script** (hiện mới có `frame-ancestors`). Dùng nonce buộc các trang phải dựng động, đánh đổi với việc dựng tĩnh, nên chưa làm; cần quyết định.
+6. Kiểm tra thủ công trên điện thoại thật và bằng trình đọc màn hình.

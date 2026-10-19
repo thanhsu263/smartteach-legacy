@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { LogoMark } from "@/components/icons";
-import { loginNav, mainNav } from "@/config/navigation";
+import { loginNav, mainNav, privacyNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import styles from "./site-footer.module.css";
 
 export function SiteFooter() {
-  const links = [...mainNav, loginNav];
+  const links = [...mainNav, loginNav, privacyNav];
   return (
     <footer className={styles.footer}>
       <div className={`container ${styles.inner}`}>

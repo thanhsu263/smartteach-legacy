@@ -5,4 +5,11 @@ export const siteConfig = {
   description:
     "Trò chơi học tập và tiện ích lớp học cho giáo viên: đồng hồ đếm ngược, bốc thăm tên, chia nhóm, bảng trắng. Miễn phí, mở ngay trên trình duyệt.",
   copyrightYear: 2026,
-} as const;
+  /** Email nhận yêu cầu về dữ liệu (ví dụ xoá tài khoản). Chủ dự án điền trước khi công khai. */
+  contactEmail: "" as string,
+  /**
+   * Chủ dự án đặt true sau khi đã đọc và duyệt trang Quyền riêng tư (và rà theo quy định hiện hành
+   * về bảo vệ dữ liệu cá nhân). Khi còn false, trang hiện biểu ngữ "bản nháp".
+   */
+  privacyReviewed: false as boolean,
+};

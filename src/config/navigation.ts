@@ -11,5 +11,7 @@ export const mainNav: readonly NavItem[] = [
 
 export const loginNav: NavItem = { href: "/login", label: "Đăng nhập" };
 
+export const privacyNav: NavItem = { href: "/privacy", label: "Quyền riêng tư" };
+
 /** Chỉ hiện khi giáo viên đã đăng nhập. */
 export const accountNav: NavItem = { href: "/my-classes", label: "Lớp của tôi" };

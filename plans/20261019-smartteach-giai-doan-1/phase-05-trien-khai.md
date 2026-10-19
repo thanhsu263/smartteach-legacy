@@ -11,7 +11,7 @@
 
 ## Tasks
 
-- [ ] **5.1 Chuẩn bị triển khai.** Đối chiếu danh sách biến môi trường với `.env.example`; thêm `README.md`; chạy `npm run build`, `npm run lint`, toàn bộ unit test và Playwright cục bộ.
+- [x] **5.1 Chuẩn bị triển khai.** Đối chiếu danh sách biến môi trường với `.env.example`; thêm `README.md`; chạy `npm run build`, `npm run lint`, toàn bộ unit test và Playwright cục bộ.
 - [ ] **5.2 Triển khai công khai.** Điều kiện trước: chủ dự án đã quyết định về nội dung bản quyền của game (xem plan.md), vì đây là lúc game thành công khai. Tạo dự án Vercel, thiết lập biến môi trường, áp migration lên Supabase, cấu hình URL gọi lại của Google OAuth theo domain thật. Mỗi bước cần xác nhận. Đối chiếu gói Vercel và Supabase đang dùng với trang giá hiện hành để bảo đảm chi phí 0, và ghi chính sách tạm dừng dự án không hoạt động vào `README.md`.
 - [ ] **5.3 Nghiệm thu.** Chạy lại Playwright trên URL công khai cho các luồng của phase 2-4; rà soát WCAG AA (tương phản, bàn phím, nhãn cho nút chỉ có biểu tượng, `lang="vi"`); kiểm tra thủ công trên một điện thoại thật: mở game, dùng một tiện ích, đăng nhập Google. Ghi kết quả vào `implementation-notes.md`.
 

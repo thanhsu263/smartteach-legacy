@@ -9,6 +9,7 @@ const routes = [
   "/tools",
   ...tools.map((tool) => tool.href),
   "/login",
+  "/privacy",
 ];
 
 /** Cấp của từng tiêu đề theo thứ tự xuất hiện trên trang. */

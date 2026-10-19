@@ -15,6 +15,7 @@ colors:
   border-strong: "#7C8AA5"
   success: "#14703F"
   danger: "#B3261E"
+  on-primary-muted: "#DBE5FF"
 typography:
   display:
     fontFamily: "Be Vietnam Pro, system-ui, sans-serif"
@@ -115,6 +116,7 @@ Xanh dương làm màu chủ đạo, vàng chỉ cho nút kêu gọi hành độ
 - **Bề mặt (Paper)** (#FFFFFF): thẻ, ô nhập, ngăn kéo.
 - **Viền (Hairline)** (#D5DDEB): đường kẻ trang trí, viền thẻ.
 - **Viền ô nhập (Control Edge)** (#7C8AA5): viền của ô nhập và nút phụ, đạt 3:1 so với bề mặt.
+- **Chữ phụ trên nền xanh (Chalk Dust)** (#DBE5FF): đoạn mô tả dưới tiêu đề hero, đạt 4.5:1 trên Xanh bảng.
 - **Thành công** (#14703F) và **Lỗi** (#B3261E): chỉ dùng kèm biểu tượng hoặc chữ, không chỉ bằng màu.
 
 ### Named Rules

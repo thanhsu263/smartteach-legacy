@@ -22,7 +22,9 @@ export default defineConfig({
     // Chạy bản build thật: không dùng chung thư mục .next với `next dev`, và kiểm thử đúng thứ sẽ triển khai.
     command: `npm run build && npm run start -- --port ${port}`,
     url: `http://localhost:${port}`,
-    reuseExistingServer: true,
+    // Ngoài CI cho phép tái dùng server đang chạy để chạy lại nhanh; ở CI luôn dựng bản build mới,
+    // để test không chạy nhầm trên một server cũ rồi báo đạt giả.
+    reuseExistingServer: !process.env.CI,
     timeout: 240_000,
   },
 });
