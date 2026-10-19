@@ -76,3 +76,38 @@ Phát hiện thêm khi làm: nút "Lưu câu hỏi" bị `disabled` trong lúc l
 Kết quả: typecheck, lint, 127 unit, 60 DB, 131 e2e đạt (hai lần liên tiếp).
 
 Chưa sửa (ngoài phạm vi phase này): ba mục xác nhận tại chỗ của giai đoạn 1 (`classes-manager`, `class-editor`) vẫn có cùng kiểu mất focus.
+
+## Phase 3 - Máy chủ chơi trực tiếp
+
+Kết quả kiểm tra (chưa commit): typecheck, lint đạt; 127 unit; **97 test DB** (60 cũ và 37 mới trong `tests/db/live.test.ts`); 131 e2e (hồi quy). `supabase db reset` áp đủ bốn migration từ đầu.
+
+### Đã phá thử để chắc test thật sự bắt lỗi (3.6)
+
+Mỗi lần đổi một chỗ trong cơ sở dữ liệu cục bộ, chạy test liên quan, rồi khôi phục:
+
+| Phá thử | Kết quả |
+|---|---|
+| Cấp `select` bảng `participants` cho `anon` | Test "khách không đọc, ghi, sửa, xoá" hỏng |
+| Cho `question_public` trả thêm trường `key` | Test "khi câu đang mở không có khoá đáp án" hỏng |
+| Bỏ điều kiện hạn chót trong `submit_answer` | Test hạn chót (chờ 2,3 giây thật) hỏng |
+| `client_ip` tin phần tử đầu của `x-forwarded-for` | Hai test chặn IP hỏng |
+| Nhiều đáp án cho phép chọn thừa | Test chấm điểm hỏng |
+
+### Quyết định và lệch so với plan
+
+- **Migration:** `supabase/migrations/20261022090000_live_sessions.sql`. Bật `unaccent` trong schema `extensions`; gọi bản hai đối số `extensions.unaccent('extensions.unaccent'::regdictionary, …)` vì `search_path` rỗng làm bản một đối số không tìm thấy từ điển.
+- **`join_session` trả mã kết quả** (`ok`, `invalid_pin`, `too_many_attempts`, `session_started`, `room_locked`, `invalid_nickname`, `nickname_taken`, `room_full`) thay vì exception, vì exception hoàn tác cả giao dịch nên lần nhập sai PIN sẽ không được ghi lại. Các hàm còn lại báo lỗi bằng exception có thông báo cố định (`invalid_token`, `answer_closed`, `already_answered`, `invalid_answer`, `participant_removed`, `invalid_transition`, `session_ended`, `session_not_found`, `quiz_not_playable`, `session_already_active`, …).
+- **Quyền theo cột:** giáo viên chỉ `select` được các cột an toàn của `live_sessions` (không có `quiz_snapshot`) và `participants` (không có `token`). Hệ quả: máy khách phải liệt kê cột, `select("*")` bị từ chối (`42501`). Ghi chú này cần cho phase 6.
+- **`host_state` không kèm khoá đáp án khi câu đang mở**, vì màn hình này được chiếu cho cả lớp; khoá và phân bố chỉ có sau khi đóng câu.
+- **Giới hạn người chơi:** tối đa 50 người đang ở lại và 100 dòng mỗi phiên (người bị loại vẫn giữ dòng và biệt danh, nên không nhồi vô hạn); trigger ép cả khi chèn thẳng bằng `service_role`.
+- **Chấm điểm lúc đóng câu** (`host_close_question`), không phải lúc nộp, nên điểm và đúng/sai không lộ trước. `host_end_session` giữa câu cũng chấm câu đang mở.
+- **Khoá phiên:** `submit_answer` và `join_session` khoá chia sẻ dòng phiên, các hàm `host_*` khoá độc quyền, nên không có câu trả lời lọt vào giữa lúc đóng câu và chấm điểm.
+- **Phiên quá hạn** coi như đã kết thúc ở mọi hàm mà không cần ghi; `create_session` dọn các phiên quá hạn để trả PIN và chỗ "một phiên mỗi giáo viên".
+- **Câu trả lời điền từ:** tab hoặc xuống dòng một mình (không có ký tự nhìn thấy) bị từ chối. Lần chạy đầu test bắt được lỗi: `btrim` chỉ cắt dấu cách nên "   \t " lọt qua; đã sửa bằng kiểm tra `~ '\S'`. Biệt danh có tab hoặc xuống dòng bên trong được gộp thành một dấu cách.
+- **Chặn đoán PIN:** chỉ tin phần tử **cuối** của `x-forwarded-for`. Trên stack cục bộ đã kiểm chứng giá trị tự đặt không né được. Số tầng proxy trên Supabase thật chưa biết nên **phải kiểm tra ở task 8.3** (nếu có thêm tầng sau, phần tử cuối có thể là địa chỉ proxy chứ không phải của học sinh, khi đó cả lớp chung một giới hạn).
+- **Test dùng `docker exec … psql`** (`psql()` trong `tests/db/live-helpers.ts`) để giả lập địa chỉ IP khác và gọi hàm `private`; vì vậy test cần Docker và container `supabase_db_smartteach`. Các test đoán PIN xoá `join_attempts` sau khi chạy để không chặn các test khác cùng IP cục bộ.
+- **Chưa làm đúng phạm vi:** giao diện, Realtime, xoá dữ liệu sau 90 ngày (phase 7), hàm xem kết quả sau buổi (phase 7). Migration mới chỉ áp lên stack cục bộ; áp lên dự án thật và kiểm tra `unaccent` có sẵn là việc của 8.3.
+
+### Việc tiếp theo
+
+Phase 3 là ranh giới bảo mật duy nhất của phần học sinh: **chạy `hs-code-review` riêng cho phase 3 trước khi làm phase 4.**
