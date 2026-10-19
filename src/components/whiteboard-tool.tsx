@@ -109,6 +109,15 @@ export function WhiteboardTool() {
 
   function handleDown(event: PointerEvent<HTMLCanvasElement>) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
+    // Đang có một nét thì bỏ qua con trỏ thứ hai (ngón thứ hai hay lòng bàn tay). Nếu ghi đè,
+    // nét đầu không bao giờ được lưu và biến mất ở lần vẽ lại sau đó.
+    const active = drawing.current;
+    if (active) {
+      if (event.currentTarget.hasPointerCapture(active.pointerId)) return;
+      // Con trỏ cũ đã mất quyền bắt mà không báo kết thúc: lưu nét dở rồi nhận nét mới.
+      strokes.current.push(active.stroke);
+      drawing.current = null;
+    }
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     const size = SIZES.find((item) => item.id === sizeId) ?? SIZES[1];
@@ -212,6 +221,7 @@ export function WhiteboardTool() {
             onPointerMove={handleMove}
             onPointerUp={handleUp}
             onPointerCancel={handleUp}
+            onLostPointerCapture={handleUp}
           />
         </div>
       </div>

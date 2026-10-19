@@ -21,7 +21,7 @@ export default function ToolsPage() {
       <ul className={styles.grid}>
         {tools.map((tool) => (
           <li key={tool.id}>
-            <ToolCard tool={tool} />
+            <ToolCard tool={tool} headingLevel={2} />
           </li>
         ))}
       </ul>

@@ -7,6 +7,15 @@ export function parseNames(text: string): string[] {
 }
 
 /**
+ * Số người chưa được bốc. Lịch sử `taken` có thể chứa cùng một vị trí nhiều lần
+ * (khi cho phép bốc lại), nên chỉ đếm các vị trí khác nhau và còn nằm trong danh sách.
+ */
+export function remainingCount(total: number, taken: readonly number[]): number {
+  const distinct = new Set(taken.filter((index) => index >= 0 && index < total));
+  return Math.max(0, total - distinct.size);
+}
+
+/**
  * Chọn ngẫu nhiên một vị trí chưa nằm trong `taken`.
  * Trả về null khi không còn vị trí nào để chọn.
  */

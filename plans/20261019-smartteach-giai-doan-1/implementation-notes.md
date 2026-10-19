@@ -96,3 +96,17 @@ Playwright phủ: cả bốn tiện ích mở được khi chưa đăng nhập �
 ### Còn lại cho phase này
 
 - Chưa kiểm tra trên thiết bị thật: cảm ứng và độ mượt của canvas trên điện thoại cũ, âm báo hết giờ (test không nghe được âm thanh), toàn màn hình trên iPhone (không hỗ trợ nên nút ẩn đi).
+
+## Sửa sau review phase 1-3
+
+Review `hs-code-review` (commit 30a79ba, 2dea2c0, 613ac25) tìm ra hai lỗi Medium và một lỗi Low đã tái hiện được. Mỗi lỗi có test hồi quy; các test đó đã được chạy trên mã chưa sửa và thất bại (bốc thăm: không tìm thấy "Còn 1 / 2 bạn"; bảng trắng: 38 pixel còn lại so với hơn 931 mong đợi; tiêu đề: `/tools` nhảy h1 → h3 và trang chủ có h2 trong h2), rồi đạt sau khi sửa.
+
+| Lỗi | Nguyên nhân gốc | Sửa | Test hồi quy |
+|---|---|---|---|
+| Bốc thăm đếm sai và khoá nút sau khi bật lại "Không bốc lại" (hiện "Còn -2 / 2 bạn") | Đếm bằng `taken.length`, mà lịch sử có thể chứa cùng một người nhiều lần khi tuỳ chọn tắt | Hàm `remainingCount` chỉ đếm người khác nhau còn trong danh sách ([draw.ts](../../src/lib/utilities/draw.ts)); component dùng nó cho cả "còn lại" và "bốc hết" | 4 unit test `remainingCount`; e2e "bật lại 'Không bốc lại' sau nhiều lượt bốc lặp" (cố định `Math.random` để kết quả xác định) |
+| Bảng trắng mất nét của ngón đang vẽ khi có ngón thứ hai chạm | `handleDown` ghi đè `drawing.current` nên nét đầu không bao giờ vào danh sách nét và biến mất ở lần vẽ lại | Bỏ qua con trỏ thứ hai khi nét đầu còn được bắt; nếu con trỏ cũ đã mất quyền bắt thì lưu nét dở rồi nhận nét mới; thêm `onLostPointerCapture` | e2e "chạm hai ngón không làm mất nét" (giả lập hai ngón, đổi kích thước, so điểm ảnh còn lại) |
+| Cấp tiêu đề nhảy (`/tools` h1 → h3; trang chủ h2 lồng trong h2) | Thẻ game và thẻ tiện ích cố định cấp tiêu đề (h2 và h3) bất kể nằm ở đâu | Prop bắt buộc `headingLevel` (2 hoặc 3) cho `GameCard` và `ToolCard`; trang chủ dùng 3, `/games` và `/tools` dùng 2 | e2e `headings.spec.ts`: mọi trang có đúng một h1 và không nhảy cấp, cộng kiểm tra chính xác cấu trúc tiêu đề trang chủ |
+
+Quyết định: khi đang có nét vẽ, ngón thứ hai bị bỏ qua (ưu tiên con trỏ đầu) thay vì vẽ song song. Cách này tránh vệt do lòng bàn tay chạm vào bảng cảm ứng; muốn hai người vẽ cùng lúc thì đổi sang lưu nét theo từng `pointerId`.
+
+Kết quả sau sửa: typecheck, lint đạt; 60 unit test và 55 e2e đạt (hai lần liên tiếp trên bản build thật). Chưa sửa các mục Low 2 (DESIGN.md thiếu token `--color-on-primary-muted`) và ba verification gap còn lại của review.

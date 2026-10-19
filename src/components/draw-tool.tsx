@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/button";
 import { NameListInput } from "@/components/name-list-input";
 import { ToolStage } from "@/components/tool-stage";
-import { parseNames, pickIndex } from "@/lib/utilities/draw";
+import { parseNames, pickIndex, remainingCount } from "@/lib/utilities/draw";
 import styles from "./draw-tool.module.css";
 
 const ROLL_MS = 900;
@@ -20,7 +20,8 @@ export function DrawTool() {
   const noRepeatId = useId();
 
   const names = parseNames(text);
-  const allTaken = noRepeat && names.length > 0 && taken.length >= names.length;
+  const remaining = remainingCount(names.length, taken);
+  const allTaken = noRepeat && names.length > 0 && remaining === 0;
   const canDraw = names.length > 0 && !allTaken && rolling === null;
 
   function clearTimers() {
@@ -74,7 +75,6 @@ export function DrawTool() {
   }
 
   const shown = rolling ?? (current !== null ? names[current] : null);
-  const remaining = names.length - taken.length;
 
   return (
     <ToolStage label="Bốc thăm tên">

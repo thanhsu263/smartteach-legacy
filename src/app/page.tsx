@@ -48,7 +48,7 @@ export default function HomePage() {
         <ul className={styles.toolList}>
           {tools.map((tool) => (
             <li key={tool.id}>
-              <ToolCard tool={tool} />
+              <ToolCard tool={tool} headingLevel={3} />
             </li>
           ))}
         </ul>
@@ -63,7 +63,7 @@ export default function HomePage() {
             <ul className={styles.gameGrid}>
               {featuredGames.map((game) => (
                 <li key={game.id}>
-                  <GameCard game={game} />
+                  <GameCard game={game} headingLevel={3} />
                 </li>
               ))}
             </ul>

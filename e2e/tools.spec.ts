@@ -157,6 +157,33 @@ test.describe("bốc thăm tên", () => {
     await expect(page.getByRole("heading", { name: "Đã bốc" })).toHaveCount(0);
   });
 
+  test("bật lại 'Không bốc lại' sau nhiều lượt bốc lặp thì chỉ tính người khác nhau", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/tools/draw");
+    await waitForHydration(page);
+    // Bộ sinh số cố định để mọi lượt bốc đều rơi vào bạn đầu tiên.
+    await page.evaluate(() => {
+      Math.random = () => 0;
+    });
+
+    const draw = page.getByRole("button", { name: "Bốc thăm" });
+    await page.getByLabel("Danh sách tên").fill("An\nBình");
+    const noRepeat = page.getByLabel("Không bốc lại người đã bốc");
+    await noRepeat.uncheck();
+    for (let round = 0; round < 4; round += 1) await draw.click();
+
+    await noRepeat.check();
+    // Mới chỉ có An được bốc (4 lần), nên còn 1 bạn và nút vẫn dùng được.
+    await expect(page.getByText("Còn 1 / 2 bạn")).toBeVisible();
+    await expect(page.getByText("Đã bốc hết cả lớp")).toHaveCount(0);
+    await expect(draw).toBeEnabled();
+
+    await draw.click();
+    await expect(page.getByRole("status")).toHaveText("Đã bốc: Bình");
+    await expect(page.getByText("Còn 0 / 2 bạn")).toBeVisible();
+    await expect(draw).toBeDisabled();
+  });
+
   test("sửa danh sách thì kết quả đã bốc được làm mới", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/tools/draw");
@@ -271,6 +298,37 @@ test.describe("bảng trắng", () => {
     await expect(page.getByRole("button", { name: "Màu Đen" })).toHaveAttribute("aria-pressed", "false");
     await page.getByRole("button", { name: "Nét dày" }).click();
     await expect(page.getByRole("button", { name: "Nét dày" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("chạm hai ngón không làm mất nét của ngón đang vẽ khi vẽ lại", async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 1000, height: 800 }, hasTouch: true });
+    const page = await context.newPage();
+    await page.goto("/tools/whiteboard");
+    await waitForHydration(page);
+    const box = (await page.locator("canvas").boundingBox())!;
+    const client = await context.newCDPSession(page);
+    const point = (x: number, y: number, id: number) => ({ x: box.x + x, y: box.y + y, id });
+
+    // Ngón 1 vẽ, ngón 2 chạm xuống trong lúc ngón 1 còn đang chạm.
+    await client.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point(30, 300, 1)] });
+    await client.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [point(200, 340, 1)] });
+    await client.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: [point(200, 340, 1), point(400, 300, 2)],
+    });
+    await client.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: [point(260, 380, 1), point(400, 300, 2)],
+    });
+    await client.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+    const before = await inkedPixels(page);
+    expect(before).toBeGreaterThan(0);
+
+    // Đổi kích thước buộc bảng vẽ lại từ danh sách nét đã lưu.
+    await page.setViewportSize({ width: 900, height: 800 });
+    await expect.poll(() => inkedPixels(page)).toBeGreaterThan(before * 0.7);
+    await context.close();
   });
 
   test("vẽ bằng cảm ứng trên màn hình nhỏ", async ({ browser }) => {

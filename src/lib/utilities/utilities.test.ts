@@ -9,7 +9,7 @@ import {
   startTimer,
   tickTimer,
 } from "@/lib/utilities/countdown";
-import { parseNames, pickIndex } from "@/lib/utilities/draw";
+import { parseNames, pickIndex, remainingCount } from "@/lib/utilities/draw";
 import { shuffle, splitIntoGroups } from "@/lib/utilities/groups";
 
 /** Bộ sinh số giả cho kết quả lặp lại được (LCG). */
@@ -64,6 +64,28 @@ describe("pickIndex", () => {
     const first = pickIndex(2, new Set(), () => 0);
     const second = pickIndex(2, new Set(), () => 0);
     expect(first).toBe(second);
+  });
+});
+
+describe("remainingCount", () => {
+  it("không có lượt bốc nào thì còn đủ cả lớp", () => {
+    expect(remainingCount(5, [])).toBe(5);
+  });
+
+  it("chỉ đếm người khác nhau, lượt bốc lặp không làm số còn lại xuống âm", () => {
+    // Lỗi cũ: bốc 4 lần cùng một bạn trong lớp 2 người cho "còn -2".
+    expect(remainingCount(2, [0, 0, 0, 0])).toBe(1);
+    expect(remainingCount(5, [1, 1, 3, 3, 3])).toBe(3);
+  });
+
+  it("bốc đủ mọi người khác nhau thì còn 0", () => {
+    expect(remainingCount(3, [2, 0, 1])).toBe(0);
+    expect(remainingCount(3, [2, 0, 1, 1, 0])).toBe(0);
+  });
+
+  it("bỏ qua vị trí nằm ngoài danh sách (danh sách ngắn đi)", () => {
+    expect(remainingCount(2, [0, 5, -1])).toBe(1);
+    expect(remainingCount(0, [0, 1])).toBe(0);
   });
 });
 

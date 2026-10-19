@@ -100,7 +100,7 @@ export function GameBrowser({ games }: { games: readonly Game[] }) {
         <ul className={styles.grid}>
           {results.map((game) => (
             <li key={game.id}>
-              <GameCard game={game} />
+              <GameCard game={game} headingLevel={2} />
             </li>
           ))}
         </ul>
