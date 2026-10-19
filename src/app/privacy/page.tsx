@@ -101,13 +101,15 @@ export default function PrivacyPage() {
           sở dữ liệu chặn chứ không chỉ ẩn trên giao diện.
         </p>
         <p>
-          Dữ liệu người chơi được <strong>giữ 90 ngày</strong> rồi tự xoá. Thầy cô cũng xoá ngay được từng buổi ở mục “Các buổi đã chơi”
-          của quiz. Xoá quiz không xoá các buổi đã chơi của nó; các buổi đó vẫn theo hạn 90 ngày hoặc thầy cô tự xoá.
+          Dữ liệu người chơi được <strong>giữ tối đa khoảng 90 ngày</strong> rồi tự xoá; việc xoá chạy theo lịch hằng ngày và cả mỗi khi
+          có người tạo hoặc vào một buổi chơi. Thầy cô xoá ngay được từng buổi ở trang “Các buổi đã chơi” (kể cả buổi của quiz đã xoá).
+          Xoá quiz không xoá các buổi đã chơi của nó; các buổi đó vẫn theo hạn 90 ngày hoặc thầy cô tự xoá.
         </p>
         <p>
           Trên điện thoại của học sinh, mã tham gia được giữ trong bộ nhớ tạm của tab trình duyệt để tải lại trang vẫn vào lại đúng người
           chơi, và mất khi đóng tab. Để chống đoán mã PIN, ứng dụng ghi tạm một dạng băm có muối của địa chỉ mạng (IP) trong các lần
-          nhập sai và xoá sau 10 phút; địa chỉ IP không được lưu ở dạng đọc được.
+          nhập sai và dọn đi khi đã quá 10 phút, vào lần ứng dụng được dùng kế tiếp hoặc theo lịch dọn hằng ngày; địa chỉ IP không được
+          lưu ở dạng đọc được.
         </p>
       </section>
 
@@ -148,7 +150,7 @@ export default function PrivacyPage() {
         <p>
           Thầy cô xoá được từng học sinh, từng lớp và bỏ yêu thích ngay trong ứng dụng, ở mục Lớp của tôi. Khi xoá lớp thì danh sách học
           sinh của lớp cũng bị xoá. Quiz xoá ở mục Quiz của tôi; từng buổi chơi (kèm biệt danh, câu trả lời, điểm của học sinh) xoá ở
-          mục “Các buổi đã chơi” của quiz, nếu không xoá thì tự mất sau 90 ngày.
+          trang “Các buổi đã chơi”, nếu không xoá thì tự mất sau khoảng 90 ngày.
         </p>
         <p>
           {siteConfig.contactEmail ? (

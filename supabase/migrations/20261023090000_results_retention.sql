@@ -41,6 +41,8 @@ $$;
 
 revoke execute on function private.purge_old_sessions(integer, uuid, integer) from public, anon, authenticated;
 
+create index live_sessions_created_idx on public.live_sessions (created_at);
+
 -- Bản mới của create_session: như cũ, thêm xoá cơ hội dữ liệu quá hạn.
 create or replace function public.create_session(p_quiz_id uuid, p_speed_bonus boolean default true)
 returns table (session_id uuid, pin text)
@@ -127,6 +129,85 @@ begin
     raise exception 'pin_unavailable' using errcode = 'PT409';
   end if;
   return query select v_id, v_pin;
+end;
+$$;
+
+-- Bản mới của join_session: như cũ, thêm xoá cơ hội khi có người vào phòng thành công.
+create or replace function public.join_session(p_pin text, p_nickname text)
+returns table (result text, player_token uuid, player_nickname text)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_hash text := private.hash_ip(private.client_ip());
+  v_session public.live_sessions;
+  v_nickname text;
+  v_token uuid;
+begin
+  -- Chỉ giữ lại đúng khoảng thời gian cần để chặn (10 phút); dọn ở mọi lần gọi chứ không chờ có lần sai kế tiếp.
+  delete from public.join_attempts where attempted_at < clock_timestamp() - interval '10 minutes';
+
+  -- Quá 30 lần sai trong 10 phút từ cùng một IP thì từ chối mọi lần thử, kể cả PIN đúng.
+  if (
+    select count(*) from public.join_attempts
+    where ip_hash = v_hash and attempted_at > clock_timestamp() - interval '10 minutes'
+  ) >= 30 then
+    return query select 'too_many_attempts'::text, null::uuid, null::text;
+    return;
+  end if;
+
+  select * into v_session from public.live_sessions
+  where pin = btrim(coalesce(p_pin, '')) and status <> 'ended' and expires_at > clock_timestamp()
+  for share;
+  if not found then
+    insert into public.join_attempts (ip_hash) values (v_hash);
+    return query select 'invalid_pin'::text, null::uuid, null::text;
+    return;
+  end if;
+
+  if v_session.status <> 'lobby' then
+    return query select 'session_started'::text, null::uuid, null::text;
+    return;
+  end if;
+  if v_session.locked then
+    return query select 'room_locked'::text, null::uuid, null::text;
+    return;
+  end if;
+
+  v_nickname := regexp_replace(btrim(coalesce(p_nickname, '')), '\s+', ' ', 'g');
+  if char_length(v_nickname) not between 1 and 20 or v_nickname ~ '[[:cntrl:]]' then
+    return query select 'invalid_nickname'::text, null::uuid, null::text;
+    return;
+  end if;
+
+  perform pg_advisory_xact_lock(hashtextextended('participants:' || v_session.id::text, 0));
+  if (select count(*) from public.participants where session_id = v_session.id and not removed) >= 50
+     or (select count(*) from public.participants where session_id = v_session.id) >= 100 then
+    return query select 'room_full'::text, null::uuid, null::text;
+    return;
+  end if;
+  if exists (
+    select 1 from public.participants
+    where session_id = v_session.id and left_at is null and lower(nickname) = lower(v_nickname)
+  ) then
+    return query select 'nickname_taken'::text, null::uuid, null::text;
+    return;
+  end if;
+
+  begin
+    insert into public.participants (session_id, nickname) values (v_session.id, v_nickname)
+    returning token into v_token;
+  exception when unique_violation then
+    return query select 'nickname_taken'::text, null::uuid, null::text;
+    return;
+  end;
+  -- Có người vào phòng thành công: dọn cơ hội dữ liệu quá 90 ngày (một mẻ nhỏ), để việc xoá không phụ thuộc vào pg_cron
+  -- hay vào việc có giáo viên tạo phiên mới. Kiểm tra tồn tại đi qua chỉ mục theo created_at nên rẻ.
+  if exists (select 1 from public.live_sessions where created_at < clock_timestamp() - interval '90 days') then
+    perform private.purge_old_sessions(90, null, 5);
+  end if;
+  return query select 'ok'::text, v_token, v_nickname;
 end;
 $$;
 
@@ -242,8 +323,8 @@ begin
 end;
 $$;
 
--- Các buổi đã chơi của giáo viên (của một quiz, hoặc tất cả), mới nhất trước.
-create function public.session_history(p_quiz_id uuid default null)
+-- Các buổi đã chơi của giáo viên (của một quiz, hoặc tất cả), mới nhất trước; p_limit tối đa 100, p_offset để xem thêm.
+create function public.session_history(p_quiz_id uuid default null, p_limit integer default 50, p_offset integer default 0)
 returns table (
   session_id uuid,
   quiz_id uuid,
@@ -270,8 +351,9 @@ as $$
   where s.owner_id = (select auth.uid())
     and (p_quiz_id is null or s.quiz_id = p_quiz_id)
     and (s.status = 'ended' or s.expires_at <= clock_timestamp())
-  order by s.created_at desc
-  limit 50;
+  order by s.created_at desc, s.id
+  limit least(greatest(coalesce(p_limit, 50), 1), 100)
+  offset greatest(coalesce(p_offset, 0), 0);
 $$;
 
 -- Xoá một buổi đã chơi (người chơi và câu trả lời xoá theo). Phiên còn đang chạy thì phải kết thúc trước.
@@ -300,12 +382,12 @@ $$;
 
 revoke execute on function
   public.host_results(uuid),
-  public.session_history(uuid),
+  public.session_history(uuid, integer, integer),
   public.delete_session(uuid)
   from public, anon;
 grant execute on function
   public.host_results(uuid),
-  public.session_history(uuid),
+  public.session_history(uuid, integer, integer),
   public.delete_session(uuid)
   to authenticated;
 

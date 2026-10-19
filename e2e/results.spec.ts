@@ -98,7 +98,15 @@ for (const viewport of [
       const lanRow = matrix.getByRole("row", { name: /^Lan/ });
       await expect(lanRow).toContainText("Đúng, 1000 điểm");
       await expect(lanRow).toContainText("Sai");
-      await expect(matrix.getByRole("row", { name: /^Huy/ })).toContainText("Sai");
+      // Thấy cả đáp án mỗi bạn đã chọn hoặc gõ, để phân biệt lỗi hiểu bài với lỗi gõ dấu.
+      await expect(lanRow).toContainText("Chọn A. Hà Nội");
+      await expect(lanRow).toContainText("Chọn A. 2");
+      await expect(lanRow).toContainText("Gõ: Mèo");
+      const huyRow = matrix.getByRole("row", { name: /^Huy/ });
+      await expect(huyRow).toContainText("Sai");
+      await expect(huyRow).toContainText("Chọn B. Huế");
+      await expect(huyRow).toContainText("Chọn A. 2, C. 4");
+      await expect(huyRow).toContainText("Gõ: chó");
       await audit(page, "trang kết quả");
 
       // Xoá buổi có xác nhận: giữ lại thì không xoá, xoá thì quay về và buổi biến mất.
@@ -119,6 +127,64 @@ for (const viewport of [
     });
   });
 }
+
+test.describe("danh sách các buổi đã chơi", () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  test("xoá một buổi ngay trong danh sách của quiz: có xác nhận và trả focus", async ({ page }) => {
+    const teacher = await newTeacher("history-del");
+    const { quizId } = await playFullSession(teacher, "Quiz xoá trong danh sách");
+    await loginAs(page, teacher);
+    await page.goto(`/my-quizzes/${quizId}`);
+    const history = page.getByRole("region", { name: "Các buổi đã chơi" });
+    await expect(history.getByRole("listitem")).toHaveCount(1);
+
+    await history.getByRole("button", { name: /^Xoá buổi/ }).click();
+    const confirm = history.getByRole("group", { name: /^Xoá buổi/ });
+    await expect(confirm.getByRole("button", { name: "Giữ lại" })).toBeFocused();
+    await confirm.getByRole("button", { name: "Giữ lại" }).click();
+    await expect(history.getByRole("button", { name: /^Xoá buổi/ })).toBeFocused();
+    await expect(history.getByRole("listitem")).toHaveCount(1);
+
+    await history.getByRole("button", { name: /^Xoá buổi/ }).click();
+    await history.getByRole("group", { name: /^Xoá buổi/ }).getByRole("button", { name: "Xoá buổi" }).click();
+    await expect(history.getByText("Quiz này chưa được chơi buổi nào")).toBeVisible();
+    await expect(history.getByRole("heading", { name: "Các buổi đã chơi" })).toBeFocused();
+  });
+
+  test("buổi của quiz đã xoá vẫn xem và xoá được ở trang Các buổi đã chơi; Xem thêm tải trang kế", async ({ page }) => {
+    const teacher = await newTeacher("history-all");
+    const { quizId, session } = await playFullSession(teacher, "Quiz sẽ bị xoá");
+    // Thêm 20 buổi trống (bắt đầu rồi kết thúc ngay) để vượt một trang 20 dòng.
+    const extra = await newQuiz(teacher, [fourKinds[0]], "Quiz nhiều buổi");
+    for (let i = 0; i < 20; i += 1) {
+      const s = await startSession(teacher, extra, false);
+      await s.end();
+    }
+    expect((await teacher.client.from("quizzes").delete().eq("id", quizId)).error).toBeNull();
+
+    await loginAs(page, teacher);
+    await page.goto("/my-quizzes");
+    await page.getByRole("link", { name: "Xem kết quả và xoá các buổi đã chơi" }).click();
+    await expect(page).toHaveURL(/\/host$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Các buổi đã chơi" })).toBeVisible();
+    const list = page.getByRole("region", { name: "Các buổi đã chơi" });
+    await expect(list.getByRole("listitem")).toHaveCount(20);
+    await list.getByRole("button", { name: "Xem thêm" }).click();
+    await expect(list.getByRole("listitem")).toHaveCount(21);
+    await expect(list.getByRole("button", { name: "Xem thêm" })).toHaveCount(0);
+
+    // Buổi của quiz đã xoá được ghi rõ và xoá được.
+    const orphan = list.getByRole("listitem").filter({ hasText: "(quiz đã xoá)" });
+    await expect(orphan).toHaveCount(1);
+    await expect(orphan).toContainText("Quiz sẽ bị xoá");
+    await orphan.getByRole("button", { name: /^Xoá buổi/ }).click();
+    await list.getByRole("group", { name: /^Xoá buổi/ }).getByRole("button", { name: "Xoá buổi" }).click();
+    await expect(list.getByRole("listitem").filter({ hasText: "(quiz đã xoá)" })).toHaveCount(0);
+    await page.goto(`/host/${session.id}/results`);
+    await expect(page.getByRole("heading", { level: 1, name: "Không tìm thấy kết quả này" })).toBeVisible();
+  });
+});
 
 test.describe("kết quả: quyền xem và trạng thái", () => {
   test.use({ viewport: { width: 1280, height: 800 } });

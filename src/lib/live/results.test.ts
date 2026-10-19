@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildMatrix, correctRate, describeCell, formatDateTime, formatSeconds, type HostResults } from "./results";
+import { buildMatrix, correctRate, describeAnswer, describeCell, formatDateTime, formatSeconds, type HostResults } from "./results";
 
 const base: Pick<HostResults, "ranking" | "answers" | "question_total"> = {
   question_total: 3,
@@ -19,21 +19,32 @@ describe("kết quả sau buổi chơi", () => {
     const matrix = buildMatrix(base);
     expect(matrix.map((row) => row.player.nickname)).toEqual(["Lan", "Huy"]);
     expect(matrix[0].cells).toEqual([
-      { status: "correct", points: 1000 },
-      { status: "none", points: 0 },
-      { status: "correct", points: 1000 },
+      { status: "correct", points: 1000, answer: 0 },
+      { status: "none", points: 0, answer: null },
+      { status: "correct", points: 1000, answer: 1 },
     ]);
     expect(matrix[1].cells).toEqual([
-      { status: "wrong", points: 0 },
-      { status: "none", points: 0 },
-      { status: "none", points: 0 },
+      { status: "wrong", points: 0, answer: 2 },
+      { status: "none", points: 0, answer: null },
+      { status: "none", points: 0, answer: null },
     ]);
   });
 
   it("mỗi ô đều có chữ mô tả, không chỉ màu", () => {
-    expect(describeCell({ status: "correct", points: 1000 })).toBe("Đúng, 1000 điểm");
-    expect(describeCell({ status: "wrong", points: 0 })).toBe("Sai");
-    expect(describeCell({ status: "none", points: 0 })).toBe("Bỏ trống");
+    expect(describeCell({ status: "correct", points: 1000, answer: 0 })).toBe("Đúng, 1000 điểm");
+    expect(describeCell({ status: "wrong", points: 0, answer: 1 })).toBe("Sai");
+    expect(describeCell({ status: "none", points: 0, answer: null })).toBe("Bỏ trống");
+  });
+
+  it("đáp án đã chọn hoặc gõ viết thành chữ để phân biệt lỗi hiểu bài với lỗi gõ dấu", () => {
+    const options = ["Hà Nội", "Huế", "Đà Nẵng", "Cần Thơ"];
+    expect(describeAnswer(options, 1)).toBe("Chọn B. Huế");
+    expect(describeAnswer(options, [0, 2])).toBe("Chọn A. Hà Nội, C. Đà Nẵng");
+    expect(describeAnswer(options, [2, 0])).toBe("Chọn A. Hà Nội, C. Đà Nẵng"); // thứ tự bấm không quan trọng
+    expect(describeAnswer([], "ma")).toBe("Gõ: ma");
+    expect(describeAnswer(options, null)).toBe("");
+    expect(describeAnswer(options, { lạ: 1 })).toBe("");
+    expect(describeAnswer(options, [1.5, -1, "x"])).toBe("");
   });
 
   it("tỉ lệ đúng tính trong số người đã trả lời; chưa ai trả lời thì '-'", () => {

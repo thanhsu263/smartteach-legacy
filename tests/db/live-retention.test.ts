@@ -165,6 +165,54 @@ describe("7.1 kết quả sau buổi chơi", () => {
   });
 });
 
+describe("7.1 danh sách các buổi: phân trang, quiz đã xoá, phiên hết hạn", () => {
+  it("phân trang theo limit và offset, giới hạn trong khoảng cho phép, thứ tự ổn định", async () => {
+    const t = await signUp("ret-page");
+    const quizId = await newQuiz(t, [questions[0]]);
+    const ids: string[] = [];
+    for (let i = 0; i < 3; i += 1) {
+      const s = await startSession(t, quizId, false);
+      await hostOk(t, "host_end_session", { p_session: s.id });
+      ids.unshift(s.id); // mới nhất trước
+    }
+    const page = async (args: Record<string, unknown>) =>
+      ((await t.client.rpc("session_history", args)).data as { session_id: string }[]).map((r) => r.session_id);
+    expect(await page({ p_limit: 2, p_offset: 0 })).toEqual(ids.slice(0, 2));
+    expect(await page({ p_limit: 2, p_offset: 2 })).toEqual(ids.slice(2));
+    expect(await page({ p_limit: 2, p_offset: 5 })).toEqual([]);
+    expect(await page({ p_limit: 0 })).toHaveLength(1); // tối thiểu 1
+    expect(await page({ p_limit: 100000 })).toHaveLength(3); // tối đa 100, ở đây chỉ có 3
+    expect(await page({ p_offset: -4 })).toEqual(ids); // offset âm coi như 0
+  }, 60_000);
+
+  it("buổi của quiz đã xoá vẫn nằm trong danh sách chung (quiz_id null) và xoá được", async () => {
+    const t = await signUp("ret-orphan");
+    const quizId = await newQuiz(t, [questions[0]], "Quiz sẽ bị xoá");
+    const s = await startSession(t, quizId, false);
+    await hostOk(t, "host_end_session", { p_session: s.id });
+    expect((await t.client.from("quizzes").delete().eq("id", quizId)).error).toBeNull();
+
+    const all = (await t.client.rpc("session_history", {})).data as { session_id: string; quiz_id: string | null; quiz_title: string }[];
+    expect(all).toEqual([expect.objectContaining({ session_id: s.id, quiz_id: null, quiz_title: "Quiz sẽ bị xoá" })]);
+    expect((await t.client.rpc("delete_session", { p_session: s.id })).error).toBeNull();
+    expect(((await t.client.rpc("session_history", {})).data as unknown[]).length).toBe(0);
+  });
+
+  it("phiên đã quá hạn 4 giờ mà chưa đánh dấu kết thúc vẫn xem được kết quả và xoá được", async () => {
+    const t = await signUp("ret-expired");
+    const s = await startSession(t, await newQuiz(t, [questions[0]]));
+    await joinOk(s.pin, "Người chơi");
+    expect((await t.client.rpc("host_results", { p_session: s.id })).error?.message).toContain("session_not_ended");
+    await admin.from("live_sessions").update({ expires_at: new Date(Date.now() - 60_000).toISOString() }).eq("id", s.id);
+
+    const results = await t.client.rpc("host_results", { p_session: s.id });
+    expect(results.error).toBeNull();
+    expect((results.data as Results).ranking.map((r) => r.nickname)).toEqual(["Người chơi"]);
+    expect(((await t.client.rpc("session_history", {})).data as { session_id: string }[]).map((r) => r.session_id)).toContain(s.id);
+    expect((await t.client.rpc("delete_session", { p_session: s.id })).error).toBeNull();
+  });
+});
+
 describe("7.1 xoá một buổi đã chơi", () => {
   it("phiên đang chạy thì từ chối; đã kết thúc thì xoá cả người chơi và câu trả lời; người khác không xoá được", async () => {
     const t = await signUp("ret-del");
@@ -263,6 +311,25 @@ describe("7.2 xoá dữ liệu sau 90 ngày", () => {
     expect(await exists(next.id)).toBe(true);
     await hostOk(mine, "host_end_session", { p_session: next.id });
   }, 120_000);
+
+  it("xoá cơ hội khi học sinh vào phòng thành công (không cần giáo viên tạo phiên, không cần pg_cron); vào hỏng thì không", async () => {
+    const owner = await signUp("ret-join1");
+    const other = await signUp("ret-join2");
+    const old = await startSession(other, await newQuiz(other, [questions[0]]));
+    await hostOk(other, "host_end_session", { p_session: old.id });
+    // Tạo phiên đang chạy TRƯỚC khi làm cũ phiên kia, vì create_session cũng tự dọn dữ liệu quá hạn.
+    const live = await startSession(owner, await newQuiz(owner, [questions[0]]));
+    await ageSession(old.id, 100);
+
+    // Nhập sai PIN không kích hoạt dọn dẹp.
+    expect(psql("select (public.join_session('000000', 'x')).result;")).toBe("invalid_pin");
+    expect(await exists(old.id)).toBe(true);
+
+    await joinOk(live.pin, "Học sinh vào phòng");
+    expect(await exists(old.id)).toBe(false);
+    expect(await exists(live.id)).toBe(true);
+    await hostOk(owner, "host_end_session", { p_session: live.id });
+  });
 
   it("API không gọi được hàm xoá: khách và giáo viên đều bị từ chối", async () => {
     const t = await signUp("ret-api");

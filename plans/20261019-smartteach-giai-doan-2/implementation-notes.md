@@ -276,3 +276,19 @@ Kết quả kiểm tra (chưa commit): typecheck, lint đạt; **210 unit**; **1
 - Xoá quiz không xoá các buổi đã chơi (`quiz_id` đặt null), nên trang Quyền riêng tư nói rõ điều này; các buổi đó vẫn theo hạn 90 ngày hoặc giáo viên tự xoá. Từ danh sách của quiz đã xoá thì không còn lối vào, nhưng `session_history` không lọc theo quiz vẫn liệt kê được (chưa có trang riêng cho tất cả các buổi).
 - **Nội dung Quyền riêng tư không phải tư vấn pháp lý:** chủ dự án phải rà theo quy định hiện hành về dữ liệu của trẻ em rồi đặt `privacyReviewed: true` và điền `contactEmail`.
 - **Chưa kiểm tra:** `pg_cron` trên dự án Supabase thật (task 8.3); nút xuất báo cáo Excel (ngoài phạm vi giai đoạn này).
+
+### Sửa sau review phase 7
+
+Review (`hs-code-review`, commit `31a7213`) không có Critical hay High. Đã xử lý cả năm mục:
+
+| Mục | Cách sửa | Kiểm chứng |
+|---|---|---|
+| Medium: trang Quyền riêng tư hứa 90 ngày và 10 phút vô điều kiện, nhưng cơ chế xoá chỉ chạy khi có `pg_cron` hoặc giáo viên tạo phiên | Thêm đường dọn thứ ba không phụ thuộc giáo viên: `join_session` (bản mới ở migration phase 7) xoá một mẻ nhỏ (tối đa 5) phiên quá 90 ngày mỗi khi có học sinh vào phòng **thành công**, kiểm tra tồn tại qua chỉ mục mới theo `created_at`. Sửa trang cho đúng cơ chế: "giữ tối đa khoảng 90 ngày... xoá theo lịch hằng ngày và mỗi khi có người tạo hoặc vào một buổi chơi"; lần nhập sai PIN "dọn khi đã quá 10 phút, vào lần ứng dụng được dùng kế tiếp hoặc theo lịch dọn hằng ngày". README nêu rõ: chưa bật `pg_cron` và không ai dùng thì trang sẽ không đúng, nên 8.3 phải bật `pg_cron` trước khi chủ dự án đặt `privacyReviewed`. | Test DB: vào hỏng PIN không xoá, vào thành công thì xoá phiên quá 90 ngày của người khác; phá thử (bỏ lời gọi dọn) làm test hỏng; e2e nội dung trang |
+| Medium: buổi của quiz đã xoá không còn lối xem hay xoá | Trang mới `/host` ("Các buổi đã chơi") liệt kê mọi buổi, ghi "(quiz đã xoá)", xoá có xác nhận, nối từ trang Quiz của tôi; `SessionHistory` dùng chung cho trình soạn (theo quiz) và trang này | e2e: xoá quiz rồi vẫn xem và xoá được buổi của nó; DB: buổi `quiz_id = null` có trong danh sách chung |
+| Low: kết quả không hiện đáp án từng bạn | Mỗi ô của bảng "Theo từng bạn" thêm dòng "Chọn B. Huế", "Chọn A. 2, C. 4" (theo thứ tự lựa chọn) hoặc "Gõ: ma" | Test đơn vị `describeAnswer`; e2e kiểm tra từng ô |
+| Low: README thiếu múi giờ, danh sách cắt ở 50 | README ghi 3:17 UTC (10:17 giờ Việt Nam). `session_history` nhận `p_limit` (1-100) và `p_offset`; giao diện có "Xem thêm" (20 dòng mỗi trang) | Test DB phân trang và ranh giới; phá thử (bỏ qua offset) làm test hỏng; e2e 21 buổi qua hai trang |
+| Verification Gap | e2e xoá buổi ngay trong danh sách của quiz (xác nhận, trả focus), DB: phiên quá hạn 4 giờ chưa đánh dấu kết thúc vẫn xem và xoá được | Đạt |
+
+Kết quả: typecheck, lint, 211 unit, 132 test DB (hai lần liên tiếp), 177 e2e (hai lần liên tiếp) đạt.
+
+Còn mở: `pg_cron` trên Supabase thật (8.3); nội dung Quyền riêng tư vẫn là bản nháp chờ chủ dự án duyệt.

@@ -74,7 +74,19 @@ export function correctRate(question: Pick<QuestionResult, "correct" | "wrong">)
   return answered === 0 ? "-" : `${Math.round((question.correct / answered) * 100)}%`;
 }
 
-export type MatrixCell = { status: "correct" | "wrong" | "none"; points: number };
+export type MatrixCell = { status: "correct" | "wrong" | "none"; points: number; answer: unknown };
+
+const LETTERS = "ABCDEF";
+
+/** Đáp án một bạn đã chọn hoặc gõ, viết thành chữ ("Chọn B. Huế", "Gõ: ma"); rỗng nếu chưa trả lời. */
+export function describeAnswer(options: readonly string[], answer: unknown): string {
+  if (typeof answer === "string") return `Gõ: ${answer}`;
+  const picked = (Array.isArray(answer) ? answer : typeof answer === "number" ? [answer] : [])
+    .filter((value): value is number => Number.isInteger(value) && value >= 0)
+    .sort((a, b) => a - b); // theo thứ tự lựa chọn chứ không theo thứ tự bấm
+  if (picked.length === 0) return "";
+  return `Chọn ${picked.map((i) => `${LETTERS[i] ?? i + 1}. ${options[i] ?? ""}`.trim()).join(", ")}`;
+}
 
 /** Ma trận người chơi x câu hỏi: ô nào cũng có chữ (Đúng, Sai, Bỏ trống), không chỉ màu. */
 export function buildMatrix(results: Pick<HostResults, "ranking" | "answers" | "question_total">): { player: RankedPlayer; cells: MatrixCell[] }[] {
@@ -84,8 +96,8 @@ export function buildMatrix(results: Pick<HostResults, "ranking" | "answers" | "
     player,
     cells: Array.from({ length: results.question_total }, (_, i) => {
       const row = byKey.get(`${player.id}:${i + 1}`);
-      if (!row) return { status: "none" as const, points: 0 };
-      return { status: row.ok ? ("correct" as const) : ("wrong" as const), points: row.points };
+      if (!row) return { status: "none" as const, points: 0, answer: null };
+      return { status: row.ok ? ("correct" as const) : ("wrong" as const), points: row.points, answer: row.answer };
     }),
   }));
 }

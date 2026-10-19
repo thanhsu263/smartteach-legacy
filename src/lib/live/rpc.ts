@@ -82,9 +82,16 @@ export const host = {
     return { ok: true, results: data as HostResults };
   },
 
-  /** Các buổi đã chơi (của một quiz, hoặc tất cả), mới nhất trước. */
-  async history(supabase: SupabaseClient, quizId?: string): Promise<LiveResult<{ rows: HistoryRow[] }>> {
-    const { data, error } = await call(supabase, "session_history", quizId ? { p_quiz_id: quizId } : {});
+  /** Các buổi đã chơi (của một quiz, hoặc tất cả), mới nhất trước; `offset` để xem thêm. */
+  async history(
+    supabase: SupabaseClient,
+    options: { quizId?: string; limit?: number; offset?: number } = {},
+  ): Promise<LiveResult<{ rows: HistoryRow[] }>> {
+    const args: Record<string, unknown> = {};
+    if (options.quizId) args.p_quiz_id = options.quizId;
+    if (options.limit !== undefined) args.p_limit = options.limit;
+    if (options.offset !== undefined) args.p_offset = options.offset;
+    const { data, error } = await call(supabase, "session_history", args);
     if (error || !Array.isArray(data)) return fail(error, false);
     return { ok: true, rows: data as HistoryRow[] };
   },

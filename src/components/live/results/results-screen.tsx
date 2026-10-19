@@ -6,7 +6,15 @@ import { useEffect, useId, useState } from "react";
 import { Button, ButtonLink } from "@/components/button";
 import { useAuth } from "@/components/auth-provider";
 import { host, type LiveResult } from "@/lib/live/rpc";
-import { buildMatrix, correctRate, describeCell, formatDateTime, formatSeconds, type HostResults } from "@/lib/live/results";
+import {
+  buildMatrix,
+  correctRate,
+  describeAnswer,
+  describeCell,
+  formatDateTime,
+  formatSeconds,
+  type HostResults,
+} from "@/lib/live/results";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { answerStyle } from "@/components/live/player/answer-styles";
 import styles from "./results.module.css";
@@ -229,6 +237,9 @@ export function ResultsScreen({ sessionId }: { sessionId: string }) {
                           <span aria-hidden="true">{STATUS_MARK[cell.status]}</span>
                           <span>{describeCell(cell)}</span>
                         </span>
+                        {cell.status !== "none" ? (
+                          <span className={styles.answerText}>{describeAnswer(results.questions[i]?.options ?? [], cell.answer)}</span>
+                        ) : null}
                       </td>
                     ))}
                   </tr>

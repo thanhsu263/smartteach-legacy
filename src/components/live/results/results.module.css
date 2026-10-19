@@ -133,6 +133,14 @@
   font-weight: 400;
 }
 
+.answerText {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+
 .details summary {
   min-height: 44px;
   display: inline-flex;

@@ -40,7 +40,8 @@ test.describe("trang Quyền riêng tư", () => {
       await expect(quiz).toContainText(stored);
     }
     await expect(quiz).toContainText("chỉ giáo viên chủ phiên");
-    await expect(quiz).toContainText("giữ 90 ngày");
+    await expect(quiz).toContainText("giữ tối đa khoảng 90 ngày");
+    await expect(quiz).toContainText("kể cả buổi của quiz đã xoá");
     await expect(quiz).toContainText("xoá ngay được từng buổi");
     await expect(quiz).toContainText("băm có muối");
     // Các mục khác không còn khẳng định ứng dụng không lưu điểm số.
@@ -48,6 +49,7 @@ test.describe("trang Quyền riêng tư", () => {
     // Giáo viên được nêu là có lưu quiz và các buổi đã chơi; mục xoá nhắc cả buổi chơi.
     await expect(page.getByRole("heading", { level: 2, name: "Giáo viên có tài khoản" }).locator("..")).toContainText("các buổi đã chơi");
     await expect(page.getByRole("heading", { level: 2, name: "Xoá dữ liệu" }).locator("..")).toContainText("Các buổi đã chơi");
+    await expect(page.getByRole("heading", { level: 2, name: "Xoá dữ liệu" }).locator("..")).toContainText("khoảng 90 ngày");
   });
 
   test("hiện biểu ngữ bản nháp cho tới khi chủ dự án duyệt, và email liên hệ đúng cấu hình", async ({ page }) => {
