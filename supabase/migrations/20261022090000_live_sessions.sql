@@ -8,7 +8,7 @@
 --
 -- Quy ước: mọi hàm security definer đặt search_path rỗng và dùng tên đầy đủ; không nối chuỗi SQL.
 -- Lỗi nghiệp vụ là exception với thông báo cố định (giao diện đổi sang tiếng Việt), trừ join_session
--- trả về mã kết quả để lần nhập sai PIN được ghi lại (exception sẽ làm mất bản ghi).
+-- trả về mã kết quả (nhập sai PIN là chuyện thường, giao diện cần báo đúng lý do).
 
 create extension if not exists unaccent with schema extensions;
 create schema if not exists private;
@@ -85,16 +85,6 @@ create table public.answers (
 
 create index answers_session_position_idx on public.answers (session_id, position);
 
--- Lần nhập sai PIN theo băm địa chỉ IP, để chặn đoán PIN.
-create table public.join_attempts (
-  id bigint generated always as identity primary key,
-  ip_hash text not null,
-  attempted_at timestamptz not null default now()
-);
-
-create index join_attempts_ip_idx on public.join_attempts (ip_hash, attempted_at);
-create index join_attempts_time_idx on public.join_attempts (attempted_at);
-
 -- Tối đa 50 người chơi đang ở lại và 100 dòng mỗi phiên (người bị loại vẫn chiếm dòng để giữ
 -- biệt danh, nhưng không cho nhồi vô hạn).
 create function public.enforce_participant_limit()
@@ -122,7 +112,7 @@ revoke execute on function public.enforce_participant_limit() from public, anon,
 -- không có cột quiz_snapshot (khoá đáp án) và không có cột token của người chơi.
 -- ---------------------------------------------------------------------------------------------
 
-revoke all on public.live_sessions, public.participants, public.answers, public.join_attempts from anon, authenticated;
+revoke all on public.live_sessions, public.participants, public.answers from anon, authenticated;
 
 grant select (
   id, owner_id, quiz_id, quiz_title, pin, status, locked, speed_bonus, current_position,
@@ -134,7 +124,6 @@ grant select on public.answers to authenticated;
 alter table public.live_sessions enable row level security;
 alter table public.participants enable row level security;
 alter table public.answers enable row level security;
-alter table public.join_attempts enable row level security;
 
 create policy live_sessions_select_own on public.live_sessions for select to authenticated
   using (owner_id = (select auth.uid()));
@@ -150,55 +139,6 @@ create policy answers_select_own on public.answers for select to authenticated
 -- ---------------------------------------------------------------------------------------------
 -- Hàm nội bộ (schema private, API không mở ra)
 -- ---------------------------------------------------------------------------------------------
-
--- Muối bí mật cho băm địa chỉ IP (sinh ngẫu nhiên khi áp migration, không nằm trong mã nguồn). Không muối
--- thì SHA-256 của IPv4 đảo ngược được trong vài giây (chỉ 2^32 giá trị).
-create table private.secrets (
-  name text primary key,
-  value text not null
-);
-revoke all on private.secrets from public, anon, authenticated;
-insert into private.secrets (name, value) values ('ip_salt', encode(extensions.gen_random_bytes(16), 'hex'));
-
-create function private.hash_ip(p_ip text)
-returns text
-language sql
-stable
-set search_path = ''
-as $$
-  select encode(
-    extensions.hmac(coalesce(p_ip, 'unknown'), (select value from private.secrets where name = 'ip_salt'), 'sha256'),
-    'hex'
-  );
-$$;
-
--- Địa chỉ IP của máy khách theo x-forwarded-for. Máy khách tự đặt được các phần tử đầu của chuỗi,
--- còn cổng vào (gateway) nối thêm địa chỉ máy nó thấy ở CUỐI, nên chỉ tin phần tử cuối.
--- Cần kiểm tra lại số tầng proxy trên dự án Supabase thật (task 8.3 của giai đoạn 2).
-create function private.client_ip()
-returns text
-language plpgsql
-stable
-set search_path = ''
-as $$
-declare
-  v_headers json;
-  v_parts text[];
-  v_ip text;
-begin
-  begin
-    v_headers := nullif(current_setting('request.headers', true), '')::json;
-  exception when others then
-    v_headers := null;
-  end;
-  v_parts := string_to_array(coalesce(v_headers ->> 'x-forwarded-for', ''), ',');
-  if cardinality(v_parts) = 0 then
-    return 'unknown';
-  end if;
-  v_ip := btrim(v_parts[cardinality(v_parts)]);
-  return coalesce(nullif(v_ip, ''), 'unknown');
-end;
-$$;
 
 -- So khớp câu trả lời điền từ: gộp mọi khoảng trắng, cắt hai đầu, hạ chữ thường, chuẩn hoá Unicode
 -- (gõ dấu kiểu tổ hợp hay dựng sẵn đều như nhau). Mặc định GIỮ dấu tiếng Việt; khi bật
@@ -535,8 +475,6 @@ begin
   end if;
   perform pg_advisory_xact_lock(hashtextextended('live-owner:' || v_owner::text, 0));
 
-  delete from public.join_attempts where attempted_at < clock_timestamp() - interval '10 minutes';
-
   -- Dọn các phiên quá hạn để trả PIN và chỗ "một phiên mỗi giáo viên".
   update public.live_sessions set status = 'ended', ended_at = coalesce(ended_at, clock_timestamp())
   where status <> 'ended' and expires_at <= clock_timestamp();
@@ -823,8 +761,9 @@ $$;
 -- Hàm của học sinh (anon và authenticated; chỉ biết mã tham gia bí mật)
 -- ---------------------------------------------------------------------------------------------
 
--- Trả mã kết quả thay vì exception để lần nhập sai PIN được ghi lại (exception sẽ hoàn tác bản ghi).
--- result: ok | invalid_pin | too_many_attempts | session_started | room_locked | invalid_nickname |
+-- Trả mã kết quả thay vì exception để giao diện báo đúng lý do. Không giới hạn số lần nhập sai PIN: học sinh
+-- gõ nhầm bao nhiêu lần cũng được (một người gõ sai không được khoá cả lớp dùng chung địa chỉ mạng).
+-- result: ok | invalid_pin | session_started | room_locked | invalid_nickname |
 --         nickname_taken | room_full
 create function public.join_session(p_pin text, p_nickname text)
 returns table (result text, player_token uuid, player_nickname text)
@@ -833,28 +772,14 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_hash text := private.hash_ip(private.client_ip());
   v_session public.live_sessions;
   v_nickname text;
   v_token uuid;
 begin
-  -- Chỉ giữ lại đúng khoảng thời gian cần để chặn (10 phút); dọn ở mọi lần gọi chứ không chờ có lần sai kế tiếp.
-  delete from public.join_attempts where attempted_at < clock_timestamp() - interval '10 minutes';
-
-  -- Quá 30 lần sai trong 10 phút từ cùng một IP thì từ chối mọi lần thử, kể cả PIN đúng.
-  if (
-    select count(*) from public.join_attempts
-    where ip_hash = v_hash and attempted_at > clock_timestamp() - interval '10 minutes'
-  ) >= 30 then
-    return query select 'too_many_attempts'::text, null::uuid, null::text;
-    return;
-  end if;
-
   select * into v_session from public.live_sessions
   where pin = btrim(coalesce(p_pin, '')) and status <> 'ended' and expires_at > clock_timestamp()
   for share;
   if not found then
-    insert into public.join_attempts (ip_hash) values (v_hash);
     return query select 'invalid_pin'::text, null::uuid, null::text;
     return;
   end if;
@@ -1101,8 +1026,6 @@ $$;
 -- ---------------------------------------------------------------------------------------------
 
 revoke execute on function
-  private.hash_ip(text),
-  private.client_ip(),
   private.normalize_answer(text, boolean),
   private.question_public(jsonb),
   private.question_key(jsonb),

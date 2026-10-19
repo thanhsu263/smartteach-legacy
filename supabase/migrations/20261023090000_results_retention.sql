@@ -8,7 +8,7 @@
 -- Xoá dữ liệu cũ
 -- ---------------------------------------------------------------------------------------------
 
--- Xoá phiên tạo quá p_days ngày (người chơi và câu trả lời theo khoá ngoại cascade), kèm các lần nhập sai PIN cũ.
+-- Xoá phiên tạo quá p_days ngày (người chơi và câu trả lời theo khoá ngoại cascade).
 -- p_owner: chỉ xoá phiên của người đó; p_limit: chỉ xoá tối đa chừng này phiên mỗi lần (giữ thời gian gọi ngắn).
 -- Trả về số phiên đã xoá. Không mở cho API: chỉ pg_cron, hàm create_session và quản trị gọi được.
 create function private.purge_old_sessions(p_days integer default 90, p_owner uuid default null, p_limit integer default null)
@@ -33,8 +33,6 @@ begin
   )
   delete from public.live_sessions s using doomed d where s.id = d.id;
   get diagnostics v_count = row_count;
-
-  delete from public.join_attempts where attempted_at < clock_timestamp() - interval '10 minutes';
   return v_count;
 end;
 $$;
@@ -63,8 +61,6 @@ begin
     raise exception 'not_authenticated' using errcode = '42501';
   end if;
   perform pg_advisory_xact_lock(hashtextextended('live-owner:' || v_owner::text, 0));
-
-  delete from public.join_attempts where attempted_at < clock_timestamp() - interval '10 minutes';
 
   -- Xoá cơ hội dữ liệu quá hạn lưu trữ (90 ngày): của chính giáo viên này, và một mẻ nhỏ của người khác để dữ liệu của
   -- giáo viên ít dùng không ở lại mãi khi pg_cron không khả dụng.
@@ -140,28 +136,14 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_hash text := private.hash_ip(private.client_ip());
   v_session public.live_sessions;
   v_nickname text;
   v_token uuid;
 begin
-  -- Chỉ giữ lại đúng khoảng thời gian cần để chặn (10 phút); dọn ở mọi lần gọi chứ không chờ có lần sai kế tiếp.
-  delete from public.join_attempts where attempted_at < clock_timestamp() - interval '10 minutes';
-
-  -- Quá 30 lần sai trong 10 phút từ cùng một IP thì từ chối mọi lần thử, kể cả PIN đúng.
-  if (
-    select count(*) from public.join_attempts
-    where ip_hash = v_hash and attempted_at > clock_timestamp() - interval '10 minutes'
-  ) >= 30 then
-    return query select 'too_many_attempts'::text, null::uuid, null::text;
-    return;
-  end if;
-
   select * into v_session from public.live_sessions
   where pin = btrim(coalesce(p_pin, '')) and status <> 'ended' and expires_at > clock_timestamp()
   for share;
   if not found then
-    insert into public.join_attempts (ip_hash) values (v_hash);
     return query select 'invalid_pin'::text, null::uuid, null::text;
     return;
   end if;

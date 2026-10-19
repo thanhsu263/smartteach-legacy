@@ -339,3 +339,13 @@ Review không có Critical hay High; hai mục Low đã sửa, mục Medium ch�
 | Medium (chưa sửa): tin bị chặn mà kênh còn sống thì học sinh nhận đề chậm tới 10 giây | Chờ đo trên dự án thật ở 8.4 (hai lớp cùng bấm một lúc). Nếu có chặn: hỏi dự phòng 3-4 giây ở pha `question` thay vì 10 giây | - |
 
 Số lỗi yêu cầu của 6 lớp x 32 dao động 53-181 giữa các lần chạy (reset kết nối của cổng Docker trên máy thử); số người thấy đủ câu vẫn 192/192.
+
+### Quyết định sau phase 8: bỏ giới hạn nhập sai PIN
+
+Chủ dự án chọn **không khoá nữa**: học sinh gõ sai bao nhiêu lần cũng được, gõ đúng thì vào. Lý do: giới hạn 30 lần sai/10 phút theo IP làm một bạn gõ nhầm có thể khoá cả lớp dùng chung địa chỉ mạng của trường (mục mở từ review phase 3).
+
+- Gỡ hẳn cơ chế, không chỉ tắt kiểm tra: bảng `join_attempts`, hàm `private.hash_ip`, `private.client_ip`, bảng `private.secrets` (muối IP) và mã `too_many_attempts`. Hai migration chưa áp lên dự án thật nên sửa tại chỗ (`20261022090000_live_sessions.sql`, `20261023090000_results_retention.sql`; `purge_old_sessions` và `join_session` không còn dọn bảng này). Hệ quả tốt: ứng dụng **không còn ghi địa chỉ IP của học sinh** dưới bất kỳ dạng nào; trang Quyền riêng tư và README đã sửa, bước kiểm tra `x-forwarded-for` ở 8.3 bỏ đi.
+- Giao diện: `describeJoinCode`, kiểu `JoinCode` và `join-form.tsx` bỏ nhánh `too_many_attempts`.
+- Test: phần "3.5" của `tests/db/live.test.ts` viết lại (40 lần sai qua API rồi vào được; 60 lần sai liên tiếp từ cùng một địa chỉ qua psql rồi vào được; không còn bảng, hàm, muối lưu hay băm IP); bỏ `clearJoinAttempts`, `clientWithForwardedFor`; `e2e/privacy.spec.ts` kiểm câu mới.
+- Kết quả: typecheck, lint, 211 unit, 130 test DB, 177 e2e (hai lần liên tiếp) đạt.
+- **Rủi ro chấp nhận:** PIN chỉ có 6 số (1.000.000 giá trị) và không còn gì cản việc thử liên tục. Một người ngoài có thể đoán trúng PIN của một phiên đang mở và vào phòng chờ với biệt danh bất kỳ; xác suất mỗi lần đoán bằng (số phiên đang mở)/1.000.000, và giáo viên khoá phòng hoặc loại người lạ được. Phiên chỉ nhận người vào khi còn ở phòng chờ, nên cửa sổ rủi ro là lúc phòng chờ mở. Nếu sau này lo ngại: nâng PIN lên 7-8 số, hoặc giới hạn mềm theo PIN (không theo IP), hoặc dùng Cloudflare/Vercel Firewall ở phía trước.

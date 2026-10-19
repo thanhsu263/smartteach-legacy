@@ -168,9 +168,8 @@ export async function newSession(questions: QuestionSpec[] = fourKinds, speedBon
   return { teacher, session: await startSession(teacher, quizId, speedBonus) };
 }
 
-/** Xoá người dùng thử (kéo theo phiên) và các lần nhập sai PIN mà test để lại. */
+/** Xoá người dùng thử (kéo theo phiên). */
 export async function cleanupLive() {
   const service = admin();
-  await service.from("join_attempts").delete().gte("id", 0);
   await Promise.all(createdUsers.splice(0).map((id) => service.auth.admin.deleteUser(id)));
 }

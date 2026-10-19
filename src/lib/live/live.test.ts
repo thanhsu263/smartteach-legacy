@@ -44,7 +44,6 @@ describe("describeLiveError", () => {
     expect(describeJoinCode("nickname_taken")).toContain("Biệt danh");
     expect(describeJoinCode("session_started")).toContain("bắt đầu");
     expect(describeJoinCode("room_full")).toContain("đủ người");
-    expect(describeJoinCode("too_many_attempts")).toContain("nhiều lần");
     expect(describeJoinCode("lạ")).toBe("Có lỗi xảy ra. Bạn thử lại nhé.");
   });
 
@@ -264,7 +263,7 @@ describe("rpc", () => {
     const ok = client(async () => ({ data: [{ result: "ok", player_token: UUID, player_nickname: "Hoa" }], error: null }));
     expect(await player.join(ok, "123456", "Hoa")).toEqual({ ok: true, token: UUID, nickname: "Hoa" });
 
-    for (const code of ["invalid_pin", "room_locked", "nickname_taken", "session_started", "room_full", "too_many_attempts", "invalid_nickname"]) {
+    for (const code of ["invalid_pin", "room_locked", "nickname_taken", "session_started", "room_full", "invalid_nickname"]) {
       const c = client(async () => ({ data: [{ result: code, player_token: null, player_nickname: null }], error: null }));
       const result = await player.join(c, "123456", "Hoa");
       expect(result).toMatchObject({ ok: false, code, fatal: false });

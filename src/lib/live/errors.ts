@@ -51,8 +51,6 @@ export function describeJoinCode(code: JoinCode | string): string {
   switch (code) {
     case "invalid_pin":
       return "PIN chưa đúng hoặc phòng đã đóng. Bạn kiểm tra lại PIN trên màn hình của thầy cô nhé.";
-    case "too_many_attempts":
-      return "Đã thử quá nhiều lần. Bạn đợi vài phút rồi nhập lại, hoặc nhờ thầy cô giúp.";
     case "session_started":
       return "Trò chơi đã bắt đầu nên chưa vào thêm được. Bạn hỏi thầy cô nhé.";
     case "room_locked":

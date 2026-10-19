@@ -107,9 +107,8 @@ export default function PrivacyPage() {
         </p>
         <p>
           Trên điện thoại của học sinh, mã tham gia được giữ trong bộ nhớ tạm của tab trình duyệt để tải lại trang vẫn vào lại đúng người
-          chơi, và mất khi đóng tab. Để chống đoán mã PIN, ứng dụng ghi tạm một dạng băm có muối của địa chỉ mạng (IP) trong các lần
-          nhập sai và dọn đi khi đã quá 10 phút, vào lần ứng dụng được dùng kế tiếp hoặc theo lịch dọn hằng ngày; địa chỉ IP không được
-          lưu ở dạng đọc được.
+          chơi, và mất khi đóng tab. Ứng dụng <strong>không ghi lại địa chỉ mạng (IP)</strong> của học sinh và không giới hạn số lần nhập
+          mã PIN, nên một bạn gõ nhầm nhiều lần không ảnh hưởng đến cả lớp.
         </p>
       </section>
 

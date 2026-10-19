@@ -96,7 +96,6 @@ export type AnswerValue = number | number[] | string;
 export type JoinCode =
   | "ok"
   | "invalid_pin"
-  | "too_many_attempts"
   | "session_started"
   | "room_locked"
   | "invalid_nickname"

@@ -13,7 +13,7 @@ type JoinFormProps = {
   onJoined: (player: { token: string; nickname: string }) => void;
 };
 
-const PIN_ERRORS = new Set(["invalid_pin", "too_many_attempts"]);
+const PIN_ERRORS = new Set(["invalid_pin"]);
 const NICKNAME_ERRORS = new Set(["invalid_nickname", "nickname_taken"]);
 
 export function JoinForm({ initialPin, notice, onJoined }: JoinFormProps) {

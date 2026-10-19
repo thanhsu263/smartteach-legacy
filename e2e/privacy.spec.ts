@@ -43,7 +43,8 @@ test.describe("trang Quyền riêng tư", () => {
     await expect(quiz).toContainText("giữ tối đa khoảng 90 ngày");
     await expect(quiz).toContainText("kể cả buổi của quiz đã xoá");
     await expect(quiz).toContainText("xoá ngay được từng buổi");
-    await expect(quiz).toContainText("băm có muối");
+    await expect(quiz).toContainText("không ghi lại địa chỉ mạng");
+    await expect(quiz).not.toContainText("băm có muối");
     // Các mục khác không còn khẳng định ứng dụng không lưu điểm số.
     await expect(page.getByText("không lưu ngày sinh, ảnh, điểm số")).toHaveCount(0);
     // Giáo viên được nêu là có lưu quiz và các buổi đã chơi; mục xoá nhắc cả buổi chơi.

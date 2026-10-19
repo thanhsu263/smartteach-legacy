@@ -1,5 +1,5 @@
 import { execFileSync, spawn } from "node:child_process";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { expect } from "vitest";
 import {
   admin,
@@ -134,11 +134,6 @@ export async function setTimeLimit(sessionId: string, seconds: number) {
   expect(updated.error).toBeNull();
 }
 
-export async function clearJoinAttempts() {
-  const { error } = await admin.from("join_attempts").delete().gte("id", 0);
-  expect(error).toBeNull();
-}
-
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Mọi tên khoá có trong một cấu trúc JSON (để kiểm tra không lộ khoá đáp án). */
@@ -152,14 +147,6 @@ export function allKeys(value: unknown, found = new Set<string>()): Set<string> 
     }
   }
   return found;
-}
-
-/** Khách có kèm tiêu đề x-forwarded-for do máy khách tự đặt (để thử né chặn theo IP). */
-export function clientWithForwardedFor(value: string): SupabaseClient {
-  return createClient(config.url, config.anonKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: { headers: { "x-forwarded-for": value } },
-  });
 }
 
 /** Gọi RPC bằng fetch để thấy mã HTTP thật (supabase-js chỉ trả mã SQL). */

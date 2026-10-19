@@ -2,8 +2,6 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { admin, anon, cleanupUsers, signUp, type QuestionInput, type TestUser } from "./helpers";
 import {
   allKeys,
-  clearJoinAttempts,
-  clientWithForwardedFor,
   host,
   hostOk,
   hostState,
@@ -31,10 +29,7 @@ import {
 
 const FORBIDDEN_KEYS = ["is_correct", "correct", "key", "accepted_answers", "ignore_diacritics", "quiz_snapshot", "token"];
 
-beforeAll(clearJoinAttempts);
-
 afterAll(async () => {
-  await clearJoinAttempts();
   // Đóng mọi phiên còn dở để không giữ PIN; xoá người dùng sẽ kéo theo xoá phiên.
   await cleanupUsers();
 });
@@ -57,9 +52,8 @@ describe("3.1 quyền truy cập và giới hạn", () => {
       live_sessions: ["id", session.id],
       participants: ["session_id", session.id],
       answers: ["session_id", session.id],
-      join_attempts: ["id", 1],
     } as const;
-    for (const table of ["live_sessions", "participants", "answers", "join_attempts"] as const) {
+    for (const table of ["live_sessions", "participants", "answers"] as const) {
       const [column, value] = filters[table];
       expect((await anon.from(table).select("*")).error?.code, `đọc ${table}`).toBe("42501");
       expect((await anon.from(table).insert({})).error?.code, `chèn ${table}`).toBe("42501");
@@ -78,7 +72,6 @@ describe("3.1 quyền truy cập và giới hạn", () => {
     expect(players.data).toHaveLength(1);
     expect((await a.client.from("participants").select("token")).error?.code).toBe("42501");
     expect((await a.client.from("participants").select("*")).error?.code).toBe("42501");
-    expect((await a.client.from("join_attempts").select("*")).error?.code).toBe("42501");
   });
 
   it("giáo viên không ghi trực tiếp được vào bảng nào (mọi ghi đi qua hàm)", async () => {
@@ -96,7 +89,7 @@ describe("3.1 quyền truy cập và giới hạn", () => {
   });
 
   it("các hàm nội bộ và hàm trigger không gọi được qua API", async () => {
-    for (const fn of ["client_ip", "normalize_answer", "score_question", "enforce_participant_limit"]) {
+    for (const fn of ["normalize_answer", "score_question", "enforce_participant_limit"]) {
       const { error } = await anon.rpc(fn, {});
       expect(error, fn).not.toBeNull();
       const asTeacher = await a.client.rpc(fn, {});
@@ -702,90 +695,41 @@ describe("3.4 chấm điểm và so khớp", () => {
 });
 
 // ---------------------------------------------------------------------------------------------
-describe("3.5 chặn đoán PIN theo địa chỉ IP", () => {
+describe("3.5 nhập sai PIN không bị giới hạn và không lưu địa chỉ IP", () => {
   let t: TestUser;
   let s: { id: string; pin: string };
 
   beforeAll(async () => {
-    await clearJoinAttempts();
-    t = await signUp("live-ip");
+    t = await signUp("live-pin");
     s = await startSession(t, await newQuiz(t));
   }, 60_000);
 
   afterAll(async () => {
-    await clearJoinAttempts();
     await host(t, "host_end_session", { p_session: s.id });
   });
 
-  /** Chạy `sql` như học sinh (vai trò anon) với tiêu đề x-forwarded-for cho trước. */
-  function asStudent(forwardedFor: string, sql: string) {
-    return psql(`begin;
-set local role anon;
-select set_config('request.headers', '{"x-forwarded-for":"${forwardedFor}"}', true);
-${sql}
-commit;`);
-  }
-
-  it("chỉ tin phần tử cuối của x-forwarded-for (phần do gateway nối thêm), phần đầu do máy khách đặt", () => {
-    const ip = (headers: string) =>
-      psql(`select set_config('request.headers', '${headers}', true), private.client_ip();`).split("|")[1];
-    expect(ip('{"x-forwarded-for":"1.1.1.1, 2.2.2.2, 3.3.3.3"}')).toBe("3.3.3.3");
-    expect(ip('{"x-forwarded-for":"9.9.9.9"}')).toBe("9.9.9.9");
-    expect(ip('{"x-real-ip":"7.7.7.7"}')).toBe("unknown");
-    expect(psql(`select private.client_ip();`)).toBe("unknown");
-  });
-
-  it("quá 30 lần sai trong 10 phút thì từ chối cả PIN đúng; IP khác vẫn vào được", () => {
-    const attacker = "203.0.113.7";
-    asStudent(attacker, `select public.join_session('000000', 'x') from generate_series(1, 30);`);
-    const blocked = asStudent(attacker, `select (public.join_session('${s.pin}', 'Kẻ đoán PIN')).result;`);
-    expect(blocked.split("\n").at(-2) ?? blocked).toContain("too_many_attempts");
-
-    const other = asStudent("198.51.100.2", `select (public.join_session('${s.pin}', 'Bạn ở IP khác')).result;`);
-    expect(other).toContain("ok");
-  });
-
-  it("lần vào thành công không bị tính; bản ghi cũ được dọn; hết 10 phút thì được thử lại", async () => {
-    const ipHash = psql(`select private.hash_ip('192.0.2.50');`);
-    asStudent("192.0.2.50", `select public.join_session('${s.pin}', 'Thành công 1');`);
-    asStudent("192.0.2.50", `select public.join_session('${s.pin}', 'Thành công 2');`);
-    const count = psql(`select count(*) from public.join_attempts where ip_hash = '${ipHash}';`);
-    expect(count).toBe("0");
-
-    // Bản ghi quá 10 phút bị xoá ở MỌI lần vào phòng (kể cả thành công), không chờ có lần sai kế tiếp.
-    await admin.from("join_attempts").insert({ ip_hash: "cu", attempted_at: new Date(Date.now() - 11 * 60_000).toISOString() });
-    asStudent("192.0.2.52", `select public.join_session('${s.pin}', 'Thành công 3');`);
-    expect(psql(`select count(*) from public.join_attempts where ip_hash = 'cu';`)).toBe("0");
-
-    // Lùi mốc thời gian của kẻ chặn thêm 11 phút: được thử lại.
-    const attackerHash = psql(`select private.hash_ip('203.0.113.7');`);
-    psql(`update public.join_attempts set attempted_at = attempted_at - interval '11 minutes' where ip_hash = '${attackerHash}';`);
-    expect(asStudent("203.0.113.7", `select (public.join_session('${s.pin}', 'Hết án')).result;`)).toContain("ok");
-  });
-
-  it("IP được lưu dạng băm có muối bí mật, không phải SHA-256 trơn đảo ngược được", async () => {
-    asStudent("203.0.113.99", `select public.join_session('000000', 'x');`);
-    const stored = psql(`select ip_hash from public.join_attempts where ip_hash = private.hash_ip('203.0.113.99');`);
-    expect(stored).toMatch(/^[0-9a-f]{64}$/);
-    const plain = psql(`select encode(extensions.digest('203.0.113.99', 'sha256'), 'hex');`);
-    expect(stored).not.toBe(plain);
-    expect(psql(`select count(*) from public.join_attempts where ip_hash = '${plain}';`)).toBe("0");
-    // Muối không đọc được qua API.
-    expect((await admin.schema("private" as never).from("secrets").select("*")).error).not.toBeNull();
-    expect((await anon.from("secrets").select("*")).error).not.toBeNull();
-  });
-
-  it("đặt tiêu đề x-forwarded-for tuỳ ý qua API không né được giới hạn", async () => {
-    await clearJoinAttempts();
-    for (let i = 0; i < 30; i++) {
-      const spoofed = clientWithForwardedFor(`10.0.${i}.1, 10.1.${i}.1`);
-      expect((await join("000000", "x", spoofed)).result).toBe("invalid_pin");
+  it("gõ sai bao nhiêu lần cũng được; gõ đúng thì vào ngay (không khoá cả lớp dùng chung địa chỉ mạng)", async () => {
+    for (let i = 0; i < 40; i++) {
+      expect((await join(String(100000 + i), "x")).result, `lần sai ${i + 1}`).toBe("invalid_pin");
     }
-    const evader = clientWithForwardedFor("172.16.99.99");
-    expect((await join(s.pin, "Né giới hạn", evader)).result).toBe("too_many_attempts");
-    await clearJoinAttempts();
-    expect((await join(s.pin, "Sau khi hết án", evader)).result).toBe("ok");
+    expect((await join(s.pin, "Sau 40 lần sai")).result).toBe("ok");
   }, 60_000);
+
+  it("qua psql: 60 lần sai liên tiếp từ cùng một địa chỉ rồi PIN đúng vẫn vào được", () => {
+    const out = psql(`begin;
+set local role anon;
+select set_config('request.headers', '{"x-forwarded-for":"203.0.113.7"}', true);
+select public.join_session('000000', 'x') from generate_series(1, 60);
+select (public.join_session('${s.pin}', 'Sau 60 lần sai')).result;
+commit;`);
+    expect(out.split("\n").at(-2) ?? out).toContain("ok");
+  });
+
+  it("không còn bảng, hàm hay muối dùng để lưu hay băm địa chỉ IP", () => {
+    expect(psql("select to_regclass('public.join_attempts') is null;")).toBe("t");
+    expect(psql("select to_regclass('private.secrets') is null;")).toBe("t");
+    expect(psql("select count(*) from pg_proc where proname in ('client_ip', 'hash_ip');")).toBe("0");
+  });
 });
 
 // ---------------------------------------------------------------------------------------------

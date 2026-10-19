@@ -120,6 +120,10 @@ Nếu dự án không có hoạt động suốt một tuần, Supabase tạm d�
 
 Giáo viên soạn quiz, bấm "Chơi ngay", chiếu mã PIN 6 số; học sinh vào `/play` bằng điện thoại, không cần tài khoản. Trạng thái nằm trong Postgres (nguồn đúng duy nhất), Realtime Broadcast chỉ là "chuông báo" `{ seq }`; mất kênh thì ứng dụng tự hỏi định kỳ (polling).
 
+### Nhập PIN
+
+Không giới hạn số lần nhập sai PIN và không lưu địa chỉ IP của học sinh, để một bạn gõ nhầm không khoá cả lớp dùng chung mạng của trường. Đổi lại, PIN 6 số có thể bị đoán: xác suất mỗi lần đoán bằng số phiên đang mở chia cho 1.000.000, và chỉ vào được khi phiên còn ở phòng chờ. Giáo viên khoá phòng sau khi lớp đủ người, hoặc loại người lạ. Lo ngại hơn thì nâng PIN lên 7-8 số hoặc chặn ở lớp trước ứng dụng (xem `implementation-notes.md`).
+
 ### Giới hạn và số đo thực tế
 
 Mức Free của Supabase Realtime: **200 kết nối đồng thời, 100 tin mỗi giây, 100 lượt tham gia kênh mỗi giây** (stack cục bộ cấu hình cùng ba số này; kiểm tra lại trên trang giá trước khi triển khai vì có thể đổi). Mỗi học sinh và mỗi giáo viên giữ một kết nối.
@@ -152,11 +156,10 @@ Mức Free của Supabase Realtime: **200 kết nối đồng thời, 100 tin m�
 Các bước này ghi vào dịch vụ thật, không tự động hoá.
 
 1. `npx supabase db push` để áp ba migration quiz (`20261021090000_quizzes`, `20261022090000_live_sessions`, `20261023090000_results_retention`). Chỉ `db push`, không `config push`.
-2. Tiện ích `unaccent` (so khớp câu điền từ không dấu) nằm ở schema `extensions`; migration tự tạo nếu chưa có. Băm địa chỉ IP dùng `extensions.hmac` của `pgcrypto`, vốn có sẵn trên Supabase. Sau khi áp, kiểm tra trong SQL Editor: `select extensions.unaccent('extensions.unaccent'::regdictionary, 'Đà Nẵng');` trả về `Da Nang`.
+2. Tiện ích `unaccent` (so khớp câu điền từ không dấu) nằm ở schema `extensions`; migration tự tạo nếu chưa có. Sau khi áp, kiểm tra trong SQL Editor: `select extensions.unaccent('extensions.unaccent'::regdictionary, 'Đà Nẵng');` trả về `Da Nang`.
 3. Bật `pg_cron` ở Database, Extensions rồi chạy lại phần lập lịch của migration cuối (hoặc `select cron.schedule('smartteach-purge-old-sessions', '17 3 * * *', 'select private.purge_old_sessions()');`). Không bật thì dữ liệu cũ chỉ bị xoá cơ hội và trang Quyền riêng tư sẽ không đúng. Kiểm tra: `select jobname, schedule from cron.job;`.
 4. Realtime: giữ cho phép kênh công khai Broadcast (Realtime Settings, tắt "Enable Realtime private channels only" nếu có). Ứng dụng dùng kênh công khai `session:<id>` chỉ mang `{ seq }`. Nếu kênh không nối được thì trò chơi vẫn chạy bằng polling nhưng chậm hơn.
-5. Địa chỉ IP phía sau gateway: giới hạn thử PIN lấy **phần tử cuối** của `x-forwarded-for` (phần tử do gateway Supabase nối vào, không phải của học sinh). Kiểm tra trên dự án thật bằng các lần nhập PIN sai (mỗi lần ghi một dòng vào `public.join_attempts`): (a) hai lần từ cùng một mạng, một lần thêm tiêu đề giả `X-Forwarded-For: 1.2.3.4` bằng `curl`, rồi trong SQL Editor chạy `select ip_hash, count(*) from public.join_attempts group by 1;` phải ra **một** `ip_hash` (nếu hai giá trị thì tiêu đề giả đang lọt vào, vị trí phần tử tin cậy sai); (b) một lần nữa từ mạng khác (điện thoại dùng 4G) phải ra `ip_hash` **khác**, nếu trùng nghĩa là cả lớp đang bị tính chung một địa chỉ của proxy. Cần chỉnh thì sửa `private.client_ip`.
-6. Đẩy mã lên GitHub để Vercel tự triển khai.
+5. Đẩy mã lên GitHub để Vercel tự triển khai.
 
 ### Nghiệm thu trên thiết bị thật
 

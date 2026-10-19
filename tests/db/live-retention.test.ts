@@ -3,7 +3,6 @@ import { join as joinPath } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { admin, anon, cleanupUsers, signUp, type TestUser } from "./helpers";
 import {
-  clearJoinAttempts,
   hostOk,
   joinOk,
   newQuiz,
@@ -20,7 +19,6 @@ import {
  */
 
 afterAll(async () => {
-  await clearJoinAttempts();
   await cleanupUsers();
 });
 
@@ -287,14 +285,9 @@ describe("7.2 xoá dữ liệu sau 90 ngày", () => {
     expect(await exists(c.id)).toBe(false);
   }, 120_000);
 
-  it("số ngày không hợp lệ bị từ chối (tránh vô tình xoá hết); xoá cả lần nhập sai PIN quá 10 phút", async () => {
+  it("số ngày không hợp lệ bị từ chối (tránh vô tình xoá hết)", () => {
     expect(() => psql("select private.purge_old_sessions(0);")).toThrow();
     expect(() => psql("select private.purge_old_sessions(-5);")).toThrow();
-    await admin.from("join_attempts").insert({ ip_hash: "cu-ret", attempted_at: new Date(Date.now() - 30 * 60_000).toISOString() });
-    await admin.from("join_attempts").insert({ ip_hash: "moi-ret", attempted_at: new Date().toISOString() });
-    psql("select private.purge_old_sessions();");
-    expect(psql("select count(*) from public.join_attempts where ip_hash = 'cu-ret';")).toBe("0");
-    expect(psql("select count(*) from public.join_attempts where ip_hash = 'moi-ret';")).toBe("1");
   });
 
   it("xoá cơ hội: giáo viên tạo phiên mới thì phiên quá hạn của chính họ và một mẻ của người khác bị xoá", async () => {
