@@ -32,6 +32,10 @@ export default function PrivacyPage() {
           đăng nhập, {siteConfig.name} không lưu gì lên máy chủ: tên thầy cô nhập vào ô danh sách và nét vẽ trên bảng
           trắng chỉ nằm trong trình duyệt, mất khi tải lại trang.
         </p>
+        <p>
+          Khi chơi quiz trực tiếp, học sinh cũng không cần tài khoản hay email, chỉ cần mã PIN và một biệt danh tự chọn. Dữ liệu
+          của phần này được nêu riêng ở mục “Quiz chơi trực tiếp”.
+        </p>
       </section>
 
       <section aria-labelledby="teacher" className={styles.section}>
@@ -50,6 +54,10 @@ export default function PrivacyPage() {
           <li>
             <strong>Các game thầy cô đánh dấu yêu thích.</strong>
           </li>
+          <li>
+            <strong>Quiz</strong> thầy cô soạn (tên, câu hỏi, lựa chọn, đáp án) và <strong>các buổi đã chơi</strong> kèm kết quả, xem
+            mục “Quiz chơi trực tiếp”.
+          </li>
         </ul>
         <p>
           Chỉ tài khoản đã tạo ra dữ liệu mới xem và sửa được dữ liệu đó. Cơ sở dữ liệu có quy tắc riêng chặn tài khoản khác đọc hay
@@ -62,9 +70,44 @@ export default function PrivacyPage() {
           Tên học sinh
         </h2>
         <p>
-          Với học sinh, ứng dụng chỉ lưu tên mà thầy cô gõ vào, không lưu ngày sinh, ảnh, điểm số hay thông tin nào khác. Thầy cô nên chỉ
+          Với danh sách lớp, ứng dụng chỉ lưu tên mà thầy cô gõ vào, không lưu ngày sinh, ảnh hay thông tin nào khác. Thầy cô nên chỉ
           nhập những gì cần để gọi tên trong lớp (ví dụ tên gọi hoặc số thứ tự nếu không muốn dùng họ tên đầy đủ), và nên cân nhắc
           việc cho phép lưu tên học sinh theo quy định của trường.
+        </p>
+      </section>
+
+      <section aria-labelledby="quiz" className={styles.section}>
+        <h2 id="quiz" className={styles.heading}>
+          Quiz chơi trực tiếp
+        </h2>
+        <p>
+          Học sinh vào một buổi chơi bằng mã PIN thầy cô chiếu lên và một biệt danh tự chọn. Học sinh không cần tài khoản, không nhập email
+          hay họ tên thật. Thầy cô nên dặn học sinh đặt biệt danh không lộ thông tin cá nhân; thầy cô loại được biệt danh không phù hợp
+          ngay trong buổi chơi.
+        </p>
+        <p>Mỗi buổi chơi, ứng dụng lưu:</p>
+        <ul className={styles.list}>
+          <li>
+            <strong>Biệt danh</strong> của học sinh, <strong>câu trả lời</strong>, <strong>điểm</strong> từng câu, <strong>thời gian
+            trả lời</strong> và thứ hạng.
+          </li>
+          <li>
+            Một <strong>bản sao đề</strong> (câu hỏi và đáp án) tại thời điểm bắt đầu, để kết quả không đổi nếu thầy cô sửa quiz về sau.
+          </li>
+        </ul>
+        <p>
+          Mục đích là để chạy trò chơi, hiện bảng xếp hạng cho cả lớp (biệt danh và điểm) và cho thầy cô xem kết quả sau buổi.
+          Ngoài lớp đang chơi, <strong>chỉ giáo viên chủ phiên</strong> xem được kết quả chi tiết; tài khoản khác không đọc được, vì cơ
+          sở dữ liệu chặn chứ không chỉ ẩn trên giao diện.
+        </p>
+        <p>
+          Dữ liệu người chơi được <strong>giữ 90 ngày</strong> rồi tự xoá. Thầy cô cũng xoá ngay được từng buổi ở mục “Các buổi đã chơi”
+          của quiz. Xoá quiz không xoá các buổi đã chơi của nó; các buổi đó vẫn theo hạn 90 ngày hoặc thầy cô tự xoá.
+        </p>
+        <p>
+          Trên điện thoại của học sinh, mã tham gia được giữ trong bộ nhớ tạm của tab trình duyệt để tải lại trang vẫn vào lại đúng người
+          chơi, và mất khi đóng tab. Để chống đoán mã PIN, ứng dụng ghi tạm một dạng băm có muối của địa chỉ mạng (IP) trong các lần
+          nhập sai và xoá sau 10 phút; địa chỉ IP không được lưu ở dạng đọc được.
         </p>
       </section>
 
@@ -104,7 +147,8 @@ export default function PrivacyPage() {
         </h2>
         <p>
           Thầy cô xoá được từng học sinh, từng lớp và bỏ yêu thích ngay trong ứng dụng, ở mục Lớp của tôi. Khi xoá lớp thì danh sách học
-          sinh của lớp cũng bị xoá.
+          sinh của lớp cũng bị xoá. Quiz xoá ở mục Quiz của tôi; từng buổi chơi (kèm biệt danh, câu trả lời, điểm của học sinh) xoá ở
+          mục “Các buổi đã chơi” của quiz, nếu không xoá thì tự mất sau 90 ngày.
         </p>
         <p>
           {siteConfig.contactEmail ? (

@@ -178,7 +178,10 @@ export function HostScreen({ sessionId }: { sessionId: string }) {
           <Podium rows={state.leaderboard ?? []} />
         </section>
         <div className={styles.controls}>
-          <ButtonLink href="/my-quizzes" variant="primary">
+          <ButtonLink href={`/host/${sessionId}/results`} variant="primary">
+            Xem kết quả chi tiết
+          </ButtonLink>
+          <ButtonLink href="/my-quizzes" variant="secondary">
             Về Quiz của tôi
           </ButtonLink>
         </div>

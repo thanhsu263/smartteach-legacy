@@ -32,6 +32,8 @@ npm run dev
 
 Realtime của stack cục bộ đã được bật (`[realtime] enabled = true` trong `supabase/config.toml`) cho giai đoạn 2: lần `supabase:start` đầu tiên sau khi bật sẽ tải thêm image `supabase/realtime` (vài trăm MB). Realtime chỉ làm "chuông báo" `{ seq }` cho quiz chơi trực tiếp; nếu tắt, trò chơi vẫn chạy nhờ polling nhưng test `tests/db/live-realtime.test.ts` sẽ không đạt.
 
+**Lưu trữ dữ liệu quiz.** Dữ liệu người chơi của quiz trực tiếp (biệt danh, câu trả lời, điểm) tự xoá sau 90 ngày bằng hàm `private.purge_old_sessions`, gọi theo hai đường: `pg_cron` mỗi ngày lúc 3:17 (migration `20261023090000_results_retention.sql` lập lịch **nếu** tiện ích có và bật được, không thì bỏ qua mà không lỗi) và xoá cơ hội mỗi khi một giáo viên tạo phiên mới. Hệ quả: nếu dự án thật chưa bật `pg_cron` và không giáo viên nào tạo phiên mới thì dữ liệu cũ có thể ở lại lâu hơn 90 ngày; bật `pg_cron` trên dự án thật (xem task 8.3 của giai đoạn 2) để xoá đúng hạn. Giáo viên xoá được ngay từng buổi ở mục "Các buổi đã chơi" của quiz.
+
 ## Lệnh thường dùng
 
 | Lệnh | Việc |

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isUuid } from "@/lib/classes/api";
 import { describeJoinCode, describeLiveError, isFatalPlayerError, liveErrorKey } from "@/lib/live/errors";
+import type { HistoryRow, HostResults } from "@/lib/live/results";
 import type { FetchOutcome } from "@/lib/live/sync";
 import type { AnswerValue, HostState, JoinCode, LeaderboardView, PlayerState } from "@/lib/live/types";
 
@@ -72,6 +73,24 @@ export const host = {
 
   close: (supabase: SupabaseClient, sessionId: string) =>
     isUuid(sessionId) ? action(supabase, "host_close_question", { p_session: sessionId }) : Promise.resolve(BAD_SESSION),
+
+  /** Kết quả chi tiết sau buổi chơi (chỉ chủ phiên, chỉ khi đã kết thúc). Không phải của mình hoặc id sai thì báo hỏng hẳn. */
+  async results(supabase: SupabaseClient, sessionId: string): Promise<LiveResult<{ results: HostResults }>> {
+    if (!isUuid(sessionId)) return { ...BAD_SESSION, fatal: true };
+    const { data, error } = await call(supabase, "host_results", { p_session: sessionId });
+    if (error || !data) return fail(error, liveErrorKey(error) === "session_not_found");
+    return { ok: true, results: data as HostResults };
+  },
+
+  /** Các buổi đã chơi (của một quiz, hoặc tất cả), mới nhất trước. */
+  async history(supabase: SupabaseClient, quizId?: string): Promise<LiveResult<{ rows: HistoryRow[] }>> {
+    const { data, error } = await call(supabase, "session_history", quizId ? { p_quiz_id: quizId } : {});
+    if (error || !Array.isArray(data)) return fail(error, false);
+    return { ok: true, rows: data as HistoryRow[] };
+  },
+
+  deleteSession: (supabase: SupabaseClient, sessionId: string) =>
+    isUuid(sessionId) ? action(supabase, "delete_session", { p_session: sessionId }) : Promise.resolve(BAD_SESSION),
 
   /** Tự đóng khi hết giờ: máy chủ chỉ đóng nếu giờ của nó đã qua hạn. `closed` false nghĩa là chưa tới hạn hoặc đã đóng rồi. */
   async closeIfExpired(supabase: SupabaseClient, sessionId: string): Promise<LiveResult<{ closed: boolean }>> {

@@ -1,0 +1,196 @@
+.screen {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.lead {
+  color: var(--color-ink-muted);
+}
+
+.heading {
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.hint {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.error {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.notice {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-primary-tint);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.empty {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-5);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.section {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* Bảng rộng cuộn ngang trong khung riêng (focus được bằng bàn phím) chứ không làm tràn cả trang. */
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.tableWrap:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.table {
+  width: 100%;
+  min-width: 36rem;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.table caption {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  color: var(--color-ink-muted);
+}
+
+.table th,
+.table td {
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table thead th {
+  font-weight: 700;
+  white-space: nowrap;
+  background: var(--color-primary-tint);
+}
+
+.table tbody th {
+  font-weight: 600;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.prompt {
+  min-width: 12rem;
+  overflow-wrap: anywhere;
+}
+
+.mutedRow {
+  color: var(--color-ink-muted);
+}
+
+.cell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.cell[data-status="correct"] {
+  color: var(--color-success);
+}
+
+.cell[data-status="wrong"] {
+  color: var(--color-danger);
+}
+
+.cell[data-status="none"] {
+  color: var(--color-ink-muted);
+  font-weight: 400;
+}
+
+.details summary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.optionList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.confirm {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-primary-tint);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+/* Danh sách các buổi đã chơi (trong trình soạn quiz) */
+
+.historyList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.historyItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.historyMeta {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.historyDate {
+  font-weight: 600;
+}

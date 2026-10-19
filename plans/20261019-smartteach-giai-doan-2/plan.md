@@ -32,7 +32,7 @@ Ngoài phạm vi: bài tự làm có hạn nộp, hình ảnh và công thức T
 | 4 | [Đồng bộ thời gian thực](./phase-04-dong-bo-thoi-gian-thuc.md) | 3 | Done (chờ review) |
 | 5 | [Màn hình học sinh](./phase-05-man-hinh-hoc-sinh.md) | 4 | Done (chờ review) |
 | 6 | [Màn hình giáo viên](./phase-06-man-hinh-giao-vien.md) | 2, 4 | Done (chờ review) |
-| 7 | [Kết quả, lưu trữ và quyền riêng tư](./phase-07-ket-qua-luu-tru.md) | 3, 6 | Pending |
+| 7 | [Kết quả, lưu trữ và quyền riêng tư](./phase-07-ket-qua-luu-tru.md) | 3, 6 | Done (chờ review) |
 | 8 | [Thử tải, triển khai và nghiệm thu](./phase-08-thu-tai-trien-khai.md) | 1-7 | Pending |
 
 Phase 2 và 3 độc lập nhau (cùng chỉ cần phase 1) nên làm thứ tự nào cũng được; phase 5 và 6 cũng độc lập nhau. Phase 3 là ranh giới bảo mật của phần học sinh, nên được review riêng trước khi làm phase 4 trở đi.

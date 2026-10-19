@@ -251,3 +251,28 @@ Review (`hs-code-review`, commit `edf3fc2`) không có Critical hay High. Đã x
 Kết quả: typecheck, lint, 206 unit, 117 test DB (hai lần liên tiếp), 170 e2e (hai lần liên tiếp) đạt.
 
 Còn mở: máy chiếu thật và độ đọc từ cuối lớp, WebKit và điện thoại thật.
+
+## Phase 7 - Kết quả, lưu trữ và quyền riêng tư
+
+Kết quả kiểm tra (chưa commit): typecheck, lint đạt; **210 unit**; **128 test DB** (11 mới trong `tests/db/live-retention.test.ts`, hai lần liên tiếp); **175 e2e** (hai lần liên tiếp, gồm `e2e/results.spec.ts` 4 và test mới của trang Quyền riêng tư).
+
+### Đã làm
+
+- **Migration `20261023090000_results_retention.sql`:** `host_results` (chỉ chủ phiên, chỉ khi phiên đã kết thúc: xếp hạng, thống kê từng câu, số lượt chọn, thời gian trả lời trung bình, đáp án từng người), `session_history` (các buổi đã chơi của một quiz hoặc tất cả, mới nhất trước), `delete_session` (chỉ phiên đã kết thúc; người chơi và câu trả lời xoá theo), `private.purge_old_sessions(ngày, chủ, giới hạn)` (không mở cho API) và lập lịch `pg_cron` mỗi ngày **có điều kiện**. Bản mới của `create_session` được dựng từ chính bản ở migration phase 3 và gọi thêm xoá cơ hội (của chính giáo viên, và một mẻ tối đa 50 phiên của người khác).
+- **Giao diện:** `/host/[id]/results` (xếp hạng, theo câu hỏi có xem lượt chọn từng lựa chọn, theo từng bạn với ô Đúng/Sai/Bỏ trống có chữ chứ không chỉ màu; xoá buổi có xác nhận); mục "Các buổi đã chơi" trong trình soạn quiz; liên kết "Xem kết quả chi tiết" ở màn kết thúc. Bảng rộng cuộn ngang trong khung riêng focus được, nên trang không tràn ở 375px.
+- **Quyền riêng tư:** thêm mục "Quiz chơi trực tiếp" (dữ liệu lưu, mục đích, ai xem, 90 ngày, không cần tài khoản, mã tham gia trong bộ nhớ tạm của tab, băm có muối địa chỉ IP 10 phút), sửa câu "Tên học sinh" (trước đây nói không lưu điểm số, giờ chỉ nói về danh sách lớp), bổ sung mục giáo viên có tài khoản và mục xoá dữ liệu. `privacyReviewed` vẫn `false`, biểu ngữ bản nháp còn nguyên.
+- README: mục lưu trữ dữ liệu quiz và hệ quả khi chưa bật `pg_cron`.
+
+### Kiểm chứng
+
+- Phá thử bốn chỗ làm test hỏng: xoá phiên bất kể tuổi, bỏ kiểm tra chủ phiên của `host_results`, cho `delete_session` xoá cả phiên đang chạy, bỏ xoá cơ hội khỏi `create_session`.
+- Khối lập lịch chạy được ở ba trường hợp: bình thường, không có `pg_cron`, và lập lịch lỗi (test đọc khối `$cron$` từ chính tệp migration rồi sửa để mô phỏng). Trên stack cục bộ `pg_cron` bật được và công việc đã được lập lịch.
+- Số liệu khớp điểm tính tay: Lan 3000, Huy 2000, điểm trung bình 2500, thống kê từng câu và lượt chọn từng lựa chọn đúng.
+
+### Quyết định và lệch so với plan
+
+- Trang kết quả đặt ở `/host/[id]/results` (dưới khu `/host` đã bảo vệ), không tạo tuyến mới trong `/my-quizzes`.
+- `host_results` chỉ trả khi phiên đã kết thúc (phiên đang chạy trả `session_not_ended`, HTTP 409), để điểm của câu đang mở chưa chấm không gây hiểu nhầm.
+- Xoá quiz không xoá các buổi đã chơi (`quiz_id` đặt null), nên trang Quyền riêng tư nói rõ điều này; các buổi đó vẫn theo hạn 90 ngày hoặc giáo viên tự xoá. Từ danh sách của quiz đã xoá thì không còn lối vào, nhưng `session_history` không lọc theo quiz vẫn liệt kê được (chưa có trang riêng cho tất cả các buổi).
+- **Nội dung Quyền riêng tư không phải tư vấn pháp lý:** chủ dự án phải rà theo quy định hiện hành về dữ liệu của trẻ em rồi đặt `privacyReviewed: true` và điền `contactEmail`.
+- **Chưa kiểm tra:** `pg_cron` trên dự án Supabase thật (task 8.3); nút xuất báo cáo Excel (ngoài phạm vi giai đoạn này).

@@ -21,6 +21,7 @@ test.describe("trang Quyền riêng tư", () => {
       "Học sinh và khách",
       "Giáo viên có tài khoản",
       "Tên học sinh",
+      "Quiz chơi trực tiếp",
       "Dữ liệu được lưu ở đâu",
       "Cookie và theo dõi",
       "Game do bên khác cung cấp",
@@ -28,7 +29,25 @@ test.describe("trang Quyền riêng tư", () => {
     ]) {
       await expect(page.getByRole("heading", { level: 2, name: heading })).toBeVisible();
     }
-    await expect(page.getByText("không lưu ngày sinh, ảnh, điểm số")).toBeVisible();
+    await expect(page.getByText("không lưu ngày sinh, ảnh hay thông tin nào khác")).toBeVisible();
+  });
+
+  test("mục quiz chơi trực tiếp nêu đủ dữ liệu lưu, mục đích, ai xem, thời hạn 90 ngày và cách xoá", async ({ page }) => {
+    await page.goto("/privacy");
+    const quiz = page.locator("section", { has: page.getByRole("heading", { level: 2, name: "Quiz chơi trực tiếp" }) });
+    await expect(quiz).toContainText("không cần tài khoản");
+    for (const stored of ["Biệt danh", "câu trả lời", "điểm", "thời gian", "thứ hạng"]) {
+      await expect(quiz).toContainText(stored);
+    }
+    await expect(quiz).toContainText("chỉ giáo viên chủ phiên");
+    await expect(quiz).toContainText("giữ 90 ngày");
+    await expect(quiz).toContainText("xoá ngay được từng buổi");
+    await expect(quiz).toContainText("băm có muối");
+    // Các mục khác không còn khẳng định ứng dụng không lưu điểm số.
+    await expect(page.getByText("không lưu ngày sinh, ảnh, điểm số")).toHaveCount(0);
+    // Giáo viên được nêu là có lưu quiz và các buổi đã chơi; mục xoá nhắc cả buổi chơi.
+    await expect(page.getByRole("heading", { level: 2, name: "Giáo viên có tài khoản" }).locator("..")).toContainText("các buổi đã chơi");
+    await expect(page.getByRole("heading", { level: 2, name: "Xoá dữ liệu" }).locator("..")).toContainText("Các buổi đã chơi");
   });
 
   test("hiện biểu ngữ bản nháp cho tới khi chủ dự án duyệt, và email liên hệ đúng cấu hình", async ({ page }) => {
