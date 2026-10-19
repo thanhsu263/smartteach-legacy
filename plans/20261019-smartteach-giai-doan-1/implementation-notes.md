@@ -149,3 +149,21 @@ Phủ bởi test: khách vào `/my-classes` bị chuyển tới `/login?next=…
 - Tạo dự án Supabase thật, rồi đặt `NEXT_PUBLIC_SUPABASE_URL` và `NEXT_PUBLIC_SUPABASE_ANON_KEY` (xem `.env.example`). Áp migration lên dự án thật là ghi ra bên ngoài nên cần xác nhận ở phase 5.
 - Tạo OAuth client trong Google Cloud và bật Google trong Supabase Auth, URL gọi lại là `<domain>/auth/callback`. Đăng nhập Google chưa được kiểm tra vì cần cấu hình thật.
 - Chạy lại kiểm thử đăng nhập và RLS trên dự án thật sau khi áp migration.
+
+## Sửa sau review phase 4
+
+Review `hs-code-review` (commit dd963e4) tìm ra một lỗi High, một lỗi Medium và năm mục Low. Mỗi lỗi có test hồi quy chạy trên mã chưa sửa và thất bại (unit: `safeNextPath("/..//evil.example")` trả `//evil.example`, `isUuid` chưa có; DB: 8 test hỏng khi chưa có migration mới), rồi đạt sau khi sửa. Riêng test e2e đăng nhập đã được thử lại với `safeNextPath` cũ: thất bại với `Received "http://evil.example/"`, đạt khi dùng bản sửa.
+
+| Mục | Nguyên nhân gốc | Sửa | Test hồi quy |
+|---|---|---|---|
+| **High** open redirect sau đăng nhập | `safeNextPath` kiểm tra chuỗi gốc nhưng trả về đường dẫn đã chuẩn hoá bởi `new URL`; `/..//host`, `/.//host`, `/%2e%2e//host` chuẩn hoá thành `//host` | Kiểm tra lại kết quả cuối (không được bắt đầu bằng `//`, cùng gốc). Thêm `internalRedirectUrl` làm lớp kiểm tra thứ hai ở callback và proxy | Unit: các dạng dấu chấm, và 10^4 tổ hợp đoạn đường dẫn đều cho kết quả cùng gốc (phép thử này tự tìm ra thêm `/.///`); unit cho route `/auth/callback` (thành công, không next, next độc hại, mã sai, thiếu mã, chưa cấu hình); e2e đăng nhập với 5 giá trị `next` độc hại, và e2e gọi `/auth/callback` với mã sai |
+| **Medium** yêu thích không giới hạn (5000 dòng/tài khoản) | Chỉ lớp và học sinh có trigger giới hạn | Migration `20261020090000`: trigger tối đa 100 game yêu thích mỗi giáo viên (khoá advisory) và ràng buộc dạng id `^[a-z0-9]+(-[a-z0-9]+)*$` (cùng quy ước id danh mục) | DB: vượt 100 một lần và nhiều dòng một lần, thêm song song 120 cho đúng 100, id sai dạng bị chặn, B không sửa/xoá yêu thích của A; unit cho lời nhắn lỗi |
+| Low 1: proxy làm hỏng `next` có query (`/games%3Fx=1`) | Gán `url.pathname` mã hoá dấu `?` | Dựng URL đầy đủ từ `next` | E2E: `/login?next=/games?q=xi` khi đã đăng nhập giữ nguyên query |
+| Low 2: `/my-classes/abc` báo lỗi chung kèm "Thử lại" | id không phải UUID làm PostgREST lỗi `22P02` | `isUuid` kiểm tra trước, báo "Không tìm thấy lớp này" | Unit `isUuid`; e2e `/my-classes/abc` |
+| Low 3: chưa có header bảo mật | Chưa cấu hình | `next.config.ts`: `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options: DENY`, `CSP: frame-ancestors 'none'`. CSP đầy đủ cho script để phase 5 | E2E `security.spec.ts` trên 5 trang (cả trang bị proxy chuyển hướng) |
+| Low 4: tạo lớp không nguyên tử | Hai lệnh riêng, dọn dẹp chỉ cố gắng hết sức | Hàm SQL `create_class_with_students` chạy với quyền người gọi (RLS và giới hạn vẫn áp dụng), một giao dịch | DB: tạo đúng thứ tự, danh sách rỗng, lỗi ở học sinh không để lại lớp nào, khách không gọi được, vẫn giới hạn 20 lớp |
+| Low 5: `config.toml` cục bộ có thể bị đẩy nhầm lên dự án thật | Chưa có cảnh báo | Đầu tệp ghi rõ chỉ dùng cục bộ, không `supabase config push` | (không áp dụng) |
+
+Kết quả sau sửa: typecheck, lint đạt; 87 unit, 22 test RLS/DB, 78 e2e (hai lần liên tiếp trên bản build thật với Supabase cục bộ). Migration mới đã áp lên stack cục bộ bằng `npx supabase migration up`; áp lên dự án thật vẫn thuộc phase 5 và cần xác nhận.
+
+Còn lại từ review phase 4: chưa có thông báo quyền riêng tư cho dữ liệu tên học sinh (cần chủ dự án quyết định trước khi công khai); Google OAuth và dự án Supabase thật chưa được thử; CSP đầy đủ cho script; một test RLS cho "khách đọc `students`" (đã có ở nhóm khách chưa đăng nhập).

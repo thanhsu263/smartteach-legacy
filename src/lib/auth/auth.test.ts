@@ -35,6 +35,49 @@ describe("safeNextPath", () => {
   });
 });
 
+describe("safeNextPath: dấu chấm và mã hoá không được biến thành địa chỉ ngoài", () => {
+  const fallback = "/safe";
+
+  it("từ chối các đường dẫn chuẩn hoá thành //host (lỗi open redirect đã gặp)", () => {
+    for (const evil of [
+      "/..//evil.example",
+      "/.//evil.example",
+      "/a/..//evil.example",
+      "/a/../..//evil.example",
+      "/%2e%2e//evil.example",
+      "/%2E%2E//evil.example",
+      "/././/evil.example",
+    ]) {
+      expect(safeNextPath(evil, fallback), evil).toBe(fallback);
+    }
+  });
+
+  it("mọi kết quả đều là đường dẫn cùng gốc, không bao giờ bắt đầu bằng //", () => {
+    const parts = ["", ".", "..", "%2e", "%2e%2e", "%2f", "a", "evil.example", "?x=1", "#h"];
+    const origin = "http://app.test";
+    let checked = 0;
+    for (const a of parts) {
+      for (const b of parts) {
+        for (const c of parts) {
+          for (const d of parts) {
+            const input = `/${a}/${b}/${c}/${d}`;
+            const result = safeNextPath(input, fallback);
+            expect(result.startsWith("//"), `${input} -> ${result}`).toBe(false);
+            expect(new URL(result, origin).origin, `${input} -> ${result}`).toBe(origin);
+            checked += 1;
+          }
+        }
+      }
+    }
+    expect(checked).toBe(parts.length ** 4);
+  });
+
+  it("vẫn giữ nguyên đường dẫn hợp lệ có dấu chấm", () => {
+    expect(safeNextPath("/games/../tools", fallback)).toBe("/tools");
+    expect(safeNextPath("/my-classes/./abc", fallback)).toBe("/my-classes/abc");
+  });
+});
+
 describe("describeAuthError", () => {
   it("dịch các mã lỗi đã biết", () => {
     expect(describeAuthError({ code: "invalid_credentials" })).toContain("chưa đúng");

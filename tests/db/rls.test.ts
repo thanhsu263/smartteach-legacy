@@ -196,3 +196,122 @@ describe("giới hạn số lượng", () => {
     }
   }, 60_000);
 });
+
+describe("giới hạn game yêu thích", () => {
+  it("không cho vượt 100 game, kể cả khi thêm nhiều dòng một lần", async () => {
+    const { client, id } = await signUp(`rls-fav-limit-${run}@example.test`);
+    try {
+      const rows = Array.from({ length: 100 }, (_, i) => ({ game_id: `game-${i}` }));
+      expect((await client.from("favorites").insert(rows)).error).toBeNull();
+
+      const over = await client.from("favorites").insert({ game_id: "game-thu-101" });
+      expect(over.error?.message).toContain("favorite_limit_exceeded");
+
+      // Bỏ một game thì thêm lại được.
+      await client.from("favorites").delete().eq("game_id", "game-0");
+      expect((await client.from("favorites").insert({ game_id: "game-thu-101" })).error).toBeNull();
+
+      const bulk = await client.from("favorites").insert(
+        Array.from({ length: 5 }, (_, i) => ({ game_id: `them-${i}` })),
+      );
+      expect(bulk.error?.message).toContain("favorite_limit_exceeded");
+      const stored = await client.from("favorites").select("game_id", { count: "exact", head: true });
+      expect(stored.count).toBe(100);
+    } finally {
+      await admin.auth.admin.deleteUser(id);
+    }
+  }, 60_000);
+
+  it("không cho vượt 100 game khi thêm song song", async () => {
+    const { client, id } = await signUp(`rls-fav-parallel-${run}@example.test`);
+    try {
+      const attempts = await Promise.all(
+        Array.from({ length: 120 }, (_, i) => client.from("favorites").insert({ game_id: `song-song-${i}` })),
+      );
+      expect(attempts.filter((result) => !result.error)).toHaveLength(100);
+      expect(
+        attempts.filter((result) => result.error?.message.includes("favorite_limit_exceeded")),
+      ).toHaveLength(20);
+    } finally {
+      await admin.auth.admin.deleteUser(id);
+    }
+  }, 60_000);
+
+  it("chỉ nhận id game đúng dạng (chữ thường, số, gạch ngang), chặn chuỗi rác", async () => {
+    for (const bad of ["Game-Hoa", "co khoang trang", "-bat-dau-gach", "ket-thuc-gach-", "x".repeat(101), "dấu-tiếng-việt", "a--b"]) {
+      const result = await a.from("favorites").insert({ game_id: bad });
+      expect(result.error?.code, bad).toBe("23514");
+    }
+    expect((await a.from("favorites").insert({ game_id: "dang-hop-le-1" })).error).toBeNull();
+  });
+
+  it("B không sửa hay xoá được yêu thích của A", async () => {
+    await a.from("favorites").insert({ game_id: "game-rieng-cua-a" });
+    const renamed = await b.from("favorites").update({ game_id: "bi-doi" }).eq("game_id", "game-rieng-cua-a").select();
+    expect(renamed.data).toEqual([]);
+    const removed = await b.from("favorites").delete().eq("game_id", "game-rieng-cua-a").select();
+    expect(removed.data).toEqual([]);
+    const still = await a.from("favorites").select("game_id").eq("game_id", "game-rieng-cua-a");
+    expect(still.data).toHaveLength(1);
+  });
+});
+
+describe("tạo lớp nguyên tử qua create_class_with_students", () => {
+  it("tạo lớp cùng học sinh theo đúng thứ tự trong một lần gọi", async () => {
+    const { data, error } = await a.rpc("create_class_with_students", {
+      class_name: "Lớp tạo một lần",
+      student_names: ["An", "Bình", "Chi"],
+    });
+    expect(error).toBeNull();
+    const classId = data as string;
+    const classRow = await a.from("classes").select("owner_id, name").eq("id", classId).single();
+    expect(classRow.data).toEqual({ owner_id: userA, name: "Lớp tạo một lần" });
+    const students = await a.from("students").select("name, position").eq("class_id", classId).order("position");
+    expect(students.data).toEqual([
+      { name: "An", position: 0 },
+      { name: "Bình", position: 1 },
+      { name: "Chi", position: 2 },
+    ]);
+  });
+
+  it("danh sách học sinh rỗng vẫn tạo được lớp", async () => {
+    const { data, error } = await a.rpc("create_class_with_students", { class_name: "Lớp trống" });
+    expect(error).toBeNull();
+    const students = await a.from("students").select("id").eq("class_id", data as string);
+    expect(students.data).toEqual([]);
+  });
+
+  it("lỗi ở học sinh thì không để lại lớp nào (hoàn tác cả hai bước)", async () => {
+    const before = await a.from("classes").select("id", { count: "exact", head: true });
+    const tooMany = await a.rpc("create_class_with_students", {
+      class_name: "Lớp quá đông",
+      student_names: Array.from({ length: 101 }, (_, i) => `HS ${i}`),
+    });
+    expect(tooMany.error?.message).toContain("student_limit_exceeded");
+    const emptyName = await a.rpc("create_class_with_students", {
+      class_name: "Lớp tên rỗng",
+      student_names: ["An", "   "],
+    });
+    expect(emptyName.error?.code).toBe("23514");
+    const after = await a.from("classes").select("id", { count: "exact", head: true });
+    expect(after.count).toBe(before.count);
+  });
+
+  it("khách chưa đăng nhập không gọi được", async () => {
+    const result = await anon.rpc("create_class_with_students", { class_name: "x" });
+    expect(result.error?.code).toBe("42501");
+  });
+
+  it("vẫn bị giới hạn 20 lớp", async () => {
+    const { client, id } = await signUp(`rls-rpc-limit-${run}@example.test`);
+    try {
+      for (let i = 0; i < 20; i += 1) {
+        expect((await client.rpc("create_class_with_students", { class_name: `Lớp ${i}` })).error).toBeNull();
+      }
+      const over = await client.rpc("create_class_with_students", { class_name: "Lớp 21" });
+      expect(over.error?.message).toContain("class_limit_exceeded");
+    } finally {
+      await admin.auth.admin.deleteUser(id);
+    }
+  }, 60_000);
+});

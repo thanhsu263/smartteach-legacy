@@ -1,4 +1,4 @@
-import { MAX_CLASSES, MAX_NAME_LENGTH, MAX_STUDENTS_PER_CLASS } from "@/lib/classes/limits";
+import { MAX_CLASSES, MAX_FAVORITES, MAX_NAME_LENGTH, MAX_STUDENTS_PER_CLASS } from "@/lib/classes/limits";
 
 type ErrorLike = { code?: string; message?: string } | null | undefined;
 
@@ -13,6 +13,9 @@ export function describeDbError(error: ErrorLike): string {
   }
   if (message.includes("student_limit_exceeded")) {
     return `Một lớp chứa tối đa ${MAX_STUDENTS_PER_CLASS} học sinh.`;
+  }
+  if (message.includes("favorite_limit_exceeded")) {
+    return `Thầy cô đã lưu ${MAX_FAVORITES} game yêu thích, là giới hạn tối đa. Bỏ bớt một game rồi lưu tiếp nhé.`;
   }
   if (error.code === "23514") return `Tên cần từ 1 đến ${MAX_NAME_LENGTH} ký tự.`;
   if (error.code === "23505") return "Mục này đã có rồi.";

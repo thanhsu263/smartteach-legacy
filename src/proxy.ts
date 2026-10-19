@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { safeNextPath } from "@/lib/auth/safe-next";
+import { internalRedirectUrl } from "@/lib/auth/safe-next";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 
 /**
@@ -37,9 +37,8 @@ export async function proxy(request: NextRequest) {
   }
 
   if (signedIn && pathname === "/login") {
-    const url = request.nextUrl.clone();
-    url.pathname = safeNextPath(request.nextUrl.searchParams.get("next"), "/my-classes");
-    url.search = "";
+    // Dựng URL từ cả đường dẫn lẫn query của `next`; gán riêng `pathname` sẽ mã hoá dấu "?".
+    const url = internalRedirectUrl(request.nextUrl.searchParams.get("next"), request.nextUrl.origin, "/my-classes");
     return redirectWithCookies(url, response);
   }
 

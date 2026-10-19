@@ -45,10 +45,18 @@ export async function listClasses(supabase: SupabaseClient): Promise<Result<{ cl
   };
 }
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Id lớp lấy từ URL có thể là chuỗi bất kỳ; chuỗi không phải UUID chắc chắn không phải lớp nào. */
+export function isUuid(value: string): boolean {
+  return UUID_PATTERN.test(value);
+}
+
 export async function getClass(
   supabase: SupabaseClient,
   id: string,
 ): Promise<Result<{ found: boolean; name: string; students: Student[] }>> {
+  if (!isUuid(id)) return { ok: true, found: false, name: "", students: [] };
   const classRow = await supabase.from("classes").select("id, name").eq("id", id).maybeSingle();
   if (classRow.error) return fail(classRow.error);
   if (!classRow.data) return { ok: true, found: false, name: "", students: [] };
@@ -84,21 +92,13 @@ export async function createClass(
   const studentsError = validateStudentNames(studentNames);
   if (studentsError) return { ok: false, message: studentsError };
 
-  const created = await supabase.from("classes").insert({ name: name.trim() }).select("id").single();
-  if (created.error || !created.data) return fail(created.error);
-  const id = created.data.id as string;
-
-  if (studentNames.length > 0) {
-    const added = await supabase
-      .from("students")
-      .insert(studentNames.map((studentName, position) => ({ class_id: id, name: studentName, position })));
-    if (added.error) {
-      // Không để lại lớp rỗng nửa vời khi không lưu được danh sách học sinh.
-      await supabase.from("classes").delete().eq("id", id);
-      return fail(added.error);
-    }
-  }
-  return { ok: true, id };
+  // Một lần gọi, một giao dịch: lỗi ở học sinh thì lớp cũng không được tạo.
+  const { data, error } = await supabase.rpc("create_class_with_students", {
+    class_name: name.trim(),
+    student_names: studentNames,
+  });
+  if (error || typeof data !== "string") return fail(error);
+  return { ok: true, id: data };
 }
 
 export async function renameClass(supabase: SupabaseClient, id: string, name: string): Promise<Result<object>> {

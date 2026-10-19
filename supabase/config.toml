@@ -1,4 +1,9 @@
-﻿# For detailed configuration reference documentation, visit:
+﻿# CHỈ DÙNG CHO STACK CỤC BỘ (`npm run supabase:start`).
+# Cấu hình này cố ý khác dự án thật: tắt xác nhận email, site_url là localhost, mật khẩu tối thiểu 6.
+# KHÔNG chạy `supabase config push` lên dự án thật: nó sẽ ghi đè các thiết lập đúng của dự án đó.
+# Chỉ áp migration lên dự án thật (`supabase db push`), và đặt URL đăng nhập trong dashboard.
+#
+# For detailed configuration reference documentation, visit:
 # https://supabase.com/docs/guides/local-development/cli/config
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.

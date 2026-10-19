@@ -89,13 +89,48 @@ test.describe("đăng nhập và phiên", () => {
     await expect(page).toHaveURL(/\/games$/);
   });
 
-  test("tham số next trỏ ra ngoài bị bỏ qua", async ({ page }) => {
+  test("tham số next trỏ ra ngoài bị bỏ qua, kể cả khi ngụy trang bằng dấu chấm", async ({ page }) => {
     const email = await register(page);
     await expect(page).toHaveURL(/\/my-classes$/);
     await signOut(page);
 
-    await signIn(page, email, "/login?next=%2F%2Fevil.example");
-    await expect(page).toHaveURL(/localhost:3100\/my-classes$/);
+    // Chặn mọi yêu cầu tới tên miền giả để nếu bị chuyển hướng ra ngoài thì vẫn thấy được địa chỉ cuối.
+    await page.route((url) => url.hostname === "evil.example", (route) =>
+      route.fulfill({ contentType: "text/html", body: "<h1>TRANG GIẢ</h1>" }),
+    );
+
+    for (const evil of [
+      "//evil.example",
+      "/..//evil.example",
+      "/.//evil.example",
+      "/%2e%2e//evil.example",
+      "https://evil.example/login",
+    ]) {
+      await signIn(page, email, `/login?next=${encodeURIComponent(evil)}`);
+      await expect(page, evil).toHaveURL(/localhost:3100\/my-classes$/);
+      expect(new URL(page.url()).hostname, evil).toBe("localhost");
+      await signOut(page);
+    }
+  });
+
+  test("đã đăng nhập mà next có query thì giữ nguyên query", async ({ page }) => {
+    await register(page);
+    await expect(page).toHaveURL(/\/my-classes$/);
+    await page.goto("/login?next=%2Fgames%3Fq%3Dxi");
+    await expect(page).toHaveURL(/localhost:3100\/games\?q=xi$/);
+  });
+
+  test("/auth/callback với mã sai về trang đăng nhập kèm lỗi, không chuyển ra ngoài", async ({ page, request }) => {
+    const raw = await request.get("/auth/callback?code=ma-sai&next=%2F..%2F%2Fevil.example", { maxRedirects: 0 });
+    expect(raw.status()).toBe(307);
+    expect(new URL(raw.headers()["location"]).origin).toBe("http://localhost:3100");
+
+    await page.goto("/auth/callback?code=ma-sai&next=%2F..%2F%2Fevil.example");
+    await expect(page).toHaveURL(/\/login\?error=callback$/);
+    await expect(page.locator("p[role='alert']")).toContainText("Không hoàn tất được đăng nhập");
+
+    const noCode = await request.get("/auth/callback", { maxRedirects: 0 });
+    expect(new URL(noCode.headers()["location"]).pathname).toBe("/login");
   });
 });
 
@@ -188,6 +223,14 @@ test.describe("lớp của tôi", () => {
 
     await page.goto(classUrl);
     await expect(page.getByRole("heading", { level: 1, name: "Không tìm thấy lớp này" })).toBeVisible();
+  });
+
+  test("mở lớp bằng id không phải UUID thì báo không tìm thấy, không báo lỗi chung", async ({ page }) => {
+    await register(page);
+    await expect(page).toHaveURL(/\/my-classes$/);
+    await page.goto("/my-classes/abc");
+    await expect(page.getByRole("heading", { level: 1, name: "Không tìm thấy lớp này" })).toBeVisible();
+    await expect(page.getByText("Có lỗi xảy ra")).toHaveCount(0);
   });
 
   test("cấp tiêu đề của trang Lớp của tôi không nhảy cấp", async ({ page }) => {
