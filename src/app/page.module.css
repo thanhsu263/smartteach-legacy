@@ -1,0 +1,145 @@
+.hero {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.heroInner {
+  display: grid;
+  gap: var(--space-7);
+  padding-block: var(--space-7);
+}
+
+.heroTitle {
+  max-width: 18ch;
+  font-size: var(--text-display);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.heroLead {
+  max-width: 52ch;
+  margin-top: var(--space-4);
+  color: var(--color-on-primary-muted);
+  font-size: var(--text-lg);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.section {
+  display: grid;
+  gap: var(--space-5);
+  padding-block: var(--space-7) 0;
+}
+
+.sectionTitle {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.sectionLead {
+  max-width: 56ch;
+  margin-top: var(--space-2);
+  color: var(--color-ink-muted);
+}
+
+.toolsIntro {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  justify-items: start;
+}
+
+.toolList {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.tool {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.toolIcon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  background: var(--color-primary-tint);
+  color: var(--color-primary);
+  border-radius: var(--radius-md);
+}
+
+.toolTitle {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.toolText {
+  margin-top: var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.empty {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.emptyTitle {
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+
+.emptyText {
+  max-width: 56ch;
+  margin-bottom: var(--space-2);
+  color: var(--color-ink-muted);
+}
+
+.account {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  padding: var(--space-5);
+  background: var(--color-primary-tint);
+  border-radius: var(--radius-lg);
+}
+
+@media (min-width: 960px) {
+  .heroInner {
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: center;
+    padding-block: var(--space-8);
+  }
+
+  .section:has(.toolsIntro) {
+    grid-template-columns: 1fr 1.4fr;
+    gap: var(--space-7);
+  }
+
+  .account {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding: var(--space-6);
+  }
+}
