@@ -241,7 +241,7 @@ as $$
 begin
   perform 1 from public.quizzes where id = p_quiz_id;
   if not found then
-    raise exception 'quiz_not_found' using errcode = 'P0002';
+    raise exception 'quiz_not_found' using errcode = 'PT404';
   end if;
 
   return query
@@ -307,7 +307,7 @@ declare
 begin
   perform 1 from public.quizzes where id = p_quiz_id;
   if not found then
-    raise exception 'quiz_not_found' using errcode = 'P0002';
+    raise exception 'quiz_not_found' using errcode = 'PT404';
   end if;
 
   if jsonb_typeof(p_question -> 'accepted_answers') = 'array' then
@@ -327,7 +327,7 @@ begin
         ignore_diacritics = coalesce((p_question ->> 'ignore_diacritics')::boolean, false)
     where id = v_id and quiz_id = p_quiz_id;
     if not found then
-      raise exception 'question_not_found' using errcode = 'P0002';
+      raise exception 'question_not_found' using errcode = 'PT404';
     end if;
     delete from public.options where question_id = v_id;
   else
@@ -368,7 +368,7 @@ as $$
 begin
   perform 1 from public.quizzes where id = p_quiz_id;
   if not found then
-    raise exception 'quiz_not_found' using errcode = 'P0002';
+    raise exception 'quiz_not_found' using errcode = 'PT404';
   end if;
 
   if (select array_agg(id order by id) from public.questions where quiz_id = p_quiz_id)
@@ -397,7 +397,7 @@ declare
 begin
   delete from public.questions where id = p_question_id returning quiz_id into v_quiz;
   if not found then
-    raise exception 'question_not_found' using errcode = 'P0002';
+    raise exception 'question_not_found' using errcode = 'PT404';
   end if;
 
   update public.questions q
@@ -424,7 +424,7 @@ declare
 begin
   update public.quizzes set share_token = v_token where id = p_quiz_id;
   if not found then
-    raise exception 'quiz_not_found' using errcode = 'P0002';
+    raise exception 'quiz_not_found' using errcode = 'PT404';
   end if;
   return v_token;
 end;
@@ -480,7 +480,7 @@ declare
 begin
   select title into v_title from public.quizzes where id = p_quiz_id and owner_id = (select auth.uid());
   if not found then
-    raise exception 'quiz_not_found' using errcode = 'P0002';
+    raise exception 'quiz_not_found' using errcode = 'PT404';
   end if;
   return private.copy_quiz(p_quiz_id, (select auth.uid()), left(v_title, 90) || ' (bản sao)');
 end;
@@ -501,7 +501,7 @@ begin
   end if;
   select * into v_quiz from public.quizzes where share_token = p_token and p_token is not null;
   if not found then
-    raise exception 'shared_quiz_not_found' using errcode = 'P0002';
+    raise exception 'shared_quiz_not_found' using errcode = 'PT404';
   end if;
 
   return jsonb_build_object(
@@ -541,7 +541,7 @@ begin
   end if;
   select * into v_quiz from public.quizzes where share_token = p_token and p_token is not null;
   if not found then
-    raise exception 'shared_quiz_not_found' using errcode = 'P0002';
+    raise exception 'shared_quiz_not_found' using errcode = 'PT404';
   end if;
   return private.copy_quiz(v_quiz.id, (select auth.uid()), left(v_quiz.title, 90) || ' (bản sao)');
 end;

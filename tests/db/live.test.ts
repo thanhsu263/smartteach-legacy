@@ -12,7 +12,9 @@ import {
   newQuiz,
   playerState,
   psql,
+  psqlAsync,
   questions,
+  rpcStatus,
   setTimeLimit,
   sleep,
   startSession,
@@ -741,21 +743,33 @@ commit;`);
   });
 
   it("lần vào thành công không bị tính; bản ghi cũ được dọn; hết 10 phút thì được thử lại", async () => {
-    const ipHash = psql(`select encode(extensions.digest('192.0.2.50', 'sha256'), 'hex');`);
+    const ipHash = psql(`select private.hash_ip('192.0.2.50');`);
     asStudent("192.0.2.50", `select public.join_session('${s.pin}', 'Thành công 1');`);
     asStudent("192.0.2.50", `select public.join_session('${s.pin}', 'Thành công 2');`);
     const count = psql(`select count(*) from public.join_attempts where ip_hash = '${ipHash}';`);
     expect(count).toBe("0");
 
-    // Bản ghi quá 1 giờ bị xoá ở lần sai kế tiếp.
-    await admin.from("join_attempts").insert({ ip_hash: "cu", attempted_at: new Date(Date.now() - 2 * 3600_000).toISOString() });
-    asStudent("192.0.2.51", `select public.join_session('000000', 'x');`);
+    // Bản ghi quá 10 phút bị xoá ở MỌI lần vào phòng (kể cả thành công), không chờ có lần sai kế tiếp.
+    await admin.from("join_attempts").insert({ ip_hash: "cu", attempted_at: new Date(Date.now() - 11 * 60_000).toISOString() });
+    asStudent("192.0.2.52", `select public.join_session('${s.pin}', 'Thành công 3');`);
     expect(psql(`select count(*) from public.join_attempts where ip_hash = 'cu';`)).toBe("0");
 
     // Lùi mốc thời gian của kẻ chặn thêm 11 phút: được thử lại.
-    const attackerHash = psql(`select encode(extensions.digest('203.0.113.7', 'sha256'), 'hex');`);
+    const attackerHash = psql(`select private.hash_ip('203.0.113.7');`);
     psql(`update public.join_attempts set attempted_at = attempted_at - interval '11 minutes' where ip_hash = '${attackerHash}';`);
     expect(asStudent("203.0.113.7", `select (public.join_session('${s.pin}', 'Hết án')).result;`)).toContain("ok");
+  });
+
+  it("IP được lưu dạng băm có muối bí mật, không phải SHA-256 trơn đảo ngược được", async () => {
+    asStudent("203.0.113.99", `select public.join_session('000000', 'x');`);
+    const stored = psql(`select ip_hash from public.join_attempts where ip_hash = private.hash_ip('203.0.113.99');`);
+    expect(stored).toMatch(/^[0-9a-f]{64}$/);
+    const plain = psql(`select encode(extensions.digest('203.0.113.99', 'sha256'), 'hex');`);
+    expect(stored).not.toBe(plain);
+    expect(psql(`select count(*) from public.join_attempts where ip_hash = '${plain}';`)).toBe("0");
+    // Muối không đọc được qua API.
+    expect((await admin.schema("private" as never).from("secrets").select("*")).error).not.toBeNull();
+    expect((await anon.from("secrets").select("*")).error).not.toBeNull();
   });
 
   it("đặt tiêu đề x-forwarded-for tuỳ ý qua API không né được giới hạn", async () => {
@@ -769,4 +783,155 @@ commit;`);
     await clearJoinAttempts();
     expect((await join(s.pin, "Sau khi hết án", evader)).result).toBe("ok");
   }, 60_000);
+});
+
+// ---------------------------------------------------------------------------------------------
+describe("mã HTTP của lỗi nghiệp vụ (không được là lỗi máy chủ 5xx)", () => {
+  it("từ chối hợp lệ trả 4xx với thông báo cố định; chỉ lỗi thật mới là 5xx", async () => {
+    const t = await signUp("live-http");
+    const other = await signUp("live-http2");
+    const quizId = await newQuiz(t, [questions[0]]);
+    const s = await startSession(t, quizId);
+    const token = await joinOk(s.pin, "Mã HTTP");
+    const quiet = await joinOk(s.pin, "Im lặng");
+
+    const cases: [string, number, string, Record<string, unknown>, TestUser | undefined][] = [
+      ["mã tham gia sai", 404, "player_state", { p_token: crypto.randomUUID() }, undefined],
+      ["nộp khi chưa mở", 409, "submit_answer", { p_token: token, p_answer: 0 }, undefined],
+      ["host_next sai thứ tự", 409, "host_next", { p_session: s.id }, t],
+      ["phiên của người khác", 404, "host_state", { p_session: s.id }, other],
+      ["khách gọi hàm giáo viên", 401, "host_state", { p_session: s.id }, undefined],
+      ["quiz không tồn tại", 404, "quiz_problems", { p_quiz_id: crypto.randomUUID() }, t],
+      ["link chia sẻ không tồn tại", 404, "get_shared_quiz", { p_token: crypto.randomUUID() }, t],
+      ["xoá câu hỏi không tồn tại", 404, "delete_question", { p_question_id: crypto.randomUUID() }, t],
+    ];
+    for (const [label, expected, fn, body, user] of cases) {
+      const result = await rpcStatus(fn, body, user);
+      expect(result.status, `${label} (${fn}): ${result.message}`).toBe(expected);
+    }
+
+    await hostOk(t, "host_open_question", { p_session: s.id });
+    expect((await rpcStatus("submit_answer", { p_token: token, p_answer: "x" })).status).toBe(400);
+    await submitOk(token, 0);
+    expect((await rpcStatus("submit_answer", { p_token: token, p_answer: 0 })).status).toBe(409);
+    await hostOk(t, "host_close_question", { p_session: s.id });
+    expect((await rpcStatus("submit_answer", { p_token: quiet, p_answer: 0 })).status, "nộp sau khi đóng").toBe(409);
+    await hostOk(t, "host_end_session", { p_session: s.id });
+    expect((await rpcStatus("host_next", { p_session: s.id }, t)).status, "phiên đã kết thúc").toBe(409);
+  }, 60_000);
+});
+
+// ---------------------------------------------------------------------------------------------
+describe("xếp hạng đồng hạng và phân bố câu trả lời", () => {
+  let t: TestUser;
+  beforeAll(async () => {
+    t = await signUp("live-board");
+  }, 60_000);
+
+  it("đồng hạng vẫn chỉ trả đúng top 5 (và top 3 khi kết thúc), cùng thứ hạng", async () => {
+    const s = await startSession(t, await newQuiz(t, [questions[0]]));
+    const tokens: string[] = [];
+    for (let i = 0; i < 12; i++) tokens.push(await joinOk(s.pin, `Bạn ${i + 1}`));
+    await hostOk(t, "host_open_question", { p_session: s.id });
+    await hostOk(t, "host_close_question", { p_session: s.id });
+
+    const state = await hostState(t, s.id);
+    expect(state.leaderboard).toHaveLength(5);
+    expect(state.leaderboard.map((row: { rank: number }) => row.rank)).toEqual([1, 1, 1, 1, 1]);
+    const board = (await anon.rpc("player_leaderboard", { p_token: tokens[11] })).data as { top: unknown[]; me: { rank: number } };
+    expect(board.top).toHaveLength(5);
+    expect(board.me.rank).toBe(1);
+
+    await hostOk(t, "host_end_session", { p_session: s.id });
+    const ended = (await anon.rpc("player_leaderboard", { p_token: tokens[0] })).data as { top: unknown[] };
+    expect(ended.top).toHaveLength(3);
+  });
+
+  it("phân bố: số đúng, sai, bỏ trống và lượt chọn từng lựa chọn (không tính người bị loại)", async () => {
+    const s = await startSession(t, await newQuiz(t, [questions[0], questions[2]]), false);
+    const tokens: string[] = [];
+    for (let i = 0; i < 8; i++) tokens.push(await joinOk(s.pin, `P${i}`));
+    await hostOk(t, "host_open_question", { p_session: s.id });
+    // 3 chọn A (đúng), 2 chọn B, 1 chọn C, 1 chọn A nhưng sẽ bị loại, 1 bỏ trống.
+    const picks = [0, 0, 0, 1, 1, 2, 0];
+    for (let i = 0; i < picks.length; i++) await submitOk(tokens[i], picks[i]);
+    const during = await hostState(t, s.id);
+    expect(during.answered_count).toBe(7);
+    const removed = (during.players as { id: string; nickname: string }[]).find((p) => p.nickname === "P6")!;
+    await hostOk(t, "host_remove_participant", { p_session: s.id, p_participant: removed.id });
+    expect((await hostState(t, s.id)).answered_count).toBe(6);
+
+    await hostOk(t, "host_close_question", { p_session: s.id });
+    const revealed = await hostState(t, s.id);
+    expect(revealed.key).toEqual({ correct: [0] });
+    expect(revealed.distribution).toEqual({ correct: 3, wrong: 3, unanswered: 1, options: [3, 2, 1, 0] });
+
+    // Câu nhiều đáp án: mỗi lựa chọn được tính theo số người chọn nó.
+    await hostOk(t, "host_next", { p_session: s.id });
+    await submitOk(tokens[0], [0, 2]);
+    await submitOk(tokens[1], [0, 1]);
+    await submitOk(tokens[2], [3]);
+    await hostOk(t, "host_close_question", { p_session: s.id });
+    const second = await hostState(t, s.id);
+    expect(second.distribution).toEqual({ correct: 1, wrong: 2, unanswered: 4, options: [2, 1, 1, 1] });
+    await hostOk(t, "host_end_session", { p_session: s.id });
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
+describe("chạy đua giữa nộp đáp án và đóng câu", () => {
+  it("nộp đáp án phải chờ giáo viên đang đóng câu xong rồi mới xét, và bị từ chối (xác định, không phụ thuộc may rủi)", async () => {
+    const t = await signUp("live-lock");
+    const s = await startSession(t, await newQuiz(t, [questions[0]]));
+    const token = await joinOk(s.pin, "Nộp giữa chừng");
+    await hostOk(t, "host_open_question", { p_session: s.id });
+
+    // Giả lập giáo viên đang đóng câu: giữ khoá độc quyền trên dòng phiên rồi mới chuyển sang pha hiện đáp án.
+    const closing = psqlAsync(`begin;
+select 1 from public.live_sessions where id = '${s.id}' for update;
+select pg_sleep(1.5);
+update public.live_sessions set status = 'reveal', question_closes_at = clock_timestamp(), seq = seq + 1 where id = '${s.id}';
+commit;`);
+    await sleep(500);
+    const started = Date.now();
+    const result = await submit(token, 0);
+    const waited = Date.now() - started;
+    await closing;
+
+    expect(result.error?.message).toContain("answer_closed");
+    // Phải bị chặn chờ khoá (còn khoảng 1 giây), không phải trả về ngay với trạng thái cũ.
+    expect(waited).toBeGreaterThanOrEqual(700);
+    const rows = await t.client.from("answers").select("participant_id").eq("session_id", s.id);
+    expect(rows.data).toEqual([]);
+    await hostOk(t, "host_end_session", { p_session: s.id });
+  }, 30_000);
+
+  it("không có câu trả lời nào lọt vào sau khi chấm điểm: nộp xong thì đã được chấm, còn lại bị từ chối", async () => {
+    const t = await signUp("live-race");
+    const rounds: QuestionInput[] = Array.from({ length: 10 }, () => questions[0]);
+    const s = await startSession(t, await newQuiz(t, rounds), false);
+    const tokens: string[] = [];
+    for (let i = 0; i < 40; i++) tokens.push(await joinOk(s.pin, `Đua ${i + 1}`));
+
+    for (let round = 0; round < rounds.length; round++) {
+      await hostOk(t, round === 0 ? "host_open_question" : "host_next", { p_session: s.id });
+      const submits = tokens.map((token) => submit(token, 0));
+      const closing = (async () => {
+        await sleep(1 + round * 2);
+        return host(t, "host_close_question", { p_session: s.id });
+      })();
+      const [results, closed] = await Promise.all([Promise.all(submits), closing]);
+      expect(closed.error, "đóng câu").toBeNull();
+
+      const accepted = results.filter((r) => r.error === null).length;
+      for (const r of results) if (r.error) expect(r.error.message).toContain("answer_closed");
+
+      const rows = await t.client.from("answers").select("is_correct, points").eq("session_id", s.id).eq("position", round);
+      const stored = rows.data as { is_correct: boolean; points: number }[];
+      // Mọi câu trả lời đã được nhận đều đúng (chọn A) nên phải được chấm 1000; một dòng chưa chấm là đã lọt qua.
+      expect(stored, `vòng ${round + 1}`).toHaveLength(accepted);
+      expect(stored.every((row) => row.is_correct && row.points === 1000), `vòng ${round + 1}: có câu trả lời chưa được chấm`).toBe(true);
+    }
+    await hostOk(t, "host_end_session", { p_session: s.id });
+  }, 120_000);
 });

@@ -111,3 +111,18 @@ Mỗi lần đổi một chỗ trong cơ sở dữ liệu cục bộ, chạy tes
 ### Việc tiếp theo
 
 Phase 3 là ranh giới bảo mật duy nhất của phần học sinh: **chạy `hs-code-review` riêng cho phase 3 trước khi làm phase 4.**
+
+### Sửa sau review phase 3
+
+Review (hs-code-review, commit `8750516`) không có Critical hay High. Đã xử lý bốn mục; mục thứ năm chờ chủ dự án quyết:
+
+| Mục | Cách sửa | Kiểm chứng |
+|---|---|---|
+| Medium: từ chối nghiệp vụ trả HTTP 500 (SQLSTATE `55000` và `P0002`) | Đổi sang `PT404` (không tìm thấy) và `PT409` (sai trạng thái) trong cả migration phase 1 và phase 3, nên PostgREST trả 404 và 409. Thông báo không đổi nên giao diện không phải sửa. Migration chưa áp lên dự án thật nên sửa tại chỗ. | Test mới gọi bằng `fetch` kiểm tra mã HTTP của 11 tình huống; phá thử (trả `answer_closed` về `55000`) thì test hỏng |
+| Low: xếp hạng vượt top 5 và top 3 khi đồng hạng | `private.leaderboard` lọc theo `row_number()` (hoà thì theo thứ tự vào phòng), vẫn giữ `rank` đồng hạng | Test 12 người cùng 0 điểm: đúng 5 dòng và 3 dòng khi kết thúc; phá thử thì test hỏng |
+| Low: IP băm không muối, dọn bản ghi không đảm bảo | Băm HMAC-SHA256 với muối ngẫu nhiên sinh lúc áp migration (`private.secrets`, không đọc được qua API); chỉ giữ 10 phút (đúng cửa sổ chặn) và dọn ở **mọi** lần gọi `join_session` và `create_session`. Vẫn còn một bản ghi có thể nằm lại nếu không ai vào phòng nữa, nên task 7.2 vẫn phải có `pg_cron` dọn định kỳ. | Test băm khác SHA-256 trơn, muối không đọc được, bản ghi cũ bị dọn bởi lần vào thành công; phá thử hai chỗ đều làm test hỏng |
+| Verification Gap: chạy đua nộp và đóng câu, số liệu phân bố | Test xác định: giữ khoá độc quyền dòng phiên bằng `psql` giống giáo viên đang đóng câu, nộp đáp án phải chờ rồi bị từ chối; test ngẫu nhiên 40 người, 10 vòng nộp song song với đóng câu; test giá trị phân bố, số đã trả lời (không tính người bị loại), câu nhiều đáp án | Phá thử (bỏ `for share`): test xác định hỏng 2/2 lần; test ngẫu nhiên chỉ bắt được thỉnh thoảng nên là lớp phụ |
+
+**Chưa xử lý, cần chủ dự án quyết (review mục Medium thứ hai):** một học sinh gõ sai PIN 30 lần là khoá cả lớp cùng IP trong 10 phút (kể cả PIN đúng). Phương án: nâng ngưỡng, thêm nút "mở lại" cho giáo viên, hoặc giới hạn theo PIN; cần đo `x-forwarded-for` trên Supabase thật (task 8.3) trước khi chọn.
+
+Kết quả: typecheck, lint, 127 unit, 103 test DB (hai lần liên tiếp), 131 e2e đạt.

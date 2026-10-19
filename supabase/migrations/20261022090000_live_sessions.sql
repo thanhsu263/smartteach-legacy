@@ -148,6 +148,27 @@ create policy answers_select_own on public.answers for select to authenticated
 -- Hàm nội bộ (schema private, API không mở ra)
 -- ---------------------------------------------------------------------------------------------
 
+-- Muối bí mật cho băm địa chỉ IP (sinh ngẫu nhiên khi áp migration, không nằm trong mã nguồn). Không muối
+-- thì SHA-256 của IPv4 đảo ngược được trong vài giây (chỉ 2^32 giá trị).
+create table private.secrets (
+  name text primary key,
+  value text not null
+);
+revoke all on private.secrets from public, anon, authenticated;
+insert into private.secrets (name, value) values ('ip_salt', encode(extensions.gen_random_bytes(16), 'hex'));
+
+create function private.hash_ip(p_ip text)
+returns text
+language sql
+stable
+set search_path = ''
+as $$
+  select encode(
+    extensions.hmac(coalesce(p_ip, 'unknown'), (select value from private.secrets where name = 'ip_salt'), 'sha256'),
+    'hex'
+  );
+$$;
+
 -- Địa chỉ IP của máy khách theo x-forwarded-for. Máy khách tự đặt được các phần tử đầu của chuỗi,
 -- còn cổng vào (gateway) nối thêm địa chỉ máy nó thấy ở CUỐI, nên chỉ tin phần tử cuối.
 -- Cần kiểm tra lại số tầng proxy trên dự án Supabase thật (task 8.3 của giai đoạn 2).
@@ -337,21 +358,23 @@ as $$
   end;
 $$;
 
--- Bảng xếp hạng (không tính người bị loại); đồng hạng cùng thứ hạng.
+-- Bảng xếp hạng (không tính người bị loại): đồng điểm cùng thứ hạng, nhưng chỉ trả đúng p_limit dòng
+-- (hoà thì xếp theo thứ tự vào phòng) để top 5 và top 3 không vượt số dòng khi nhiều người đồng hạng.
 create function private.leaderboard(p_session uuid, p_limit integer)
 returns jsonb
 language sql
 stable
 set search_path = ''
 as $$
-  select coalesce(jsonb_agg(jsonb_build_object('rank', r.rank, 'nickname', r.nickname, 'score', r.score) order by r.rank, r.joined_at), '[]'::jsonb)
+  select coalesce(jsonb_agg(jsonb_build_object('rank', r.rank, 'nickname', r.nickname, 'score', r.score) order by r.ordinal), '[]'::jsonb)
   from (
-    select p.nickname, p.score, p.joined_at,
-           rank() over (order by p.score desc) as rank
+    select p.nickname, p.score,
+           rank() over (order by p.score desc) as rank,
+           row_number() over (order by p.score desc, p.joined_at, p.id) as ordinal
     from public.participants p
     where p.session_id = p_session and not p.removed
   ) r
-  where r.rank <= p_limit;
+  where r.ordinal <= p_limit;
 $$;
 
 -- Thứ hạng của một người (không tính người bị loại).
@@ -455,10 +478,10 @@ begin
   where id = p_session and owner_id = (select auth.uid())
   for update;
   if not found then
-    raise exception 'session_not_found' using errcode = 'P0002';
+    raise exception 'session_not_found' using errcode = 'PT404';
   end if;
   if private.effective_status(v_session) = 'ended' then
-    raise exception 'session_ended' using errcode = '55000';
+    raise exception 'session_ended' using errcode = 'PT409';
   end if;
   return v_session;
 end;
@@ -509,21 +532,23 @@ begin
   end if;
   perform pg_advisory_xact_lock(hashtextextended('live-owner:' || v_owner::text, 0));
 
+  delete from public.join_attempts where attempted_at < clock_timestamp() - interval '10 minutes';
+
   -- Dọn các phiên quá hạn để trả PIN và chỗ "một phiên mỗi giáo viên".
   update public.live_sessions set status = 'ended', ended_at = coalesce(ended_at, clock_timestamp())
   where status <> 'ended' and expires_at <= clock_timestamp();
 
   select z.title into v_title from public.quizzes z where z.id = p_quiz_id and z.owner_id = v_owner;
   if not found then
-    raise exception 'quiz_not_found' using errcode = 'P0002';
+    raise exception 'quiz_not_found' using errcode = 'PT404';
   end if;
 
   if exists (select 1 from public.quiz_problems(p_quiz_id)) then
-    raise exception 'quiz_not_playable' using errcode = '55000';
+    raise exception 'quiz_not_playable' using errcode = 'PT409';
   end if;
 
   if exists (select 1 from public.live_sessions where owner_id = v_owner and status <> 'ended') then
-    raise exception 'session_already_active' using errcode = '55000';
+    raise exception 'session_already_active' using errcode = 'PT409';
   end if;
 
   select jsonb_build_object(
@@ -557,14 +582,14 @@ begin
     exception when unique_violation then
       get stacked diagnostics v_constraint = constraint_name;
       if v_constraint = 'live_sessions_active_owner_key' then
-        raise exception 'session_already_active' using errcode = '55000';
+        raise exception 'session_already_active' using errcode = 'PT409';
       end if;
       v_id := null;
     end;
   end loop;
 
   if v_id is null then
-    raise exception 'pin_unavailable' using errcode = '55000';
+    raise exception 'pin_unavailable' using errcode = 'PT409';
   end if;
   return query select v_id, v_pin;
 end;
@@ -594,7 +619,7 @@ declare
 begin
   update public.participants set removed = true where id = p_participant and session_id = v_session.id;
   if not found then
-    raise exception 'participant_not_found' using errcode = 'P0002';
+    raise exception 'participant_not_found' using errcode = 'PT404';
   end if;
   update public.live_sessions set seq = seq + 1 where id = v_session.id;
 end;
@@ -611,10 +636,10 @@ declare
   v_session public.live_sessions := private.host_session(p_session);
 begin
   if v_session.status <> 'lobby' then
-    raise exception 'invalid_transition' using errcode = '55000';
+    raise exception 'invalid_transition' using errcode = 'PT409';
   end if;
   if jsonb_array_length(v_session.quiz_snapshot -> 'questions') = 0 then
-    raise exception 'quiz_not_playable' using errcode = '55000';
+    raise exception 'quiz_not_playable' using errcode = 'PT409';
   end if;
   perform private.open_next(v_session);
 end;
@@ -631,7 +656,7 @@ declare
   v_session public.live_sessions := private.host_session(p_session);
 begin
   if v_session.status <> 'question' then
-    raise exception 'invalid_transition' using errcode = '55000';
+    raise exception 'invalid_transition' using errcode = 'PT409';
   end if;
   perform private.score_question(v_session);
   update public.live_sessions
@@ -653,7 +678,7 @@ declare
   v_session public.live_sessions := private.host_session(p_session);
 begin
   if v_session.status <> 'reveal' then
-    raise exception 'invalid_transition' using errcode = '55000';
+    raise exception 'invalid_transition' using errcode = 'PT409';
   end if;
   if v_session.current_position + 1 < jsonb_array_length(v_session.quiz_snapshot -> 'questions') then
     perform private.open_next(v_session);
@@ -706,7 +731,7 @@ begin
   end if;
   select * into v_session from public.live_sessions where id = p_session and owner_id = (select auth.uid());
   if not found then
-    raise exception 'session_not_found' using errcode = 'P0002';
+    raise exception 'session_not_found' using errcode = 'PT404';
   end if;
 
   v_status := private.effective_status(v_session);
@@ -783,11 +808,14 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_hash text := encode(extensions.digest(private.client_ip(), 'sha256'), 'hex');
+  v_hash text := private.hash_ip(private.client_ip());
   v_session public.live_sessions;
   v_nickname text;
   v_token uuid;
 begin
+  -- Chỉ giữ lại đúng khoảng thời gian cần để chặn (10 phút); dọn ở mọi lần gọi chứ không chờ có lần sai kế tiếp.
+  delete from public.join_attempts where attempted_at < clock_timestamp() - interval '10 minutes';
+
   -- Quá 30 lần sai trong 10 phút từ cùng một IP thì từ chối mọi lần thử, kể cả PIN đúng.
   if (
     select count(*) from public.join_attempts
@@ -802,7 +830,6 @@ begin
   for share;
   if not found then
     insert into public.join_attempts (ip_hash) values (v_hash);
-    delete from public.join_attempts where attempted_at < clock_timestamp() - interval '1 hour';
     return query select 'invalid_pin'::text, null::uuid, null::text;
     return;
   end if;
@@ -867,7 +894,7 @@ declare
 begin
   select * into v_player from public.participants where token = p_token;
   if not found then
-    raise exception 'invalid_token' using errcode = 'P0002';
+    raise exception 'invalid_token' using errcode = 'PT404';
   end if;
   select * into v_session from public.live_sessions where id = v_player.session_id;
   v_status := private.effective_status(v_session);
@@ -942,19 +969,19 @@ declare
 begin
   select * into v_player from public.participants where token = p_token;
   if not found then
-    raise exception 'invalid_token' using errcode = 'P0002';
+    raise exception 'invalid_token' using errcode = 'PT404';
   end if;
 
   -- Khoá chia sẻ phiên để không lọt câu trả lời vào giữa lúc giáo viên đóng câu và chấm điểm.
   select * into v_session from public.live_sessions where id = v_player.session_id for share;
   select removed into v_removed from public.participants where id = v_player.id;
   if v_removed then
-    raise exception 'participant_removed' using errcode = '55000';
+    raise exception 'participant_removed' using errcode = 'PT409';
   end if;
 
   v_now := clock_timestamp();
   if v_session.status <> 'question' or v_session.expires_at <= v_now or v_now >= v_session.question_closes_at then
-    raise exception 'answer_closed' using errcode = '55000';
+    raise exception 'answer_closed' using errcode = 'PT409';
   end if;
 
   v_question := v_session.quiz_snapshot -> 'questions' -> v_session.current_position;
@@ -987,10 +1014,10 @@ declare
 begin
   select * into v_player from public.participants where token = p_token;
   if not found then
-    raise exception 'invalid_token' using errcode = 'P0002';
+    raise exception 'invalid_token' using errcode = 'PT404';
   end if;
   if v_player.removed then
-    raise exception 'participant_removed' using errcode = '55000';
+    raise exception 'participant_removed' using errcode = 'PT409';
   end if;
   select * into v_session from public.live_sessions where id = v_player.session_id;
   return jsonb_build_object(
@@ -1009,6 +1036,7 @@ $$;
 -- ---------------------------------------------------------------------------------------------
 
 revoke execute on function
+  private.hash_ip(text),
   private.client_ip(),
   private.normalize_answer(text, boolean),
   private.question_public(jsonb),

@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { expect } from "vitest";
 import {
@@ -25,6 +25,19 @@ export function psql(sql: string): string {
     input: sql,
     encoding: "utf8",
   }).trim();
+}
+
+/** Như `psql` nhưng không chặn: dùng để giữ một giao dịch mở trong lúc test làm việc khác. */
+export function psqlAsync(sql: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const child = spawn("docker", ["exec", "-i", container, "psql", "-U", "postgres", "-v", "ON_ERROR_STOP=1", "-At"]);
+    let out = "";
+    let err = "";
+    child.stdout.on("data", (chunk) => (out += chunk));
+    child.stderr.on("data", (chunk) => (err += chunk));
+    child.on("close", (code) => (code === 0 ? resolve(out.trim()) : reject(new Error(err || `psql thoát với mã ${code}`))));
+    child.stdin.end(sql);
+  });
 }
 
 /** Bốn dạng câu hỏi với khoá đáp án rõ ràng, dùng cho hầu hết các test. */
@@ -143,6 +156,22 @@ export function clientWithForwardedFor(value: string): SupabaseClient {
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { "x-forwarded-for": value } },
   });
+}
+
+/** Gọi RPC bằng fetch để thấy mã HTTP thật (supabase-js chỉ trả mã SQL). */
+export async function rpcStatus(
+  fn: string,
+  body: Record<string, unknown>,
+  user?: TestUser,
+): Promise<{ status: number; code?: string; message?: string }> {
+  const jwt = user ? (await user.client.auth.getSession()).data.session?.access_token : undefined;
+  const res = await fetch(`${config.url}/rest/v1/rpc/${fn}`, {
+    method: "POST",
+    headers: { apikey: config.anonKey, Authorization: `Bearer ${jwt ?? config.anonKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const json = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
+  return { status: res.status, code: json.code, message: json.message };
 }
 
 export { anon, admin };

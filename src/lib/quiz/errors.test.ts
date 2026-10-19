@@ -23,9 +23,9 @@ describe("describeQuizError", () => {
   });
 
   it("phân biệt không tìm thấy quiz, link chia sẻ và danh sách đã đổi", () => {
-    expect(describeQuizError({ message: "shared_quiz_not_found", code: "P0002" })).toContain("Link");
-    expect(describeQuizError({ message: "quiz_not_found", code: "P0002" })).toContain("đã bị xoá");
-    expect(describeQuizError({ message: "question_not_found", code: "P0002" })).toContain("đã bị xoá");
+    expect(describeQuizError({ message: "shared_quiz_not_found", code: "PT404" })).toContain("Link");
+    expect(describeQuizError({ message: "quiz_not_found", code: "PT404" })).toContain("đã bị xoá");
+    expect(describeQuizError({ message: "question_not_found", code: "PT404" })).toContain("đã bị xoá");
     expect(describeQuizError({ message: "reorder_mismatch", code: "23514" })).toContain("tải lại");
   });
 
