@@ -65,3 +65,34 @@ Các test e2e về trạng thái tải dùng game giả (chặn mạng); việc 
 
 - Chưa kiểm tra trên điện thoại thật (âm thanh, toàn màn hình, cảm ứng): plan yêu cầu kiểm tra thủ công.
 - Quyết định bản quyền của game (Peyo/IMPS, Ubisoft) vẫn chờ chủ dự án trước khi công khai ở phase 5. Trang chơi đang hiển thị đúng dòng ghi nguồn của chính game.
+
+## Phase 3 - Tiện ích lớp học
+
+Kết quả kiểm tra (chưa commit, working tree còn thay đổi so với `2dea2c0`):
+
+| Kiểm tra | Kết quả |
+|---|---|
+| `npm run typecheck`, `npm run lint` | Đạt |
+| `npm test` (Vitest) | 56/56 đạt: thêm 20 test cho logic bốc thăm, chia nhóm, đếm ngược (`src/lib/utilities/utilities.test.ts`) |
+| `npm run build` | Đạt; 4 trang tiện ích được dựng tĩnh |
+| `npm run test:e2e` | 43/43 đạt, chạy hai lần liên tiếp trên bản build thật |
+| Kiểm tra bằng mắt | Đã xem đồng hồ (1280px), bốc thăm (375px), chia nhóm (1280px), bảng trắng có nét vẽ (1280px) |
+
+Playwright phủ: cả bốn tiện ích mở được khi chưa đăng nhập ở 375px và 1280px và không cuộn ngang; từ trang chủ tới từng tiện ích trong 1 lần bấm; đếm ngược, tạm dừng, chạy tiếp, đặt lại và hết giờ (đồng hồ giả của Playwright); bốc thăm không lặp, bốc hết thì dừng và có lời nhắn; chia nhóm theo số nhóm và theo số người, báo lỗi; bảng trắng vẽ, tẩy, xoá và vẽ bằng cảm ứng giả lập; chiếu toàn màn hình và thoát.
+
+### Quyết định và lệch so với plan
+
+- **Logic thuần nằm ở `src/lib/utilities/`**, giao diện ở các component `*-tool.tsx`; các hàm nhận bộ sinh số và mốc thời gian làm tham số để kiểm thử xác định.
+- **Tên trùng được giữ nguyên** khi bốc thăm và chia nhóm, vì có thể là hai bạn khác nhau (game cũ cũng có "Anh 01", "Anh 04"). Plan chỉ nói "xử lý trùng tên".
+- **Đồng hồ đếm theo mốc kết thúc** (`endsAt`) chứ không trừ dần từng tick, nên tab bị trình duyệt làm chậm vẫn hết giờ đúng lúc. Giới hạn 99 phút 59 giây.
+- **Chia theo "số người mỗi nhóm"** tính số nhóm bằng phần nguyên trên của tổng chia cho số đó rồi chia đều, nên mọi nhóm không vượt quá giới hạn và chênh nhau tối đa 1 người (7 người, mỗi nhóm 2: ra 4 nhóm gồm 2-2-2-1).
+- **Bảng trắng lưu nét vẽ theo toạ độ chuẩn hoá** và vẽ lại khi khung đổi kích thước (ví dụ vào toàn màn hình), nên không mất nét. Không có hoàn tác và không lưu nội dung, đúng phạm vi plan. Màu bút là hex khớp token trong DESIGN.md vì canvas không đọc được biến CSS.
+- **Lỗi phát hiện khi viết test:** canvas đặt trực tiếp trong bố cục flex làm kích thước bitmap tác động ngược lên bố cục, `ResizeObserver` bắn liên tục (46 lần trong 1,5 giây, chiều cao tăng dần) và xoá sạch nét vẽ. Sửa bằng cách đặt canvas tuyệt đối trong một khung có chiều cao cố định; giờ chỉ bắn 1 lần ban đầu.
+- **Thêm lời nhắn khi bốc hết cả lớp** cạnh nút, vì nút bị tắt mà không có giải thích; tên bạn vừa bốc vẫn hiện ở khung kết quả.
+- **Hiệu ứng quay tên** kéo dài khoảng 0,9 giây và bị bỏ qua khi hệ thống bật giảm chuyển động.
+- **Thêm các thành phần dùng chung:** `ToolStage` (khung có nút toàn màn hình), `ToolPage`, `ToolCard`, `Breadcrumb` (trang game cũng dùng lại), `NameListInput`. Trang chủ và `/tools` lấy danh sách từ `src/data/tools.ts`; thẻ tiện ích ở trang chủ giờ là liên kết.
+- **Chưa lưu danh sách tên** giữa các lần mở trang; việc lưu lớp thuộc phase 4.
+
+### Còn lại cho phase này
+
+- Chưa kiểm tra trên thiết bị thật: cảm ứng và độ mượt của canvas trên điện thoại cũ, âm báo hết giờ (test không nghe được âm thanh), toàn màn hình trên iPhone (không hỗ trợ nên nút ẩn đi).

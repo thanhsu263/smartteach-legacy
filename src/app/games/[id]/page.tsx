@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { GameEmbed } from "@/components/game-embed";
 import { games } from "@/data/games";
 import { findGame, gradeLabels, subjectLabels } from "@/lib/catalog";
@@ -27,11 +27,7 @@ export default async function GamePage({ params }: PageProps<"/games/[id]">) {
 
   return (
     <div className={`container ${styles.page}`}>
-      <nav aria-label="Đường dẫn" className={styles.breadcrumb}>
-        <Link href="/games">Kho game</Link>
-        <span aria-hidden="true">/</span>
-        <span aria-current="page">{game.title}</span>
-      </nav>
+      <Breadcrumb items={[{ label: "Kho game", href: "/games" }, { label: game.title }]} />
 
       <header>
         <h1 className={styles.title}>{game.title}</h1>

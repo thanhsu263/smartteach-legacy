@@ -62,39 +62,6 @@
   gap: var(--space-3);
 }
 
-.tool {
-  display: flex;
-  gap: var(--space-4);
-  align-items: flex-start;
-  padding: var(--space-4) var(--space-5);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-}
-
-.toolIcon {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 44px;
-  height: 44px;
-  background: var(--color-primary-tint);
-  color: var(--color-primary);
-  border-radius: var(--radius-md);
-}
-
-.toolTitle {
-  font-size: var(--text-xl);
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-.toolText {
-  margin-top: var(--space-1);
-  color: var(--color-ink-muted);
-  font-size: var(--text-sm);
-}
-
 .gameGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));

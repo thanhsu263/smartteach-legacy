@@ -1,34 +1,12 @@
 import { ButtonLink } from "@/components/button";
 import { ClassroomPreview } from "@/components/classroom-preview";
 import { GameCard } from "@/components/game-card";
-import { ClockIcon, PencilIcon, ShuffleIcon, UsersIcon } from "@/components/icons";
+import { ToolCard } from "@/components/tool-card";
 import { games } from "@/data/games";
+import { tools } from "@/data/tools";
 import styles from "./page.module.css";
 
 const featuredGames = games.filter((game) => game.featured).slice(0, 3);
-
-const tools = [
-  {
-    title: "Đồng hồ đếm ngược",
-    description: "Chữ lớn đọc được từ cuối lớp, có âm báo khi hết giờ.",
-    Icon: ClockIcon,
-  },
-  {
-    title: "Bốc thăm tên",
-    description: "Gọi ngẫu nhiên một bạn, không bốc lại người đã gọi.",
-    Icon: ShuffleIcon,
-  },
-  {
-    title: "Chia nhóm",
-    description: "Chia đều theo số nhóm hoặc số người mỗi nhóm.",
-    Icon: UsersIcon,
-  },
-  {
-    title: "Bảng trắng",
-    description: "Viết và vẽ nhanh trên màn chiếu, xoá một chạm.",
-    Icon: PencilIcon,
-  },
-];
 
 export default function HomePage() {
   return (
@@ -68,15 +46,9 @@ export default function HomePage() {
           </ButtonLink>
         </div>
         <ul className={styles.toolList}>
-          {tools.map(({ title, description, Icon }) => (
-            <li key={title} className={styles.tool}>
-              <span className={styles.toolIcon}>
-                <Icon size={24} />
-              </span>
-              <div>
-                <h3 className={styles.toolTitle}>{title}</h3>
-                <p className={styles.toolText}>{description}</p>
-              </div>
+          {tools.map((tool) => (
+            <li key={tool.id}>
+              <ToolCard tool={tool} />
             </li>
           ))}
         </ul>
