@@ -365,6 +365,8 @@ describe("3.3 và 3.6 học sinh: không rò rỉ đáp án, không gian lận",
   it("phòng chờ: không lộ đề của bất kỳ câu nào; nộp đáp án khi chưa mở bị từ chối", async () => {
     const state = await playerState(p1);
     expect(state).toMatchObject({ phase: "lobby", nickname: "Hoa", score: 0, question_total: 3, player_count: 2 });
+    // Id phiên (để nghe kênh Realtime) chỉ trả cho người giữ mã tham gia.
+    expect(state.session_id).toBe(s.id);
     expect(state.question).toBeUndefined();
     expectNoKey(state, "phòng chờ");
     const text = JSON.stringify(state);

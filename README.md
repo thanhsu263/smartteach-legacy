@@ -30,6 +30,8 @@ npm run dev
 
 `supabase:start` tự áp các migration trong `supabase/migrations`. Dừng stack bằng `npm run supabase:stop`. Cấu hình cục bộ (`supabase/config.toml`) cố ý khác dự án thật (tắt xác nhận email, URL là localhost) nên **không** dùng `supabase config push` lên dự án thật.
 
+Realtime của stack cục bộ đã được bật (`[realtime] enabled = true` trong `supabase/config.toml`) cho giai đoạn 2: lần `supabase:start` đầu tiên sau khi bật sẽ tải thêm image `supabase/realtime` (vài trăm MB). Realtime chỉ làm "chuông báo" `{ seq }` cho quiz chơi trực tiếp; nếu tắt, trò chơi vẫn chạy nhờ polling nhưng test `tests/db/live-realtime.test.ts` sẽ không đạt.
+
 ## Lệnh thường dùng
 
 | Lệnh | Việc |

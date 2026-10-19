@@ -126,3 +126,31 @@ Review (hs-code-review, commit `8750516`) không có Critical hay High. Đã x�
 **Chưa xử lý, cần chủ dự án quyết (review mục Medium thứ hai):** một học sinh gõ sai PIN 30 lần là khoá cả lớp cùng IP trong 10 phút (kể cả PIN đúng). Phương án: nâng ngưỡng, thêm nút "mở lại" cho giáo viên, hoặc giới hạn theo PIN; cần đo `x-forwarded-for` trên Supabase thật (task 8.3) trước khi chọn.
 
 Kết quả: typecheck, lint, 127 unit, 103 test DB (hai lần liên tiếp), 131 e2e đạt.
+
+## Phase 4 - Đồng bộ thời gian thực
+
+Kết quả kiểm tra (chưa commit): typecheck, lint đạt; **172 unit** (45 mới trong `src/lib/live`); **110 test DB** (103 cũ và 7 mới trong `tests/db/live-realtime.test.ts`, chạy với Realtime thật); 131 e2e (hồi quy).
+
+### Đã làm
+
+- **4.1** `[realtime] enabled = true`; đã dừng rồi khởi động lại stack cục bộ và tải image `supabase/realtime:v2.143.4` (có sự đồng ý của chủ dự án). README có ghi chú.
+- **4.2** `src/lib/live/rpc.ts` (nhóm `host.*`, `player.*`, `hostFetcher`, `playerFetcher`) và `errors.ts`: lỗi nghiệp vụ và mã kết quả vào phòng đổi sang tiếng Việt, không lộ thông báo kỹ thuật; mã tham gia sai dạng bị chặn ngay ở máy khách.
+- **4.3** `sync.ts` + `clock.ts`: `createLiveSync` không phụ thuộc React. Tin báo chỉ gây một lần hỏi, bỏ tin cũ hoặc trùng `seq`, các lần hỏi do tin báo cách nhau tối thiểu 500ms (tin giả dồn dập không biến thành bão yêu cầu). Hỏi định kỳ 3 giây khi chưa có kênh; kênh sống thì 10 giây làm dự phòng; reveal 5 giây; ended/removed ngừng hỏi và nhả kênh; lỗi liên tiếp giãn dần tới 30 giây; trạng thái `live | polling | offline`. Độ lệch đồng hồ lấy mẫu có độ trễ thấp nhất.
+- **4.4** `use-live-state.ts` (`useHostLive`, `usePlayerLive`) và `storage.ts` (mã tham gia trong `sessionStorage`, bắt lỗi khi bị chặn, bỏ mã không phải UUID).
+- **4.5** `channel.ts`: kênh `session:<id>`, tin chỉ mang `{ seq }`; `runHostAction` hỏi lại trạng thái rồi báo seq mới, gửi thất bại không làm hỏng thao tác.
+- **4.6** Test với ba người chơi thật: tin báo tới cả ba mà polling bị đặt rất thưa (chứng minh đường tin báo); mã sai bị báo `fatal`; 200 tin giả không đổi được trạng thái và số lần hỏi bị chặn theo khoảng chờ; đóng socket của một người chơi thì người đó vẫn theo kịp bằng polling; chen tin báo và polling không để trạng thái cũ ghi đè; kết thúc phiên thì ngừng hỏi.
+
+### Phá thử
+
+| Phá thử | Kết quả |
+|---|---|
+| `notify` không gửi gì | Bốn test tích hợp hỏng |
+| Kênh chết vẫn hỏi thưa (bỏ nhánh polling dày) | Ba test hỏng |
+
+### Quyết định và lệch so với plan
+
+- **`player_state` trả thêm `session_id`** (sửa tại chỗ migration phase 3 vì chưa áp lên dự án thật). Học sinh chỉ có mã tham gia, mà tên kênh cần id phiên; id chỉ trả cho người giữ mã tham gia nên đúng với rủi ro đã ghi ở plan ("UUID chỉ trả về sau khi vào phòng"). Vì vậy `createLiveSync` nhận `channelFor(state)` (đăng ký kênh sau lần hỏi đầu) thay vì một nguồn kênh cố định.
+- **Lõi đồng bộ khởi động lại được** (`stop()` rồi `start()`), vì React StrictMode và chế độ ẩn/hiện trang của Next.js 16 làm hook chạy lại hiệu ứng. Kết quả của vòng đời cũ bị bỏ.
+- **Vitest DB thêm alias `@/`** (`resolve.tsconfigPaths`) để test tích hợp dùng thẳng mã trong `src/lib/live`.
+- **Một lần chập chờn:** trong một lần chạy trọn bộ DB đầu tiên, hai test Realtime hỏng và lần sau thì đạt (kênh báo SUBSCRIBED nhưng máy chủ Realtime nguội có thể chưa định tuyến tin ngay). Đã thêm bước khởi động (gửi tin tới khi ai cũng nhận được) và đổi ngưỡng đếm lần hỏi theo thời gian thực thay vì số cố định; sau đó 7 lần chạy liên tiếp đều đạt. Nếu còn thấy hỏng ngẫu nhiên thì đây là chỗ cần nhìn đầu tiên. Trò chơi thật không bị ảnh hưởng vì polling bù tin báo bị lỡ.
+- **Chưa làm đúng phạm vi:** giao diện (phase 5, 6). Cấu hình Realtime trên dự án Supabase thật và đo số kết nối là việc của 8.1 và 8.3.

@@ -902,6 +902,8 @@ begin
   v_position := v_session.current_position;
 
   v_result := jsonb_build_object(
+    -- Id phiên chỉ trả cho người giữ mã tham gia; dùng để nghe kênh Realtime `session:<id>` (tin báo chỉ mang seq).
+    'session_id', v_session.id,
     'phase', case when v_player.removed then 'removed' else v_status end,
     'seq', v_session.seq,
     'server_now', clock_timestamp(),
