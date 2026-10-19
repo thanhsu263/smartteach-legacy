@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/button";
+import { useFocusRequest } from "@/components/use-focus-request";
 import type { Result } from "@/lib/classes/api";
 import { createQuiz, deleteQuiz, duplicateQuiz, listQuizzes, MAX_QUIZZES } from "@/lib/quiz/api";
 import type { QuizSummary } from "@/lib/quiz/types";
@@ -28,6 +29,7 @@ export function QuizzesManager() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const titleId = useId();
+  const requestFocus = useFocusRequest();
 
   useEffect(() => {
     if (!userId) return;
@@ -88,6 +90,8 @@ export function QuizzesManager() {
       return;
     }
     setConfirmingId(null);
+    // Dòng vừa bấm biến mất: đưa focus về tiêu đề danh sách.
+    requestFocus(`${titleId}-list`);
     reload();
   }
 
@@ -123,7 +127,7 @@ export function QuizzesManager() {
       </section>
 
       <section aria-labelledby={`${titleId}-list`} className={styles.panel}>
-        <h2 id={`${titleId}-list`} className={styles.heading}>
+        <h2 id={`${titleId}-list`} className={styles.heading} tabIndex={-1}>
           Quiz đã lưu{" "}
           {current?.ok ? (
             <span>
@@ -194,7 +198,14 @@ export function QuizzesManager() {
                       <Button variant="secondary" onClick={() => remove(quiz.id)}>
                         Xoá quiz
                       </Button>
-                      <Button variant="secondary" onClick={() => setConfirmingId(null)}>
+                      <Button
+                        variant="secondary"
+                        autoFocus
+                        onClick={() => {
+                          setConfirmingId(null);
+                          requestFocus(`${titleId}-del-${quiz.id}`);
+                        }}
+                      >
                         Giữ lại
                       </Button>
                     </div>
@@ -211,6 +222,7 @@ export function QuizzesManager() {
                     </Button>
                     <Button
                       variant="secondary"
+                      id={`${titleId}-del-${quiz.id}`}
                       aria-label={`Xoá quiz ${quiz.title}`}
                       onClick={() => {
                         setActionError(null);

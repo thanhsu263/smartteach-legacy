@@ -60,3 +60,19 @@ Phạm vi e2e mới: khách bị chuyển tới đăng nhập (cả link chia s�
 - **Bảo vệ trang dùng chung:** `src/lib/auth/protected-paths.ts` (so khớp theo đoạn đường dẫn, có test) cho proxy và `src/components/require-user.tsx` cho ba layout `/my-classes`, `/my-quizzes`, `/shared`. Tệp `src/app/my-classes/require-user.tsx` cũ đã được thay.
 - **Trang `/shared/quiz/[token]` nằm dưới `/shared`** (bắt đăng nhập, noindex) để quiz chia sẻ không lộ cho khách; token không phải UUID báo "Không tìm thấy" mà không gọi máy chủ.
 - **Chưa làm đúng phạm vi:** nút chơi (phase 6), hàm chơi trực tiếp (phase 3). Migration vẫn chỉ áp lên stack cục bộ.
+
+### Sửa sau review phase 1 và 2
+
+Ba mục của review (không có lỗi Critical, High hay Medium) đã xử lý:
+
+| Mục | Cách sửa | Kiểm chứng |
+|---|---|---|
+| Mất bản nháp khi chuyển câu | `QuestionForm` báo `onDirtyChange`; `QuizEditor.switchTo` hỏi lại bằng nhóm "Thay đổi chưa lưu" (mặc định focus vào "Tiếp tục soạn") khi chọn câu khác, bấm "Thêm: …" hoặc "Huỷ" lúc còn thay đổi chưa lưu | e2e mới; phá thử (bỏ kiểm tra `dirty`) thì test hỏng |
+| Mất focus sau khi lưu và khi mở bước xác nhận | Hook `useFocusRequest`; form giữ nguyên sau lần lưu đầu (`Mode` có `nonce` và `id` gắn thêm, không dựng lại form); xác nhận xoá câu, xoá quiz, đổi mã, tắt chia sẻ focus vào lựa chọn an toàn và trả focus về nút gốc khi huỷ; xoá dòng thì focus về tiêu đề danh sách; xoá lựa chọn hoặc đáp án thì focus ô liền trước | e2e mới kiểm tra `toBeFocused` ở từng bước |
+| Khoá Lên/Xuống chưa có test | e2e kéo dài `reorder_questions` 800ms rồi ép bấm nút đang khoá | Phá thử (bỏ `moving`) thì test hỏng |
+
+Phát hiện thêm khi làm: nút "Lưu câu hỏi" bị `disabled` trong lúc lưu nên Chrome bỏ focus của nó; sau khi lưu xong form tự trả focus về nút.
+
+Kết quả: typecheck, lint, 127 unit, 60 DB, 131 e2e đạt (hai lần liên tiếp).
+
+Chưa sửa (ngoài phạm vi phase này): ba mục xác nhận tại chỗ của giai đoạn 1 (`classes-manager`, `class-editor`) vẫn có cùng kiểu mất focus.

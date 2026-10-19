@@ -1,7 +1,8 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 import { Button } from "@/components/button";
+import { useFocusRequest } from "@/components/use-focus-request";
 import { problemText } from "@/lib/quiz/errors";
 import {
   MAX_ACCEPTED_ANSWERS,
@@ -25,14 +26,25 @@ type QuestionFormProps = {
   isNew: boolean;
   onSave: (payload: QuestionInput) => Promise<SaveResult>;
   onCancel?: () => void;
+  /** Báo cho nơi chứa biết còn thay đổi chưa lưu, để hỏi lại trước khi chuyển sang câu khác. */
+  onDirtyChange?: (dirty: boolean) => void;
 };
 
-export function QuestionForm({ initial, isNew, onSave, onCancel }: QuestionFormProps) {
+export function QuestionForm({ initial, isNew, onSave, onCancel, onDirtyChange }: QuestionFormProps) {
   const [draft, setDraft] = useState<QuestionInput>(initial);
+  // Bản đã lưu gần nhất (dạng chuỗi) để biết bản nháp có khác không.
+  const [saved, setSaved] = useState(() => JSON.stringify(initial));
+  const dirty = JSON.stringify(draft) !== saved;
+  const requestFocus = useFocusRequest();
   const [showErrors, setShowErrors] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const baseId = useId();
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+    return () => onDirtyChange?.(false);
+  }, [dirty, onDirtyChange]);
 
   const issues = checkDraft(draft);
   const kind = draft.kind;
@@ -76,10 +88,14 @@ export function QuestionForm({ initial, isNew, onSave, onCancel }: QuestionFormP
     setSaveError(null);
     if (issues.blocking) return;
     setSaving(true);
+    const snapshot = JSON.stringify(draft);
     const result = await onSave(toPayload(draft));
     setSaving(false);
     // Giữ nguyên nội dung đang gõ khi lưu thất bại.
     if (!result.ok) setSaveError(result.message);
+    else setSaved(snapshot);
+    // Nút bị khoá trong lúc lưu nên mất focus; trả focus về nút để bấm tiếp hoặc đọc kết quả.
+    requestFocus(`${baseId}-submit`);
   }
 
   return (
@@ -150,6 +166,7 @@ export function QuestionForm({ initial, isNew, onSave, onCancel }: QuestionFormP
                       </span>
                       <div className={styles.optionBody}>
                         <input
+                          id={`${baseId}-opt-input-${index}`}
                           type="text"
                           value={option.label}
                           maxLength={MAX_OPTION_LENGTH + 20}
@@ -178,7 +195,10 @@ export function QuestionForm({ initial, isNew, onSave, onCancel }: QuestionFormP
                         variant="secondary"
                         aria-label={`Xoá lựa chọn ${letter(index)}`}
                         disabled={draft.options.length <= MIN_OPTIONS_PER_QUESTION}
-                        onClick={() => update({ options: draft.options.filter((_, i) => i !== index) })}
+                        onClick={() => {
+                          update({ options: draft.options.filter((_, i) => i !== index) });
+                          requestFocus(`${baseId}-opt-input-${Math.max(0, index - 1)}`);
+                        }}
                       >
                         Xoá
                       </Button>
@@ -211,6 +231,7 @@ export function QuestionForm({ initial, isNew, onSave, onCancel }: QuestionFormP
                 <li key={index} className={styles.optionRow}>
                   <div className={styles.optionBody}>
                     <input
+                      id={`${baseId}-ans-input-${index}`}
                       type="text"
                       value={answer}
                       maxLength={MAX_ANSWER_LENGTH + 20}
@@ -229,7 +250,10 @@ export function QuestionForm({ initial, isNew, onSave, onCancel }: QuestionFormP
                     variant="secondary"
                     aria-label={`Xoá đáp án chấp nhận ${index + 1}`}
                     disabled={draft.accepted_answers.length <= 1}
-                    onClick={() => update({ accepted_answers: draft.accepted_answers.filter((_, i) => i !== index) })}
+                    onClick={() => {
+                      update({ accepted_answers: draft.accepted_answers.filter((_, i) => i !== index) });
+                      requestFocus(`${baseId}-ans-input-${Math.max(0, index - 1)}`);
+                    }}
                   >
                     Xoá
                   </Button>
@@ -276,7 +300,7 @@ export function QuestionForm({ initial, isNew, onSave, onCancel }: QuestionFormP
       ) : null}
 
       <div className={styles.actions}>
-        <Button type="submit" variant="primary" disabled={saving}>
+        <Button type="submit" id={`${baseId}-submit`} variant="primary" disabled={saving}>
           {saving ? "Đang lưu…" : isNew ? "Thêm câu hỏi" : "Lưu câu hỏi"}
         </Button>
         {onCancel ? (

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button, ButtonLink } from "@/components/button";
+import { useFocusRequest } from "@/components/use-focus-request";
 import type { Result } from "@/lib/classes/api";
 import {
   deleteQuestion,
@@ -28,8 +29,11 @@ type Loaded = {
   result: Result<{ found: false } | { found: true; quiz: LoadedQuiz; problems: QuizProblem[] }>;
 };
 
-/** Đang soạn câu có sẵn hay câu mới (nonce làm mới form khi bấm thêm lần nữa). */
-type Mode = { type: "edit"; id: string } | { type: "new"; kind: QuestionKind; nonce: number } | null;
+/**
+ * Câu đang soạn. `id` chưa có nghĩa là câu mới; lưu lần đầu thì gắn `id` vào mà vẫn giữ nguyên form
+ * (cùng `nonce`) nên nút vừa bấm không bị gỡ và focus không bị mất. `nonce` mới thì form được dựng lại.
+ */
+type Mode = { nonce: number; kind: QuestionKind; id?: string } | null;
 
 export function QuizEditor({ quizId }: { quizId: string }) {
   const { user } = useAuth();
@@ -39,6 +43,11 @@ export function QuizEditor({ quizId }: { quizId: string }) {
   const [reloadKey, setReloadKey] = useState(0);
 
   const [mode, setMode] = useState<Mode>(null);
+  const [dirty, setDirty] = useState(false);
+  const [pendingSwitch, setPendingSwitch] = useState<{ next: Mode } | null>(null);
+  const nonce = useRef(0);
+  const focusAfterLoad = useRef<string | null>(null);
+  const requestFocus = useFocusRequest();
   const [renaming, setRenaming] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
@@ -66,12 +75,16 @@ export function QuizEditor({ quizId }: { quizId: string }) {
       if (!cancelled) {
         setLoaded({ key: `${userId}:${quizId}`, result });
         setMoving(false);
+        if (focusAfterLoad.current) {
+          requestFocus(focusAfterLoad.current);
+          focusAfterLoad.current = null;
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [userId, quizId, reloadKey]);
+  }, [userId, quizId, reloadKey, requestFocus]);
 
   const current = loaded && loaded.key === key ? loaded.result : null;
   const reload = () => setReloadKey((value) => value + 1);
@@ -123,7 +136,31 @@ export function QuizEditor({ quizId }: { quizId: string }) {
   const questions = quiz.questions;
   const atLimit = questions.length >= MAX_QUESTIONS_PER_QUIZ;
   const shareToken = tokenOverride && tokenOverride.key === key ? tokenOverride.token : quiz.shareToken;
-  const editing = mode?.type === "edit" ? questions.find((question) => question.id === mode.id) : undefined;
+  const editing = mode?.id ? questions.find((question) => question.id === mode.id) : undefined;
+  const editingIndex = mode?.id ? questions.findIndex((question) => question.id === mode.id) : -1;
+  const formHeadingId = `${baseId}-form`;
+
+  /** Chuyển sang câu khác (hoặc đóng form); nếu còn thay đổi chưa lưu thì hỏi lại trước. */
+  function switchTo(next: Mode) {
+    if (dirty) {
+      setPendingSwitch({ next });
+      return;
+    }
+    setMode(next);
+    setConfirmingId(null);
+    setMessage(null);
+  }
+
+  function startNew(kind: QuestionKind) {
+    nonce.current += 1;
+    switchTo({ nonce: nonce.current, kind });
+  }
+
+  function select(question: { id: string; kind: QuestionKind }) {
+    if (mode?.id === question.id) return;
+    nonce.current += 1;
+    switchTo({ nonce: nonce.current, kind: question.kind, id: question.id });
+  }
 
   async function submitRename(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -142,10 +179,15 @@ export function QuizEditor({ quizId }: { quizId: string }) {
   async function save(payload: QuestionInput): Promise<{ ok: true } | { ok: false; message: string }> {
     const supabase = getBrowserSupabase();
     if (!supabase) return { ok: false, message: "Chưa kết nối được máy chủ. Thầy cô thử lại sau nhé." };
-    const result = await saveQuestion(supabase, quizId, payload);
+    const saving = mode;
+    // Form đã gắn với một câu thì luôn lưu vào câu đó, kể cả khi bản nháp ban đầu chưa có id.
+    const withId = saving?.id ? { ...payload, id: saving.id } : payload;
+    const result = await saveQuestion(supabase, quizId, withId);
     if (!result.ok) return result;
-    setMessage({ kind: "info", text: payload.id ? "Đã lưu câu hỏi." : "Đã thêm câu hỏi." });
-    setMode({ type: "edit", id: result.id });
+    setMessage({ kind: "info", text: withId.id ? "Đã lưu câu hỏi." : "Đã thêm câu hỏi." });
+    // Chỉ gắn id khi người dùng chưa chuyển sang câu khác trong lúc đang lưu.
+    setMode((now) => (now && saving && now.nonce === saving.nonce ? { ...now, id: result.id } : now));
+    setPendingSwitch(null);
     reload();
     return { ok: true };
   }
@@ -179,8 +221,10 @@ export function QuizEditor({ quizId }: { quizId: string }) {
       setMessage({ kind: "error", text: result.message });
       return;
     }
-    if (mode?.type === "edit" && mode.id === id) setMode(null);
+    if (mode?.id === id) setMode(null);
     setMessage({ kind: "info", text: `Đã xoá câu ${position}.` });
+    // Dòng vừa bấm biến mất: đưa focus về tiêu đề danh sách sau khi danh sách mới tải xong.
+    focusAfterLoad.current = `${baseId}-questions`;
     reload();
   }
 
@@ -234,7 +278,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
 
       <div className={styles.workspace}>
         <section aria-labelledby={`${baseId}-questions`} className={styles.panel}>
-          <h2 id={`${baseId}-questions`} className={styles.heading}>
+          <h2 id={`${baseId}-questions`} className={styles.heading} tabIndex={-1}>
             Câu hỏi ({questions.length} / {MAX_QUESTIONS_PER_QUIZ})
           </h2>
           {questions.length === 0 ? (
@@ -242,18 +286,14 @@ export function QuizEditor({ quizId }: { quizId: string }) {
           ) : (
             <ol className={styles.questions}>
               {questions.map((question, index) => {
-                const selected = mode?.type === "edit" && mode.id === question.id;
+                const selected = mode?.id === question.id;
                 return (
                   <li key={question.id} className={styles.question} data-selected={selected || undefined}>
                     <button
                       type="button"
                       className={styles.select}
                       aria-current={selected ? "true" : undefined}
-                      onClick={() => {
-                        setMode({ type: "edit", id: question.id });
-                        setConfirmingId(null);
-                        setMessage(null);
-                      }}
+                      onClick={() => select(question)}
                     >
                       <span className={styles.number}>Câu {index + 1}</span>
                       <span className={styles.prompt}>{question.prompt}</span>
@@ -281,12 +321,24 @@ export function QuizEditor({ quizId }: { quizId: string }) {
                           <Button variant="secondary" aria-label={`Xoá câu này, câu ${index + 1}`} onClick={() => remove(question.id, index + 1)}>
                             Xoá câu này
                           </Button>
-                          <Button variant="secondary" onClick={() => setConfirmingId(null)}>
+                          <Button
+                            variant="secondary"
+                            autoFocus
+                            onClick={() => {
+                              setConfirmingId(null);
+                              requestFocus(`${baseId}-del-${question.id}`);
+                            }}
+                          >
                             Giữ lại
                           </Button>
                         </>
                       ) : (
-                        <Button variant="secondary" aria-label={`Xoá câu ${index + 1}`} onClick={() => setConfirmingId(question.id)}>
+                        <Button
+                          variant="secondary"
+                          id={`${baseId}-del-${question.id}`}
+                          aria-label={`Xoá câu ${index + 1}`}
+                          onClick={() => setConfirmingId(question.id)}
+                        >
                           Xoá
                         </Button>
                       )}
@@ -303,10 +355,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
                 key={kind}
                 variant="secondary"
                 disabled={atLimit}
-                onClick={() => {
-                  setMode({ type: "new", kind, nonce: Date.now() });
-                  setMessage(null);
-                }}
+                onClick={() => startNew(kind)}
               >
                 Thêm: {KIND_LABELS[kind]}
               </Button>
@@ -315,20 +364,49 @@ export function QuizEditor({ quizId }: { quizId: string }) {
           {atLimit ? <p className={styles.hint}>Quiz đã đủ {MAX_QUESTIONS_PER_QUIZ} câu, thầy cô xoá bớt câu cũ để thêm câu mới.</p> : null}
         </section>
 
-        <section aria-labelledby={`${baseId}-form`} className={styles.panel}>
-          <h2 id={`${baseId}-form`} className={styles.heading}>
-            {mode?.type === "new" ? "Câu hỏi mới" : editing ? `Sửa câu ${questions.indexOf(editing) + 1}` : "Soạn câu hỏi"}
+        <section aria-labelledby={formHeadingId} className={styles.panel}>
+          <h2 id={formHeadingId} className={styles.heading} tabIndex={-1}>
+            {mode === null ? "Soạn câu hỏi" : mode.id === undefined ? "Câu hỏi mới" : editingIndex >= 0 ? `Sửa câu ${editingIndex + 1}` : "Sửa câu hỏi"}
           </h2>
-          {mode?.type === "new" ? (
+          {pendingSwitch && dirty ? (
+            <div className={styles.confirm} role="group" aria-label="Thay đổi chưa lưu">
+              <p>Câu đang soạn có thay đổi chưa lưu. Chuyển đi thì nội dung đã gõ sẽ mất.</p>
+              <div className={styles.rowActions}>
+                <Button
+                  variant="secondary"
+                  autoFocus
+                  onClick={() => {
+                    setPendingSwitch(null);
+                    requestFocus(formHeadingId);
+                  }}
+                >
+                  Tiếp tục soạn
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    const { next } = pendingSwitch;
+                    setPendingSwitch(null);
+                    setMode(next);
+                    setConfirmingId(null);
+                    setMessage(null);
+                    requestFocus(formHeadingId);
+                  }}
+                >
+                  Bỏ thay đổi
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          {mode ? (
             <QuestionForm
-              key={`new-${mode.kind}-${mode.nonce}`}
-              initial={newDraft(mode.kind)}
-              isNew
+              key={mode.nonce}
+              initial={editing ?? newDraft(mode.kind)}
+              isNew={mode.id === undefined}
               onSave={save}
-              onCancel={() => setMode(null)}
+              onCancel={mode.id === undefined ? () => switchTo(null) : undefined}
+              onDirtyChange={setDirty}
             />
-          ) : editing ? (
-            <QuestionForm key={editing.id} initial={editing} isNew={false} onSave={save} />
           ) : (
             <p className={styles.hint}>Chọn một câu ở danh sách để sửa, hoặc thêm câu hỏi mới.</p>
           )}

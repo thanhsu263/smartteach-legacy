@@ -299,6 +299,119 @@ test.describe("soạn quiz", () => {
     await colleague.context.close();
   });
 
+  test("chuyển sang câu khác khi còn thay đổi chưa lưu thì hỏi lại, không mất bản nháp", async ({ page }) => {
+    await register(page);
+    await createQuiz(page, "Quiz bản nháp");
+    await addSingle(page, "Câu đã lưu", ["a", "b", "c", "d"], 0);
+
+    // Form sạch (vừa lưu xong) thì chuyển ngay, không hỏi.
+    await page.getByRole("button", { name: "Thêm: Đúng hoặc sai" }).click();
+    await expect(page.getByRole("heading", { level: 2, name: "Câu hỏi mới" })).toBeVisible();
+    await expect(page.getByRole("group", { name: "Thay đổi chưa lưu" })).toHaveCount(0);
+
+    await page.getByLabel("Câu hỏi", { exact: true }).fill("Bản nháp đang gõ");
+    await page.getByRole("button", { name: /Câu 1.*Câu đã lưu/ }).click();
+    const confirm = page.getByRole("group", { name: "Thay đổi chưa lưu" });
+    await expect(confirm).toBeVisible();
+    // Mặc định focus vào lựa chọn an toàn.
+    await expect(confirm.getByRole("button", { name: "Tiếp tục soạn" })).toBeFocused();
+
+    await confirm.getByRole("button", { name: "Tiếp tục soạn" }).click();
+    await expect(confirm).toHaveCount(0);
+    await expect(page.getByLabel("Câu hỏi", { exact: true })).toHaveValue("Bản nháp đang gõ");
+
+    // Huỷ form mới cũng hỏi lại; bỏ thay đổi thì chuyển đi.
+    await page.getByRole("button", { name: "Huỷ" }).click();
+    await expect(confirm).toBeVisible();
+    await confirm.getByRole("button", { name: "Bỏ thay đổi" }).click();
+    await expect(page.getByText("Chọn một câu ở danh sách để sửa, hoặc thêm câu hỏi mới.")).toBeVisible();
+
+    // Sau khi bỏ nháp, mở câu đã lưu thì thấy đúng nội dung và không còn bị hỏi.
+    await page.getByRole("button", { name: /Câu 1.*Câu đã lưu/ }).click();
+    await expect(page.getByLabel("Câu hỏi", { exact: true })).toHaveValue("Câu đã lưu");
+    await page.getByRole("button", { name: "Thêm: Điền từ ngắn" }).click();
+    await expect(confirm).toHaveCount(0);
+  });
+
+  test("focus không rơi về đầu trang sau khi lưu, xoá dòng hay mở bước xác nhận", async ({ page }) => {
+    await register(page);
+    await createQuiz(page, "Quiz focus");
+
+    // Lưu câu mới: nút lưu vẫn còn và giữ focus (form không bị dựng lại).
+    await page.getByRole("button", { name: "Thêm: Trắc nghiệm một đáp án" }).click();
+    await page.getByLabel("Câu hỏi", { exact: true }).fill("Câu để thử focus");
+    for (const [letter, label] of [["A", "a"], ["B", "b"], ["C", "c"], ["D", "d"]]) {
+      await page.getByLabel(`Lựa chọn ${letter}`, { exact: true }).fill(label);
+    }
+    // Xoá một lựa chọn thì focus sang ô liền trước.
+    await page.getByRole("button", { name: "Xoá lựa chọn D" }).click();
+    await expect(page.getByLabel("Lựa chọn C", { exact: true })).toBeFocused();
+    await page.getByLabel("Lựa chọn A là đáp án đúng").check();
+    await page.getByRole("button", { name: "Thêm câu hỏi" }).click();
+    await expect(page.getByText("Đã thêm câu hỏi.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Lưu câu hỏi" })).toBeFocused();
+
+    // Lưu lần hai vào đúng câu đó, không tạo thêm câu.
+    await page.getByLabel("Câu hỏi", { exact: true }).fill("Câu để thử focus (đã sửa)");
+    await page.getByRole("button", { name: "Lưu câu hỏi" }).click();
+    await expect(page.getByText("Đã lưu câu hỏi.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Câu hỏi (1 / 50)" })).toBeVisible();
+
+    // Xác nhận xoá câu: focus vào "Giữ lại", rồi về nút Xoá; xoá thật thì về tiêu đề danh sách.
+    await page.getByRole("button", { name: "Xoá câu 1", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Giữ lại" })).toBeFocused();
+    await page.getByRole("button", { name: "Giữ lại" }).click();
+    await expect(page.getByRole("button", { name: "Xoá câu 1", exact: true })).toBeFocused();
+    await page.getByRole("button", { name: "Xoá câu 1", exact: true }).click();
+    await page.getByRole("button", { name: "Xoá câu này" }).click();
+    await expect(page.getByRole("heading", { name: "Câu hỏi (0 / 50)" })).toBeFocused();
+
+    // Bảng chia sẻ: mỗi bước xác nhận đều giữ focus trong bảng.
+    const share = page.getByRole("region", { name: "Chia sẻ quiz" });
+    await share.getByRole("button", { name: "Bật chia sẻ" }).click();
+    await expect(share.getByRole("button", { name: "Đổi mã link" })).toBeFocused();
+    await share.getByRole("button", { name: "Đổi mã link" }).click();
+    await expect(share.getByRole("button", { name: "Giữ nguyên" })).toBeFocused();
+    await share.getByRole("button", { name: "Giữ nguyên" }).click();
+    await expect(share.getByRole("button", { name: "Đổi mã link" })).toBeFocused();
+    await share.getByRole("button", { name: "Tắt chia sẻ" }).click();
+    await share.getByRole("button", { name: "Tắt chia sẻ" }).click();
+    await expect(share.getByRole("button", { name: "Bật chia sẻ" })).toBeFocused();
+
+    // Danh sách quiz: xác nhận xoá quiz.
+    await page.goto("/my-quizzes");
+    await page.getByRole("button", { name: "Xoá quiz Quiz focus" }).click();
+    await expect(page.getByRole("button", { name: "Giữ lại" })).toBeFocused();
+    await page.getByRole("button", { name: "Giữ lại" }).click();
+    await expect(page.getByRole("button", { name: "Xoá quiz Quiz focus" })).toBeFocused();
+    await page.getByRole("button", { name: "Xoá quiz Quiz focus" }).click();
+    await page.getByRole("button", { name: "Xoá quiz", exact: true }).click();
+    await expect(page.getByRole("heading", { name: /^Quiz đã lưu/ })).toBeFocused();
+  });
+
+  test("bấm Lên/Xuống liên tiếp khi lần trước chưa xong thì không xếp nhầm câu", async ({ page }) => {
+    await register(page);
+    await createQuiz(page, "Quiz xếp thứ tự");
+    for (const name of ["Một", "Hai", "Ba", "Bốn"]) await addSingle(page, `Câu số ${name}`, ["a", "b", "c", "d"], 0);
+
+    // Kéo dài thời gian lưu để lần bấm thứ hai chắc chắn rơi vào lúc lần đầu chưa xong.
+    await page.route("**/rest/v1/rpc/reorder_questions", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      await route.continue();
+    });
+    await page.getByRole("button", { name: "Chuyển câu 4 lên trên" }).click();
+    await expect(page.getByRole("button", { name: "Chuyển câu 2 lên trên" })).toBeDisabled();
+    // Ép bấm vào nút đang khoá: nếu nút không khoá thật thì lần này xếp theo danh sách cũ và ghi đè lần đầu.
+    await page.getByRole("button", { name: "Chuyển câu 2 lên trên" }).click({ force: true });
+
+    await expect(page.getByRole("button", { name: /Câu 3.*Câu số Bốn/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Câu 4.*Câu số Ba/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Câu 1.*Câu số Một/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Câu 2.*Câu số Hai/ })).toBeVisible();
+    // Xong thì nút mở lại.
+    await expect(page.getByRole("button", { name: "Chuyển câu 2 lên trên" })).toBeEnabled();
+  });
+
   test("link chia sẻ không phải mã hợp lệ thì báo không tìm thấy", async ({ page }) => {
     await register(page);
     await page.goto("/shared/quiz/khong-hop-le");

@@ -2,6 +2,7 @@
 
 import { useId, useRef, useState } from "react";
 import { Button } from "@/components/button";
+import { useFocusRequest } from "@/components/use-focus-request";
 import { setSharing } from "@/lib/quiz/api";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import styles from "./share-panel.module.css";
@@ -22,6 +23,7 @@ export function SharePanel({ quizId, token, onChange }: SharePanelProps) {
   const [pending, setPending] = useState<Pending>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
+  const requestFocus = useFocusRequest();
 
   const link = token && typeof window !== "undefined" ? `${window.location.origin}/shared/quiz/${token}` : "";
 
@@ -34,11 +36,14 @@ export function SharePanel({ quizId, token, onChange }: SharePanelProps) {
     setPending(null);
     const result = await setSharing(supabase, quizId, enabled);
     setBusy(false);
+    // Nút vừa bấm bị thay bằng nút khác: đưa focus sang nút tương ứng ở trạng thái mới.
     if (!result.ok) {
       setError(result.message);
+      requestFocus(`${titleId}-${token ? "rotate" : "enable"}`);
       return;
     }
     onChange(result.token);
+    requestFocus(`${titleId}-${result.token ? "rotate" : "enable"}`);
     setNotice(enabled ? (token ? "Đã đổi mã. Link cũ không còn dùng được." : "Đã bật chia sẻ.") : "Đã tắt chia sẻ.");
   }
 
@@ -86,17 +91,24 @@ export function SharePanel({ quizId, token, onChange }: SharePanelProps) {
                 <Button variant="secondary" disabled={busy} onClick={() => change(pending === "rotate")}>
                   {pending === "rotate" ? "Đổi mã" : "Tắt chia sẻ"}
                 </Button>
-                <Button variant="secondary" onClick={() => setPending(null)}>
+                <Button
+                  variant="secondary"
+                  autoFocus
+                  onClick={() => {
+                    setPending(null);
+                    requestFocus(`${titleId}-${pending}`);
+                  }}
+                >
                   Giữ nguyên
                 </Button>
               </div>
             </div>
           ) : (
             <div className={styles.actions}>
-              <Button variant="secondary" onClick={() => setPending("rotate")}>
+              <Button variant="secondary" id={`${titleId}-rotate`} onClick={() => setPending("rotate")}>
                 Đổi mã link
               </Button>
-              <Button variant="secondary" onClick={() => setPending("disable")}>
+              <Button variant="secondary" id={`${titleId}-disable`} onClick={() => setPending("disable")}>
                 Tắt chia sẻ
               </Button>
             </div>
@@ -106,7 +118,7 @@ export function SharePanel({ quizId, token, onChange }: SharePanelProps) {
         <>
           <p className={styles.hint}>Quiz đang ở chế độ riêng tư: chỉ thầy cô thấy. Bật chia sẻ để lấy link gửi đồng nghiệp.</p>
           <div className={styles.actions}>
-            <Button variant="secondary" disabled={busy} onClick={() => change(true)}>
+            <Button variant="secondary" id={`${titleId}-enable`} disabled={busy} onClick={() => change(true)}>
               Bật chia sẻ
             </Button>
           </div>
