@@ -2,11 +2,18 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getServerSupabase } from "@/lib/supabase/server";
 
+type RequireUserProps = {
+  /** Đường dẫn quay lại sau đăng nhập khi proxy chưa kịp chuyển hướng (ví dụ "/my-quizzes"). */
+  fallbackNext: string;
+  children: ReactNode;
+};
+
 /**
  * Kiểm tra phiên ở phía server trước khi hiện trang của giáo viên (lớp phòng thủ thứ hai sau
- * proxy.ts). Dữ liệu thật vẫn được bảo vệ bằng RLS, không chỉ bằng bước này.
+ * proxy.ts). Dữ liệu thật vẫn được bảo vệ bằng RLS, không chỉ bằng bước này. Đọc cookie nên phải
+ * nằm trong ranh giới Suspense (Cache Components).
  */
-export async function RequireUser({ children }: { children: ReactNode }) {
+export async function RequireUser({ fallbackNext, children }: RequireUserProps) {
   const supabase = await getServerSupabase();
   if (!supabase) {
     return (
@@ -16,6 +23,6 @@ export async function RequireUser({ children }: { children: ReactNode }) {
     );
   }
   const { data } = await supabase.auth.getClaims();
-  if (!data?.claims) redirect("/login?next=%2Fmy-classes");
+  if (!data?.claims) redirect(`/login?next=${encodeURIComponent(fallbackNext)}`);
   return <>{children}</>;
 }

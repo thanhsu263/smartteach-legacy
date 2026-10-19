@@ -38,3 +38,25 @@ Test DB mới chạy trước khi có migration và thất bại cả 38 test, r
 ### Chưa làm trong phase này (đúng phạm vi)
 
 Giao diện soạn quiz (phase 2), bảng và hàm chơi trực tiếp (phase 3).
+
+## Phase 2 - Soạn quiz và chia sẻ
+
+Kết quả kiểm tra (chưa commit):
+
+| Kiểm tra | Kết quả |
+|---|---|
+| `npm run typecheck`, `npm run lint` | Đạt, không còn cảnh báo |
+| `npm test` (Vitest) | 127/127 đạt: thêm test `protected-paths`, `validate` (đọc chung bảng ca với test DB) và `api` |
+| `npm run test:db` | 60/60 đạt (không đổi) |
+| `npm run test:e2e` | 128/128 đạt, chạy hai lần liên tiếp đều đạt: 115 cũ và 13 mới trong `e2e/quiz-editor.spec.ts` |
+
+Phạm vi e2e mới: khách bị chuyển tới đăng nhập (cả link chia sẻ); đủ bốn dạng câu hỏi, sửa, đổi thứ tự (lưu lại sau khi tải lại), xoá có xác nhận; lỗi từng trường và cảnh báo "còn thiếu để chơi được"; mất mạng khi lưu giữ nguyên nội dung đang gõ; nhân đôi, đổi tên, xoá quiz; giáo viên khác không mở được quiz riêng tư; hai giáo viên chia sẻ, sao chép, đổi mã, tắt chia sẻ; axe WCAG A/AA tại 1280px và 375px (mười trạng thái); không tràn ngang; thanh điều hướng ở 768px và 1024px; cấp tiêu đề.
+
+### Quyết định và lệch so với plan
+
+- **Số thứ tự câu hiển thị theo vị trí trong danh sách (`index + 1`), không dùng cột `position`** vì `position` trong cơ sở dữ liệu bắt đầu từ 0 (còn `quiz_problems.question_position` bắt đầu từ 1). Lần đầu giao diện hiện "Câu 0"; e2e bắt được.
+- **Nút Lên/Xuống bị khoá trong lúc đang sắp xếp** tới khi danh sách mới tải xong. Trước đó hai lần bấm liên tiếp có thể xếp nhầm câu vì lần bấm thứ hai dùng danh sách cũ.
+- **Nút xác nhận xoá câu** có nhãn truy cập chứa đúng chữ hiển thị ("Xoá câu này, câu n"); nhãn cũ lệch chữ hiển thị bị axe (`label-content-name-mismatch`) báo.
+- **Bảo vệ trang dùng chung:** `src/lib/auth/protected-paths.ts` (so khớp theo đoạn đường dẫn, có test) cho proxy và `src/components/require-user.tsx` cho ba layout `/my-classes`, `/my-quizzes`, `/shared`. Tệp `src/app/my-classes/require-user.tsx` cũ đã được thay.
+- **Trang `/shared/quiz/[token]` nằm dưới `/shared`** (bắt đăng nhập, noindex) để quiz chia sẻ không lộ cho khách; token không phải UUID báo "Không tìm thấy" mà không gọi máy chủ.
+- **Chưa làm đúng phạm vi:** nút chơi (phase 6), hàm chơi trực tiếp (phase 3). Migration vẫn chỉ áp lên stack cục bộ.

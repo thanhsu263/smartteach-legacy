@@ -59,16 +59,22 @@ export function describeQuizError(error: ErrorLike): string {
 
 const PROBLEM_TEXT: Record<ProblemCode, string> = {
   no_questions: "Quiz chưa có câu hỏi nào.",
-  too_few_options: `cần ít nhất ${MIN_OPTIONS_PER_QUESTION} lựa chọn.`,
-  correct_count: "cần chọn đúng một đáp án đúng.",
-  no_correct: "cần chọn ít nhất một đáp án đúng.",
-  bad_true_false: "cần đúng hai lựa chọn Đúng và Sai, và chọn một đáp án đúng.",
-  no_answers: "cần ít nhất một đáp án chấp nhận.",
-  duplicate_options: "có hai lựa chọn trùng nhau.",
+  too_few_options: `Cần ít nhất ${MIN_OPTIONS_PER_QUESTION} lựa chọn.`,
+  correct_count: "Cần chọn đúng một đáp án đúng.",
+  no_correct: "Cần chọn ít nhất một đáp án đúng.",
+  bad_true_false: "Cần đúng hai lựa chọn Đúng và Sai, và chọn một đáp án đúng.",
+  no_answers: "Cần ít nhất một đáp án chấp nhận.",
+  duplicate_options: "Có hai lựa chọn trùng nhau.",
 };
+
+/** Lời nhắn cho riêng một lỗi, viết hoa chữ đầu (dùng ngay dưới biểu mẫu của câu hỏi). */
+export function problemText(code: ProblemCode): string {
+  return PROBLEM_TEXT[code];
+}
 
 /** Lời nhắn cho một lỗi chặn việc chơi; `position` là số thứ tự câu (từ 1), 0 là lỗi cả quiz. */
 export function describeProblem(code: ProblemCode, position: number): string {
   const text = PROBLEM_TEXT[code];
-  return position > 0 ? `Câu ${position}: ${text}` : text;
+  if (position <= 0) return text;
+  return `Câu ${position}: ${text.charAt(0).toLowerCase()}${text.slice(1)}`;
 }

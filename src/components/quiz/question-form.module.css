@@ -1,0 +1,146 @@
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.kind {
+  color: var(--color-primary-deep);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.field label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.field textarea,
+.field select,
+.optionBody input {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field select {
+  max-width: 14rem;
+}
+
+.field textarea:focus-visible,
+.field select:focus-visible,
+.optionBody input:focus-visible {
+  border-color: var(--color-primary);
+}
+
+.field textarea[aria-invalid="true"],
+.optionBody input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.options {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  justify-items: start;
+}
+
+.options legend {
+  padding-inline: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.optionList {
+  display: grid;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.optionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2) var(--space-3);
+}
+
+.letter {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 44px;
+  background: var(--color-primary-tint);
+  color: var(--color-primary-deep);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+}
+
+.optionBody {
+  flex: 1 1 14rem;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.correct,
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.correct input,
+.checkbox input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-primary);
+}
+
+.hint {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.error {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.warnings {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-primary-tint);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  list-style: disc inside;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}

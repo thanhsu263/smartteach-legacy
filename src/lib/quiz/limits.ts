@@ -12,4 +12,4 @@ export const MAX_ANSWER_LENGTH = 100;
 
 /** Thời gian trả lời mỗi câu (giây) mà giáo viên được chọn. */
 export const TIME_LIMITS = [10, 20, 30, 60, 90] as const;
-export const DEFAULT_TIME_LIMIT = 20;
+export const DEFAULT_TIME_LIMIT: (typeof TIME_LIMITS)[number] = 20;

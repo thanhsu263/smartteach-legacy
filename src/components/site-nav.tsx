@@ -46,7 +46,7 @@ export function SiteNav() {
         <span>Menu</span>
       </button>
       <ul id="site-menu" className={styles.list} data-open={open}>
-        {(signedIn ? [...mainNav, accountNav] : mainNav).map((item) => (
+        {(signedIn ? [...mainNav, ...accountNav] : mainNav).map((item) => (
           <li key={item.href}>
             <Link
               href={item.href}

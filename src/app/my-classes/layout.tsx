@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { RequireUser } from "./require-user";
+import { RequireUser } from "@/components/require-user";
 
 export const metadata: Metadata = {
   robots: { index: false },
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function MyClassesLayout({ children }: LayoutProps<"/my-classes">) {
   return (
     <Suspense fallback={null}>
-      <RequireUser>{children}</RequireUser>
+      <RequireUser fallbackNext="/my-classes">{children}</RequireUser>
     </Suspense>
   );
 }
