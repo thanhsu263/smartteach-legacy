@@ -292,3 +292,38 @@ Review (`hs-code-review`, commit `31a7213`) không có Critical hay High. Đã x
 Kết quả: typecheck, lint, 211 unit, 132 test DB (hai lần liên tiếp), 177 e2e (hai lần liên tiếp) đạt.
 
 Còn mở: `pg_cron` trên Supabase thật (8.3); nội dung Quyền riêng tư vẫn là bản nháp chờ chủ dự án duyệt.
+
+## Phase 8 - Thử tải, triển khai và nghiệm thu (phần làm được ở máy)
+
+Trạng thái: 8.1 và 8.2 xong ở máy phát triển. **8.3 và 8.4 chưa làm**: đều ghi vào dịch vụ thật hoặc cần thiết bị thật, chờ chủ dự án làm hoặc xác nhận từng bước. Hướng dẫn nằm ở mục "Quiz chơi trực tiếp" của `README.md`.
+
+### 8.1 Thử tải
+
+- `tests/load/live-load.test.ts`, chạy bằng `npm run test:load` (cấu hình `vitest.load.config.mts`, không nằm trong `npm test`). **Lệch so với plan:** viết bằng TypeScript chạy qua Vitest thay vì `.mjs`, để dùng thẳng `createLiveSync`, `createSessionChannel` và các hàm `host.*`/`player.*` của ứng dụng (alias `@/`), nên nhịp hỏi, độ trễ tin báo và số yêu cầu giống thật.
+- Mỗi người chơi là một client Supabase riêng (một WebSocket). Đo: kết nối, tin Realtime mỗi giây (gửi + nhận), yêu cầu HTTP mỗi giây và theo hàm, lỗi, độ trễ từ lúc giáo viên mở câu tới lúc người chơi thấy đề, người chơi thấy đủ mọi câu.
+- Số đo (2026-10-19, máy Windows, Supabase cục bộ có tenant 200 kết nối / 100 tin giây / 100 lượt tham gia giây):
+
+| Cấu hình | Kết nối | Tin cao nhất/giây | HTTP cao nhất/giây | Lỗi | Thấy đủ 5 câu | Độ trễ trung vị / p95 |
+|---|---|---|---|---|---|---|
+| 1 x 40 | 41 | 41 | 85 | 0 | 40/40 | 48 / 67 ms |
+| 4 x 40 (đổi pha cùng giây) | 164 | 164 | 328 | 0 | 160/160 | 48 / 77 ms |
+| 6 x 32 | 198 | 198 | 397 | 53* | 192/192 | 46 / 78 ms |
+| 5 x 40 (vượt trần) | 205 | 123 | 250 | 5* | 200/200 | 47 / 86 ms (lớn nhất 2,0 s) |
+
+\* `UND_ERR_SOCKET` do cổng Docker Desktop của máy thử reset kết nối mới khi hơn ~170 máy khách cùng bắn hàng trăm yêu cầu/giây; Kong và PostgREST không ghi lỗi, `Connection: close` không làm hết. Kịch bản gửi lại một lần như trình duyệt, và chỉ khẳng định "không lỗi / thấy đủ câu" khi tổng kết nối ≤ 170 (`VERIFIED_SOCKETS`).
+
+- Kết luận: một lớp 40 người đỉnh 41 tin/giây, trung bình khoảng 12; trần 200 kết nối cho khoảng 4 lớp 40 hoặc 6 lớp 32; ở 205 kết nối đúng 5 kết nối cuối không có kênh nhưng vẫn chơi trọn bằng polling. Yêu cầu HTTP trung bình khoảng 28/giây cho một lớp, `player_state` p95 dưới 70 ms.
+- **Chưa rõ, cần đo trên dự án thật:** Supabase đếm "100 tin/giây" theo tin gửi hay cả tin nhận. Bốn lớp đổi pha cùng giây cộng dồn 164 tin nhận; stack cục bộ (cùng giới hạn) vẫn chuyển hết. Nếu dự án thật chặn thì học sinh nhận đề nhờ polling, chậm tới 10 giây khi kênh vẫn sống. Kiểm bằng hai lớp cùng bấm một lúc ở 8.4.
+- Không tách được nguyên nhân khi 160 học sinh của 4 lớp vào phòng trong đúng một giây (kênh không đủ sống sau 20 giây): trần 100 lượt tham gia/giây hay giới hạn máy thử. Một lớp 40 vào cùng giây vẫn đạt; lớp học thật vào rải ra nên số liệu dùng vào phòng rải 3 giây.
+- Sửa nhỏ phát hiện khi đo: báo "đã kết thúc" qua kênh tạm (`src/lib/live/channel.ts`) dùng `httpSend` thay vì để `send()` tự rơi về REST và in cảnh báo "sẽ bị loại bỏ" của thư viện. Test đơn vị cập nhật.
+
+### 8.2 Kiểm thử và rà soát cuối
+
+- `npm run typecheck`, `lint`, 211 test đơn vị, 132 test DB, 177 e2e (hai lần liên tiếp) đạt, `npm audit --omit=dev` 0 lỗ hổng.
+- `npm run scan:bundle` (mới, `scripts/scan-bundle.mjs`): quét 337 tệp trong `.next/static` và trang dựng sẵn, không có khoá `service_role`/`sb_secret_`, chuỗi kết nối Postgres, Google client secret hay JWT khác vai trò `anon`. Phá thử: cài khoá giả vào `.next/static` thì kịch bản thoát mã 1; gỡ ra thì thoát mã 0.
+- Đáp án đúng không lộ trước khi câu đóng được kiểm ở tầng dữ liệu (`FORBIDDEN_KEYS` trong `tests/db/live.test.ts`), vì đáp án nằm trong Postgres chứ không trong gói trình duyệt.
+- **Chưa làm:** chạy `hs-code-review` cho cả giai đoạn (đề nghị làm trước khi triển khai); trang `/privacy` vẫn là bản nháp.
+
+### 8.3 và 8.4: chờ chủ dự án
+
+Danh sách bước và cách kiểm tra (áp migration bằng `supabase db push`, `unaccent`, bật `pg_cron`, Realtime kênh công khai, vị trí phần tử `x-forwarded-for`, nghiệm thu thiết bị thật) nằm ở README. Cần ghi xác nhận từng mục vào đây khi làm xong.

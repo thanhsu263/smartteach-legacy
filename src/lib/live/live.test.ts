@@ -177,6 +177,11 @@ describe("channel", () => {
         sent.push(message);
         return "ok";
       }),
+      // Kênh tạm gửi qua REST: ghi lại cùng dạng tin để các kiểm tra so sánh được.
+      httpSend: vi.fn(async (event: string, payload: unknown) => {
+        sent.push({ type: "broadcast", event, payload });
+        return { success: true };
+      }),
     };
     const supabase = {
       channel: vi.fn(() => channel),
@@ -235,9 +240,11 @@ describe("channel", () => {
     (fake.supabase.removeChannel as ReturnType<typeof vi.fn>).mockClear();
     await session.notify(9);
     expect(fake.sent).toEqual([{ type: "broadcast", event: SIGNAL_EVENT, payload: { seq: 9 } }]);
+    expect(fake.channel.httpSend).toHaveBeenCalledWith(SIGNAL_EVENT, { seq: 9 });
+    expect(fake.channel.send).not.toHaveBeenCalled(); // không dùng send() vì thư viện sẽ cảnh báo
     expect(fake.supabase.removeChannel).toHaveBeenCalledTimes(1);
     // Kênh tạm gửi lỗi cũng không ném.
-    fake.channel.send.mockRejectedValueOnce(new Error("không gửi được"));
+    fake.channel.httpSend.mockRejectedValueOnce(new Error("không gửi được"));
     await expect(session.notify(10)).resolves.toBeUndefined();
   });
 
@@ -245,6 +252,7 @@ describe("channel", () => {
     const fake = fakeSupabase();
     await createSessionChannel(fake.supabase, UUID).notify(3);
     expect(fake.sent).toEqual([{ type: "broadcast", event: SIGNAL_EVENT, payload: { seq: 3 } }]);
+    expect(fake.channel.httpSend).toHaveBeenCalledWith(SIGNAL_EVENT, { seq: 3 });
   });
 });
 

@@ -55,8 +55,10 @@ export function createSessionChannel(supabase: SupabaseClient, sessionId: string
       const temporary = channel === null;
       const current = channel ?? supabase.channel(channelName(sessionId), { config: { broadcast: { self: false } } });
       try {
-        // Chỉ gửi seq, tuyệt đối không kèm dữ liệu khác.
-        await current.send({ type: "broadcast", event: SIGNAL_EVENT, payload: { seq } });
+        // Chỉ gửi seq, tuyệt đối không kèm dữ liệu khác. Kênh tạm chưa tham gia nên gửi thẳng qua REST
+        // (`httpSend`) thay vì để thư viện tự rơi về REST và in cảnh báo.
+        if (temporary) await current.httpSend(SIGNAL_EVENT, { seq });
+        else await current.send({ type: "broadcast", event: SIGNAL_EVENT, payload: { seq } });
       } catch {
         // Người chơi vẫn đồng bộ được bằng polling.
       } finally {

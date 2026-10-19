@@ -13,7 +13,9 @@
     "test:db": "vitest run --config vitest.db.config.mts",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
-    "supabase:env": "node scripts/write-local-env.mjs"
+    "supabase:env": "node scripts/write-local-env.mjs",
+    "test:load": "vitest run --config vitest.load.config.mts",
+    "scan:bundle": "node scripts/scan-bundle.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
