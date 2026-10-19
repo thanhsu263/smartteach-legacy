@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import { Button } from "@/components/button";
 import { NameListInput } from "@/components/name-list-input";
+import { SavedClassPicker } from "@/components/saved-class-picker";
 import { ToolStage } from "@/components/tool-stage";
 import { parseNames } from "@/lib/utilities/draw";
 import { splitIntoGroups, type SplitError, type SplitMode } from "@/lib/utilities/groups";
@@ -40,6 +41,7 @@ export function GroupsTool() {
     <ToolStage label="Chia nhóm">
       <div className={styles.tool}>
         <div className={styles.form}>
+          <SavedClassPicker onPick={(picked) => setText(picked.join("\n"))} />
           <NameListInput value={text} onChange={setText} />
 
           <fieldset className={styles.mode}>

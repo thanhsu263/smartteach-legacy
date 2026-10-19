@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
+import { FavoriteButton } from "@/components/favorite-button";
 import { GameEmbed } from "@/components/game-embed";
 import { games } from "@/data/games";
 import { findGame, gradeLabels, subjectLabels } from "@/lib/catalog";
@@ -30,7 +31,10 @@ export default async function GamePage({ params }: PageProps<"/games/[id]">) {
       <Breadcrumb items={[{ label: "Kho game", href: "/games" }, { label: game.title }]} />
 
       <header>
-        <h1 className={styles.title}>{game.title}</h1>
+        <div className={styles.titleRow}>
+          <h1 className={styles.title}>{game.title}</h1>
+          <FavoriteButton gameId={game.id} title={game.title} />
+        </div>
         <p className={styles.description}>{game.description}</p>
         <ul className={styles.tags} aria-label="Môn và lớp phù hợp">
           {tags.map((tag) => (

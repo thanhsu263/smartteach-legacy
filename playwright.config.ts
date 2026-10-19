@@ -1,5 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 
+// Đọc .env.local (nếu có) để các test đăng nhập biết đã có Supabase cục bộ; Next.js tự đọc tệp này khi build.
+try {
+  process.loadEnvFile(".env.local");
+} catch {
+  // Không có .env.local: các test cần Supabase sẽ tự bỏ qua.
+}
+
 const port = 3100;
 
 export default defineConfig({

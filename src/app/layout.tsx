@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro } from "next/font/google";
+import { AuthProvider } from "@/components/auth-provider";
+import { FavoritesProvider } from "@/components/favorites-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { siteConfig } from "@/config/site";
@@ -24,12 +26,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="vi" className={beVietnamPro.variable}>
       <body>
-        <a className="skip-link" href="#main">
-          Bỏ qua tới nội dung
-        </a>
-        <SiteHeader />
-        <main id="main">{children}</main>
-        <SiteFooter />
+        <AuthProvider>
+          <FavoritesProvider>
+            <a className="skip-link" href="#main">
+              Bỏ qua tới nội dung
+            </a>
+            <SiteHeader />
+            <main id="main">{children}</main>
+            <SiteFooter />
+          </FavoritesProvider>
+        </AuthProvider>
       </body>
     </html>
   );

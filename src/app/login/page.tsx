@@ -1,12 +1,25 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/coming-soon";
+import { Suspense } from "react";
+import { LoginForm } from "@/components/login-form";
+import styles from "./login.module.css";
 
-export const metadata: Metadata = { title: "Đăng nhập" };
+export const metadata: Metadata = {
+  title: "Đăng nhập",
+  robots: { index: false },
+};
 
 export default function LoginPage() {
   return (
-    <ComingSoon title="Đăng nhập đang được chuẩn bị">
-      Thầy cô sẽ đăng nhập để lưu danh sách lớp và trò chơi yêu thích. Học sinh không cần tài khoản. Trang này đang được xây dựng.
-    </ComingSoon>
+    <div className={`container ${styles.page}`}>
+      <header>
+        <h1 className={styles.title}>Đăng nhập</h1>
+        <p className={styles.lead}>
+          Thầy cô đăng nhập để lưu danh sách lớp và trò chơi yêu thích. Học sinh không cần tài khoản.
+        </p>
+      </header>
+      <Suspense fallback={null}>
+        <LoginForm />
+      </Suspense>
+    </div>
   );
 }

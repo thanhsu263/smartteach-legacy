@@ -34,7 +34,7 @@ Ngoài phạm vi: quiz tự soạn và chơi bằng PIN (giai đoạn 2), đề 
 | 1 | [Nền tảng và giao diện](./phase-01-nen-tang-giao-dien.md) | không | Done (chờ review) |
 | 2 | [Kho game và nhúng game](./phase-02-kho-game.md) | 1 | Done (chờ kiểm tra điện thoại thật và review) |
 | 3 | [Tiện ích lớp học](./phase-03-tien-ich.md) | 1 | Done (chờ kiểm tra thiết bị thật và review) |
-| 4 | [Đăng nhập, lớp và yêu thích](./phase-04-dang-nhap-lop.md) | 1, 2, 3 | Pending |
+| 4 | [Đăng nhập, lớp và yêu thích](./phase-04-dang-nhap-lop.md) | 1, 2, 3 | Done, trừ 4.6 tuỳ chọn (chờ Supabase thật và review) |
 | 5 | [Triển khai và nghiệm thu](./phase-05-trien-khai.md) | 1-4 | Pending |
 
 Phase 2 và 3 độc lập nhau nên có thể làm theo thứ tự nào cũng được. Phase 4 cần cả hai vì nó thêm nút yêu thích vào kho game và nút "dùng lớp đã lưu" vào bốc thăm/chia nhóm.

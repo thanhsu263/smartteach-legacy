@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FavoriteButton } from "@/components/favorite-button";
 import { GamepadIcon } from "@/components/icons";
 import { gradeLabels, subjectLabels, type Game } from "@/lib/catalog";
 import styles from "./game-card.module.css";
@@ -14,9 +15,12 @@ export function GameCard({ game, headingLevel }: GameCardProps) {
   const Heading = `h${headingLevel}` as const;
   return (
     <article className={styles.card}>
-      <span className={styles.icon}>
-        <GamepadIcon size={28} />
-      </span>
+      <div className={styles.top}>
+        <span className={styles.icon}>
+          <GamepadIcon size={28} />
+        </span>
+        <FavoriteButton gameId={game.id} title={game.title} />
+      </div>
       <Heading className={styles.title}>
         <Link href={`/games/${game.id}`} className={styles.link}>
           {game.title}

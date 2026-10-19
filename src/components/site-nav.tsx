@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/components/auth-provider";
 import { CloseIcon, MenuIcon } from "@/components/icons";
-import { loginNav, mainNav, type NavItem } from "@/config/navigation";
+import { accountNav, loginNav, mainNav, type NavItem } from "@/config/navigation";
 import styles from "./site-nav.module.css";
 
 function isCurrent(pathname: string, item: NavItem) {
@@ -28,7 +29,8 @@ export function SiteNav() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
-  const items = [...mainNav, loginNav];
+  const { status, signOut } = useAuth();
+  const signedIn = status === "signed-in";
 
   return (
     <nav aria-label="Điều hướng chính" className={styles.nav}>
@@ -44,22 +46,41 @@ export function SiteNav() {
         <span>Menu</span>
       </button>
       <ul id="site-menu" className={styles.list} data-open={open}>
-        {items.map((item) => {
-          const current = isCurrent(pathname, item);
-          const isLogin = item.href === loginNav.href;
-          return (
-            <li key={item.href} className={isLogin ? styles.login : undefined}>
-              <Link
-                href={item.href}
-                className={styles.link}
-                aria-current={current ? "page" : undefined}
-                onClick={() => setOpen(false)}
-              >
-                {item.label}
-              </Link>
-            </li>
-          );
-        })}
+        {(signedIn ? [...mainNav, accountNav] : mainNav).map((item) => (
+          <li key={item.href}>
+            <Link
+              href={item.href}
+              className={styles.link}
+              aria-current={isCurrent(pathname, item) ? "page" : undefined}
+              onClick={() => setOpen(false)}
+            >
+              {item.label}
+            </Link>
+          </li>
+        ))}
+        <li className={styles.login}>
+          {signedIn ? (
+            <button
+              type="button"
+              className={styles.link}
+              onClick={() => {
+                setOpen(false);
+                void signOut();
+              }}
+            >
+              Đăng xuất
+            </button>
+          ) : (
+            <Link
+              href={loginNav.href}
+              className={styles.link}
+              aria-current={isCurrent(pathname, loginNav) ? "page" : undefined}
+              onClick={() => setOpen(false)}
+            >
+              {loginNav.label}
+            </Link>
+          )}
+        </li>
       </ul>
     </nav>
   );

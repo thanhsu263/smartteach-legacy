@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { LogoMark } from "@/components/icons";
 import { SiteNav } from "@/components/site-nav";
+import { SiteNavFallback } from "@/components/site-nav-fallback";
 import { siteConfig } from "@/config/site";
 import styles from "./site-header.module.css";
 
@@ -12,7 +14,9 @@ export function SiteHeader() {
           <LogoMark size={32} />
           <span>{siteConfig.name}</span>
         </Link>
-        <SiteNav />
+        <Suspense fallback={<SiteNavFallback />}>
+          <SiteNav />
+        </Suspense>
       </div>
     </header>
   );

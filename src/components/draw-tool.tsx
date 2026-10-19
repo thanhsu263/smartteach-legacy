@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/button";
 import { NameListInput } from "@/components/name-list-input";
+import { SavedClassPicker } from "@/components/saved-class-picker";
 import { ToolStage } from "@/components/tool-stage";
 import { parseNames, pickIndex, remainingCount } from "@/lib/utilities/draw";
 import styles from "./draw-tool.module.css";
@@ -123,6 +124,7 @@ export function DrawTool() {
         </div>
 
         <div className={styles.names}>
+          <SavedClassPicker onPick={(picked) => changeNames(picked.join("\n"))} />
           <NameListInput value={text} onChange={changeNames} />
         </div>
 

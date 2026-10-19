@@ -110,3 +110,42 @@ Review `hs-code-review` (commit 30a79ba, 2dea2c0, 613ac25) tìm ra hai lỗi Med
 Quyết định: khi đang có nét vẽ, ngón thứ hai bị bỏ qua (ưu tiên con trỏ đầu) thay vì vẽ song song. Cách này tránh vệt do lòng bàn tay chạm vào bảng cảm ứng; muốn hai người vẽ cùng lúc thì đổi sang lưu nét theo từng `pointerId`.
 
 Kết quả sau sửa: typecheck, lint đạt; 60 unit test và 55 e2e đạt (hai lần liên tiếp trên bản build thật). Chưa sửa các mục Low 2 (DESIGN.md thiếu token `--color-on-primary-muted`) và ba verification gap còn lại của review.
+
+## Phase 4 - Đăng nhập, lớp và yêu thích
+
+Kết quả kiểm tra (chưa commit, working tree còn thay đổi so với `5dd371b`). Backend kiểm thử là stack Supabase chạy cục bộ trong Docker (`npm run supabase:start`), theo lựa chọn của chủ dự án.
+
+| Kiểm tra | Kết quả |
+|---|---|
+| `npm run typecheck`, `npm run lint` | Đạt |
+| `npm test` (Vitest) | 75/75 đạt: thêm test cho `safeNextPath`, lời nhắn lỗi đăng nhập và cơ sở dữ liệu, kiểm tra tên/số lượng |
+| `npm run test:db` (RLS trên Postgres thật của Supabase) | 13/13 đạt. Đã kiểm tra tính hiệu lực bằng cách tạm phá bảo vệ: mở chính sách đọc của `classes` làm hỏng 2 test; tắt trigger giới hạn lớp làm hỏng test giới hạn; khôi phục thì đạt lại |
+| `npm run test:e2e` | 69/69 đạt, hai lần liên tiếp trên bản build thật có Supabase cục bộ |
+| E2E khi không có Supabase (không có `.env.local`) | 55 đạt, 14 test đăng nhập tự bỏ qua; ứng dụng chạy ở chế độ khách |
+| `npm run build` | Đạt; `/auth/callback` và `Proxy` xuất hiện trong danh sách route |
+| Kiểm tra bằng mắt | Đã xem Lớp của tôi (1280px), chi tiết lớp (1280px), đăng nhập (375px), lời mời đăng nhập khi khách bấm yêu thích |
+
+Phủ bởi test: khách vào `/my-classes` bị chuyển tới `/login?next=…`; khách và học sinh dùng game và tiện ích không bị hỏi đăng nhập; đăng ký, đăng xuất, đăng nhập lại; sai mật khẩu; `next` trỏ ra ngoài bị bỏ qua; tạo lớp có danh sách, thêm, sửa, xoá học sinh, đổi tên và xoá lớp (có xác nhận); chọn lớp đã lưu trong bốc thăm và chia nhóm; khách không thấy ô chọn lớp; giáo viên B không thấy hay mở được lớp của A; yêu thích bật tắt, giữ qua lần tải lại, hiện ở Lớp của tôi, riêng từng giáo viên; không cuộn ngang ở 375px.
+
+### Quyết định và lệch so với plan
+
+- **Tên file migration:** `supabase/migrations/20261019150000_classes_students_favorites.sql` (CLI Supabase bắt buộc tiền tố thời gian) thay cho `0001_…` trong plan. Có thêm `GRANT` rõ ràng cho `authenticated` và `REVOKE` với `anon`, vì Supabase đang chuyển sang yêu cầu GRANT tường minh.
+- **Giới hạn do cơ sở dữ liệu ép** bằng trigger kèm khoá advisory theo chủ sở hữu (hoặc theo lớp): 20 lớp, 100 học sinh, tên 1-100 ký tự. Bài thử 25 lần tạo lớp song song cho đúng 20 thành công. Chủ lớp và lớp của học sinh không đổi được sau khi tạo (chặn chuyển lớp sang người khác và né giới hạn).
+- **`proxy.ts` thay cho `middleware.ts`:** Next.js 16 đã đổi tên. Matcher chỉ gồm `/my-classes/:path*` và `/login`, nên các trang công khai không tốn thêm một lần gọi Supabase. Dùng `getClaims()` (kiểm tra JWT cục bộ). Kiểm tra thứ hai ở server nằm trong `my-classes/layout.tsx` (`RequireUser`, trong Suspense vì đọc cookie). Dữ liệu thật vẫn do RLS bảo vệ.
+- **Trạng thái đăng nhập ở header đọc phía trình duyệt** (`AuthProvider`, sự kiện `INITIAL_SESSION` đọc từ cookie, không gọi mạng) để các trang công khai vẫn dựng tĩnh. Hệ quả: giáo viên đã đăng nhập có thể thấy chữ "Đăng nhập" thoáng qua trước khi chuyển thành "Lớp của tôi / Đăng xuất". `SiteNav` phải nằm trong Suspense vì dùng `usePathname`; có bản dự phòng tĩnh `SiteNavFallback`.
+- **Dữ liệu lớp và yêu thích truy cập trực tiếp từ trình duyệt qua RLS** (không có API riêng): bớt một lớp mã phải bảo vệ, và RLS là hàng rào duy nhất cần đúng.
+- **Chống chuyển hướng ra ngoài:** `safeNextPath` chỉ nhận đường dẫn nội bộ (loại `//host`, `/\host`, ký tự điều khiển, URL tuyệt đối), dùng ở form, route callback và proxy.
+- **Đã xử lý cả hai chế độ email:** nếu dự án bật xác nhận email thì hiện lời nhắn kiểm tra hộp thư; trang `/auth/callback` đổi mã lấy phiên cho cả liên kết email lẫn Google.
+- **Chưa làm quên mật khẩu** (plan không yêu cầu).
+- **Khi chưa cấu hình Supabase** (thiếu biến môi trường) ứng dụng vẫn chạy: trang đăng nhập báo chưa cấu hình, không lỗi.
+- **`partialPrefetching: false` khai báo tường minh** trong `next.config.ts` để Next.js không cảnh báo (trước đó chỉ bỏ dòng này).
+- **Xoá `coming-soon`:** không còn trang tạm nào.
+- **Cấu hình Supabase cục bộ rút gọn** (`supabase/config.toml`): tắt realtime, studio, storage, edge runtime, analytics, email thử để giảm dung lượng tải; URL đăng nhập trỏ `http://localhost:3100`.
+- **Khi viết e2e:** Next.js (Cache Components) giữ lại trang trước ở dạng ẩn trong DOM, và React giữ một bản HTML ẩn của đoạn Suspense trong giây lát sau khi tải. Test dùng `getByRole` hoặc `filter({ visible: true })` thay vì `getByLabel`/`getByText` trần.
+- **Task 4.6 (truyền danh sách lớp vào game) chưa làm**, đúng như plan ghi là tuỳ chọn: cần sửa mã nguồn game ở repo khác.
+
+### Việc cần chủ dự án làm (ngoài tầm tự động)
+
+- Tạo dự án Supabase thật, rồi đặt `NEXT_PUBLIC_SUPABASE_URL` và `NEXT_PUBLIC_SUPABASE_ANON_KEY` (xem `.env.example`). Áp migration lên dự án thật là ghi ra bên ngoài nên cần xác nhận ở phase 5.
+- Tạo OAuth client trong Google Cloud và bật Google trong Supabase Auth, URL gọi lại là `<domain>/auth/callback`. Đăng nhập Google chưa được kiểm tra vì cần cấu hình thật.
+- Chạy lại kiểm thử đăng nhập và RLS trên dự án thật sau khi áp migration.

@@ -1,0 +1,149 @@
+.editor {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.hint {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.error {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.notice {
+  padding: var(--space-3);
+  background: var(--color-primary-tint);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.panel {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.heading {
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.students {
+  display: grid;
+  gap: var(--space-2);
+  counter-reset: student;
+}
+
+.student {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  counter-increment: student;
+}
+
+.studentName::before {
+  content: counter(student) ". ";
+  color: var(--color-ink-muted);
+}
+
+.studentName {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.studentActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.inline input,
+.form textarea {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--text-base);
+}
+
+.inline input {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.form {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  max-width: 36rem;
+}
+
+.form > label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.form textarea {
+  width: 100%;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.empty {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-5);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.skeleton {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.skeleton span {
+  display: block;
+  height: 6rem;
+  background: var(--color-primary-tint);
+  border-radius: var(--radius-md);
+}
