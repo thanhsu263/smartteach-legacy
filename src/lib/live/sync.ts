@@ -1,4 +1,4 @@
-import { createServerClock, type ServerClock } from "@/lib/live/clock";
+import { createServerClock, parseServerTime, type ServerClock } from "@/lib/live/clock";
 import type { ConnectionStatus } from "@/lib/live/types";
 
 /**
@@ -62,7 +62,10 @@ export type LiveSync<T extends SyncState> = {
   /** Bắt đầu hỏi và đăng ký kênh. Có thể `stop()` rồi `start()` lại (React StrictMode, ẩn/hiện trang). */
   start(): void;
   stop(): void;
-  /** Hỏi lại ngay (ví dụ sau khi giáo viên vừa thao tác). */
+  /**
+   * Hỏi lại ngay (ví dụ sau khi giáo viên vừa thao tác) và chờ lần hỏi BẮT ĐẦU SAU lệnh gọi này xong. Nếu
+   * đang có một lần hỏi bay thì lần đó có thể đã đọc trước thao tác, nên phải chờ lần hỏi tiếp theo.
+   */
   refresh(): Promise<void>;
   getSnapshot(): SyncSnapshot<T>;
   /** Đăng ký nghe thay đổi; trả về hàm huỷ. Tương thích `useSyncExternalStore`. */
@@ -89,6 +92,8 @@ export function createLiveSync<T extends SyncState>(options: SyncOptions<T>): Li
   let generation = 0;
   let inFlight = false;
   let pendingRefetch = false;
+  // Người đang chờ `refresh()`: được gỡ khi lần hỏi KẾ TIẾP (bắt đầu sau khi họ đăng ký) hoàn tất.
+  let nextWaiters: (() => void)[] = [];
   let lastFetchStartedAt = -Infinity;
   let pollTimer: ReturnType<typeof setTimeout> | undefined;
   let signalTimer: ReturnType<typeof setTimeout> | undefined;
@@ -167,6 +172,9 @@ export function createLiveSync<T extends SyncState>(options: SyncOptions<T>): Li
     }
     inFlight = true;
     clearTimeout(pollTimer);
+    const waiters = nextWaiters;
+    nextWaiters = [];
+    const release = () => waiters.forEach((resolve) => resolve());
     const mine = generation;
     const sentAt = now();
     lastFetchStartedAt = sentAt;
@@ -176,14 +184,17 @@ export function createLiveSync<T extends SyncState>(options: SyncOptions<T>): Li
     } catch {
       outcome = { ok: false, message: "Mất kết nối. Ứng dụng sẽ tự thử lại." };
     }
-    if (mine !== generation) return;
+    if (mine !== generation) {
+      release();
+      return;
+    }
     const receivedAt = now();
     inFlight = false;
 
     if (outcome.ok) {
       failures = 0;
       error = null;
-      clock.sample(Date.parse(outcome.state.server_now), sentAt, receivedAt);
+      clock.sample(parseServerTime(outcome.state.server_now), sentAt, receivedAt);
       // Bỏ qua trạng thái cũ hơn trạng thái đã nhận (theo seq); cùng seq thì lấy bản mới
       // (số người đã trả lời có thể đổi mà seq chưa đổi).
       if (outcome.state.seq >= lastSeq) {
@@ -196,9 +207,14 @@ export function createLiveSync<T extends SyncState>(options: SyncOptions<T>): Li
     } else {
       failures += 1;
       error = outcome.message;
-      if (outcome.fatal) fatal = true;
+      if (outcome.fatal) {
+        fatal = true;
+        // Mã tham gia hỏng thì không cần nghe kênh nữa: nhả kết nối (gói Free chỉ có 200).
+        dropChannel();
+      }
     }
     publish();
+    release();
 
     if (pendingRefetch) {
       pendingRefetch = false;
@@ -240,13 +256,22 @@ export function createLiveSync<T extends SyncState>(options: SyncOptions<T>): Li
       generation += 1;
       inFlight = false;
       pendingRefetch = false;
+      const waiting = nextWaiters;
+      nextWaiters = [];
+      waiting.forEach((resolve) => resolve());
       clearTimeout(pollTimer);
       clearTimeout(signalTimer);
       pollTimer = undefined;
       signalTimer = undefined;
       dropChannel();
     },
-    refresh: () => fetchNow(),
+    refresh() {
+      if (!running) return Promise.resolve();
+      return new Promise<void>((resolve) => {
+        nextWaiters.push(resolve);
+        void fetchNow();
+      });
+    },
     getSnapshot: () => snapshot,
     listen(listener) {
       listeners.add(listener);

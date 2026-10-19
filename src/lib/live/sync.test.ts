@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { runHostAction } from "./use-live-state";
 import {
   createLiveSync,
   pollIntervalForPhase,
@@ -418,6 +419,115 @@ describe("createLiveSync: vòng đời và đồng hồ", () => {
     expect(clock.offsetMs()).toBeLessThan(5200);
     const deadline = Date.now() + 5000 + 20_000; // hạn chót theo giờ máy chủ: còn ~20 giây
     expect(Math.round(clock.remainingMs(deadline) / 1000)).toBe(20);
+    sync.stop();
+  });
+});
+
+describe("createLiveSync: refresh() chờ lần hỏi bắt đầu sau lệnh gọi", () => {
+  /** Máy chủ giả: mỗi lần hỏi đọc seq ngay lúc bắt đầu nhưng chỉ trả về khi test cho phép. */
+  function slowServer() {
+    const server = { seq: 1 };
+    const pending: (() => void)[] = [];
+    const fetchState = vi.fn(
+      () =>
+        new Promise<FetchOutcome<State>>((resolve) => {
+          const read = { seq: server.seq, phase: "question", server_now: at(Date.now()) };
+          pending.push(() => resolve({ ok: true, state: read }));
+        }),
+    );
+    return { server, fetchState, answer: () => pending.shift()?.(), waiting: () => pending.length };
+  }
+
+  it("đang có lần hỏi bay thì refresh() chờ lần hỏi kế tiếp, nên thấy được thao tác vừa commit", async () => {
+    const s = slowServer();
+    const sync = createLiveSync({ fetchState: s.fetchState, pollMs: () => 600_000 });
+    sync.start();
+    s.answer(); // lần hỏi đầu xong với seq 1
+    await tick(0);
+    void sync.refresh(); // lần hỏi định kỳ đang bay, đã đọc seq 1
+    await tick(0);
+    s.server.seq = 2; // giáo viên vừa thao tác xong
+
+    let done = false;
+    const refreshed = sync.refresh().then(() => (done = true));
+    await tick(0);
+    s.answer(); // lần bay cũ trả về seq 1
+    await tick(0);
+    expect(done).toBe(false); // chưa được xong chỉ vì lần hỏi cũ
+    expect(sync.getSnapshot().state?.seq).toBe(1);
+    s.answer(); // lần hỏi mới (bắt đầu sau lệnh gọi) đọc seq 2
+    await refreshed;
+    expect(sync.getSnapshot().state?.seq).toBe(2);
+    sync.stop();
+  });
+
+  it("nhiều lệnh refresh() dồn lại dùng chung một lần hỏi kế tiếp", async () => {
+    const s = slowServer();
+    const sync = createLiveSync({ fetchState: s.fetchState, pollMs: () => 600_000 });
+    sync.start();
+    s.answer();
+    await tick(0);
+    void sync.refresh();
+    await tick(0);
+    const all = Promise.all([sync.refresh(), sync.refresh(), sync.refresh()]);
+    s.answer();
+    await tick(0);
+    s.answer();
+    await all;
+    expect(s.fetchState).toHaveBeenCalledTimes(3);
+    sync.stop();
+  });
+
+  it("runHostAction với lõi đồng bộ thật báo đúng seq mới dù có lần hỏi định kỳ đang bay", async () => {
+    const s = slowServer();
+    const sync = createLiveSync({ fetchState: s.fetchState, pollMs: () => 600_000 });
+    sync.start();
+    s.answer();
+    await tick(0);
+    void sync.refresh();
+    await tick(0); // lần hỏi định kỳ đang bay, đã đọc seq 1
+
+    const notified: number[] = [];
+    const acting = runHostAction(
+      sync as unknown as Parameters<typeof runHostAction>[0],
+      { notify: async (seq) => void notified.push(seq) },
+      async () => {
+        s.server.seq = 2; // thao tác của giáo viên commit
+        return { ok: true };
+      },
+    );
+    await tick(0);
+    s.answer(); // lần bay cũ: seq 1
+    await tick(0);
+    s.answer(); // lần hỏi sau thao tác: seq 2
+    await acting;
+    expect(notified).toEqual([2]);
+    sync.stop();
+  });
+
+  it("refresh() khi đang dừng trả về ngay; dừng giữa chừng cũng gỡ người đang chờ", async () => {
+    const s = slowServer();
+    const sync = createLiveSync({ fetchState: s.fetchState, pollMs: () => 600_000 });
+    await expect(sync.refresh()).resolves.toBeUndefined(); // chưa start
+    sync.start();
+    const waiting = sync.refresh();
+    sync.stop();
+    await expect(waiting).resolves.toBeUndefined();
+    s.answer(); // kết quả của vòng đời cũ
+    await tick(0);
+    await expect(sync.refresh()).resolves.toBeUndefined();
+  });
+
+  it("lỗi không thể tự khỏi thì nhả kênh Realtime ngay", async () => {
+    const channel = fakeChannel();
+    const fetchState = fakeFetch(ok(state(1)), bad("Mã tham gia không còn hiệu lực.", true));
+    const sync = createLiveSync({ fetchState, channelFor: () => ({ key: "s", source: channel.source }), pollMs: () => 1000 });
+    sync.start();
+    await tick(0);
+    expect(channel.active).toBe(1);
+    await tick(1000);
+    expect(sync.getSnapshot().fatal).toBe(true);
+    expect(channel.active).toBe(0);
     sync.stop();
   });
 });

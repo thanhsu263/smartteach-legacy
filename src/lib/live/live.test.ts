@@ -3,7 +3,8 @@ import { createSessionChannel, channelName, parseSignal, SIGNAL_EVENT } from "./
 import { describeJoinCode, describeLiveError, isFatalPlayerError } from "./errors";
 import { host, player, playerFetcher } from "./rpc";
 import { clearPlayer, loadPlayer, savePlayer } from "./storage";
-import { createServerClock } from "./clock";
+import { createServerClock, parseServerTime } from "./clock";
+import { attachWakeListeners } from "./wake";
 import { runHostAction } from "./use-live-state";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -64,6 +65,34 @@ describe("clock", () => {
     expect(clock.now()).toBe(105_000);
     expect(clock.remainingMs(110_000)).toBe(5000);
     expect(clock.remainingMs(90_000)).toBe(0);
+  });
+
+  it("đọc giờ Postgres: 6 chữ số thập phân, dấu cách, múi giờ viết tắt và không có múi giờ", () => {
+    const base = Date.parse("2026-10-19T12:02:54.458Z");
+    expect(parseServerTime("2026-10-19T12:02:54.458398+00:00")).toBe(base);
+    expect(parseServerTime("2026-10-19T12:02:54.458Z")).toBe(base);
+    expect(parseServerTime("2026-10-19 12:02:54.458398+00")).toBe(base);
+    expect(parseServerTime("2026-10-19T12:02:54.458398+0000")).toBe(base);
+    expect(parseServerTime("2026-10-19T19:02:54.458398+07:00")).toBe(base);
+    expect(parseServerTime("2026-10-19T12:02:54+00:00")).toBe(base - 458);
+    expect(parseServerTime("2026-10-19T12:02:54.4+00:00")).toBe(base - 58);
+    expect(parseServerTime("2026-10-19")).toBe(Date.parse("2026-10-19"));
+  });
+
+  it("chuỗi đưa cho Date.parse chỉ có tối đa 3 chữ số thập phân (V8 nhận 6 số nhưng Safari thì không chắc)", () => {
+    const spy = vi.spyOn(Date, "parse");
+    try {
+      parseServerTime("2026-10-19T12:02:54.458398+00:00");
+      parseServerTime("2026-10-19 12:02:54.458398+00");
+      const passed = spy.mock.calls.map((call) => String(call[0]));
+      expect(passed).toEqual(["2026-10-19T12:02:54.458+00:00", "2026-10-19T12:02:54.458+00:00"]);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("giá trị không đọc được thì trả NaN chứ không ném lỗi", () => {
+    for (const bad of [null, undefined, "", "không phải giờ", 123 as never]) expect(parseServerTime(bad)).toBeNaN();
   });
 
   it("bỏ qua mẫu hỏng", () => {
@@ -269,6 +298,62 @@ describe("rpc", () => {
     const bad = client(async () => ({ data: null, error: { message: "quiz_not_playable" } }));
     const result = await host.create(bad, UUID, true);
     expect(result.ok === false && result.message).toContain("chơi được");
+  });
+});
+
+describe("attachWakeListeners (hỏi lại khi trình duyệt thức dậy)", () => {
+  function fakeTarget() {
+    const handlers = new Map<string, Set<() => void>>();
+    return {
+      addEventListener: vi.fn((type: string, fn: () => void) => void (handlers.get(type) ?? handlers.set(type, new Set()).get(type)!).add(fn)),
+      removeEventListener: vi.fn((type: string, fn: () => void) => void handlers.get(type)?.delete(fn)),
+      fire: (type: string) => handlers.get(type)?.forEach((fn) => fn()),
+      count: (type: string) => handlers.get(type)?.size ?? 0,
+    };
+  }
+
+  it("tab hiện lại, có mạng lại, trang khôi phục hay lấy lại focus đều gọi refresh; tab ẩn thì không", () => {
+    const doc = Object.assign(fakeTarget(), { visibilityState: "hidden" });
+    const win = fakeTarget();
+    let t = 0;
+    const refresh = vi.fn();
+    attachWakeListeners(refresh, doc, win, { now: () => (t += 1000) });
+
+    doc.fire("visibilitychange");
+    expect(refresh).not.toHaveBeenCalled();
+    doc.visibilityState = "visible";
+    doc.fire("visibilitychange");
+    win.fire("online");
+    win.fire("pageshow");
+    win.fire("focus");
+    expect(refresh).toHaveBeenCalledTimes(4);
+  });
+
+  it("các sự kiện đến cùng lúc được gộp thành một lần hỏi", () => {
+    const doc = Object.assign(fakeTarget(), { visibilityState: "visible" });
+    const win = fakeTarget();
+    let t = 0;
+    const refresh = vi.fn();
+    attachWakeListeners(refresh, doc, win, { now: () => t, minGapMs: 500 });
+    doc.fire("visibilitychange");
+    win.fire("focus");
+    win.fire("pageshow");
+    expect(refresh).toHaveBeenCalledTimes(1);
+    t = 600;
+    win.fire("online");
+    expect(refresh).toHaveBeenCalledTimes(2);
+  });
+
+  it("huỷ đăng ký thì gỡ sạch người nghe; không có document hay window (server) vẫn an toàn", () => {
+    const doc = Object.assign(fakeTarget(), { visibilityState: "visible" });
+    const win = fakeTarget();
+    const detach = attachWakeListeners(vi.fn(), doc, win);
+    expect(doc.count("visibilitychange")).toBe(1);
+    expect(win.count("online") + win.count("pageshow") + win.count("focus")).toBe(3);
+    detach();
+    expect(doc.count("visibilitychange")).toBe(0);
+    expect(win.count("online") + win.count("pageshow") + win.count("focus")).toBe(0);
+    expect(() => attachWakeListeners(vi.fn(), undefined, undefined)()).not.toThrow();
   });
 });
 

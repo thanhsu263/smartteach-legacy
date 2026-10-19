@@ -7,6 +7,22 @@
 
 const WINDOW = 8;
 
+/**
+ * Đọc giờ do Postgres trả (ví dụ `2026-10-19T12:02:54.458398+00:00`) thành mili giây. Cắt phần thập phân
+ * về 3 chữ số vì không phải trình duyệt nào cũng nhận 6 chữ số (Safari trên iPhone là nơi học sinh
+ * hay dùng), và chấp nhận dạng có dấu cách hoặc múi giờ viết tắt. Không đọc được thì trả NaN.
+ */
+export function parseServerTime(value: string | null | undefined): number {
+  if (typeof value !== "string") return Number.NaN;
+  const text = value
+    .trim()
+    .replace(/^(\d{4}-\d{2}-\d{2}) /, "$1T")
+    .replace(/(\.\d{3})\d+/, "$1")
+    .replace(/(T[\d:.]+[+-]\d{2})$/, "$1:00")
+    .replace(/(T[\d:.]+[+-]\d{2})(\d{2})$/, "$1:$2");
+  return Date.parse(text);
+}
+
 type Sample = { offset: number; rtt: number };
 
 export type ServerClock = {

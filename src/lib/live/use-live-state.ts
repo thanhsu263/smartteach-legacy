@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 import { createServerClock } from "@/lib/live/clock";
 import { createSessionChannel, type SessionChannel } from "@/lib/live/channel";
 import { hostFetcher, playerFetcher, type LiveResult } from "@/lib/live/rpc";
+import { attachWakeListeners } from "@/lib/live/wake";
 import { createLiveSync, pollIntervalForPhase, type LiveSync, type SyncSnapshot, type SyncState } from "@/lib/live/sync";
 import type { HostState, PlayerState } from "@/lib/live/types";
 import { getBrowserSupabase } from "@/lib/supabase/client";
@@ -21,7 +22,16 @@ function useLiveSync<T extends SyncState>(sync: LiveSync<T> | null): SyncSnapsho
   useEffect(() => {
     if (!sync) return;
     sync.start();
-    return () => sync.stop();
+    // Tab hiện lại, có mạng lại, trang khôi phục từ bộ nhớ đệm: hỏi ngay thay vì chờ nhịp polling kế tiếp.
+    const detach = attachWakeListeners(
+      () => void sync.refresh(),
+      typeof document === "undefined" ? undefined : document,
+      typeof window === "undefined" ? undefined : window,
+    );
+    return () => {
+      detach();
+      sync.stop();
+    };
   }, [sync]);
 
   const subscribe = useCallback((listener: () => void) => (sync ? sync.listen(listener) : () => {}), [sync]);

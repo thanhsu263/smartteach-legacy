@@ -154,3 +154,17 @@ Kết quả kiểm tra (chưa commit): typecheck, lint đạt; **172 unit** (45 
 - **Vitest DB thêm alias `@/`** (`resolve.tsconfigPaths`) để test tích hợp dùng thẳng mã trong `src/lib/live`.
 - **Một lần chập chờn:** trong một lần chạy trọn bộ DB đầu tiên, hai test Realtime hỏng và lần sau thì đạt (kênh báo SUBSCRIBED nhưng máy chủ Realtime nguội có thể chưa định tuyến tin ngay). Đã thêm bước khởi động (gửi tin tới khi ai cũng nhận được) và đổi ngưỡng đếm lần hỏi theo thời gian thực thay vì số cố định; sau đó 7 lần chạy liên tiếp đều đạt. Nếu còn thấy hỏng ngẫu nhiên thì đây là chỗ cần nhìn đầu tiên. Trò chơi thật không bị ảnh hưởng vì polling bù tin báo bị lỡ.
 - **Chưa làm đúng phạm vi:** giao diện (phase 5, 6). Cấu hình Realtime trên dự án Supabase thật và đo số kết nối là việc của 8.1 và 8.3.
+
+### Sửa sau review phase 4
+
+Review (`hs-code-review`, commit `0a3b3ab`) không có Critical hay High. Đã xử lý cả ba mục:
+
+| Mục | Cách sửa | Kiểm chứng |
+|---|---|---|
+| Medium: `refresh()` trả về ngay khi đang có lần hỏi bay nên `runHostAction` báo seq cũ, người chơi bỏ qua tin đó và phải chờ polling (tới 10 giây) | `refresh()` giờ chờ lần hỏi **bắt đầu sau lệnh gọi** hoàn tất (hàng đợi người chờ, nhiều lệnh dồn dùng chung một lần hỏi; `stop()` gỡ hết người đang chờ) | Test dùng máy chủ giả chậm và `runHostAction` với lõi thật: tin báo mang seq 2; phá thử (trả về ngay) thì 2 test hỏng |
+| Low: không hỏi lại khi tab hiện lại, có mạng lại; `fatal` không nhả kênh Realtime | Mới `wake.ts` (`visibilitychange` khi hiện, `online`, `pageshow`, `focus`, gộp trong 500ms) gắn trong `useLiveSync`; lỗi `fatal` gọi `dropChannel()` | Test sự kiện bằng đích giả; phá thử bỏ `dropChannel` thì test hỏng |
+| Verification Gap: định dạng giờ Postgres trên Safari | `parseServerTime` cắt phần thập phân về 3 chữ số, nhận dạng có dấu cách và múi giờ viết tắt; `sync.ts` dùng hàm này. Chưa kiểm chứng trên Safari thật. | Test kiểm chứng chuỗi đưa cho `Date.parse` (V8 vốn nhận 6 chữ số nên chỉ so khớp đầu vào mới bắt được); phá thử thì hỏng |
+
+Kết quả: typecheck, lint, 183 unit, 110 test DB (ba lần liên tiếp, gồm Realtime thật), 131 e2e đạt.
+
+Còn mở: kiểm tra giờ trên Safari iOS thật khi làm màn hình học sinh (phase 5) và số kết nối Realtime thật (task 8.1).
