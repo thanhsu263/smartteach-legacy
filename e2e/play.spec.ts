@@ -94,6 +94,69 @@ test.describe("học sinh: vào phòng", () => {
     await expect(heading(page, "Vào phòng chơi")).toBeVisible();
   });
 
+  test("rời phòng trả lại chỗ và biệt danh: vào lại bằng tên cũ, không để người chơi ma", async ({ page }) => {
+    const { session } = await newSession();
+    await enter(page, session.pin, "Mai");
+    await expect(heading(page, "Bạn đã vào phòng")).toBeVisible();
+    await page.getByRole("button", { name: "Rời phòng" }).click();
+    await expect(heading(page, "Vào phòng chơi")).toBeVisible();
+    await expect.poll(async () => (await session.state()).players.length).toBe(0);
+
+    await page.getByLabel("PIN của phòng").fill(session.pin);
+    await page.getByLabel("Biệt danh").fill("Mai");
+    await page.getByRole("button", { name: "Vào phòng" }).click();
+    await expect(heading(page, "Bạn đã vào phòng")).toBeVisible();
+    await expect(page.getByText("Có 1 bạn trong phòng")).toBeVisible();
+    expect((await session.state()).players.map((p) => p.nickname)).toEqual(["Mai"]);
+  });
+
+  test("điền từ: tải lại giữa câu vẫn hiện chữ đã gửi", async ({ page }) => {
+    const { session } = await newSession([fourKinds[3]]);
+    await enter(page, session.pin, "Gõ chữ");
+    await expect(heading(page, "Bạn đã vào phòng")).toBeVisible();
+    await session.open();
+    await page.getByLabel("Câu trả lời của bạn").fill("con mèo");
+    await page.getByRole("button", { name: "Gửi đáp án" }).click();
+    await expect(page.getByText("Đã gửi đáp án. Chờ cả lớp…")).toBeVisible();
+    await page.reload();
+    await expect(page.getByText("Đã gửi đáp án. Chờ cả lớp…")).toBeVisible();
+    await expect(page.getByLabel("Câu trả lời của bạn")).toHaveValue("con mèo");
+    await expect(page.getByLabel("Câu trả lời của bạn")).toBeDisabled();
+  });
+
+  test("trình duyệt chặn lưu trữ: vẫn chơi được nhưng báo rõ, tải lại thì phải nhập lại PIN", async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(window, "sessionStorage", {
+        get() {
+          throw new DOMException("bị chặn", "SecurityError");
+        },
+      });
+    });
+    const { session } = await newSession();
+    await enter(page, session.pin, "Bị chặn");
+    await expect(heading(page, "Bạn đã vào phòng")).toBeVisible();
+    await expect(page.getByText("Trình duyệt này chặn lưu trữ")).toBeVisible();
+    await session.open();
+    await expect(heading(page, "Thủ đô của Việt Nam là gì?")).toBeVisible();
+
+    await page.reload();
+    await expect(heading(page, "Vào phòng chơi")).toBeVisible();
+  });
+
+  test("tôn trọng giảm chuyển động: thanh đếm giờ không có chuyển tiếp", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    const { session } = await newSession();
+    await enter(page, session.pin, "Ít chuyển động");
+    await expect(heading(page, "Bạn đã vào phòng")).toBeVisible();
+    await session.open();
+    await expect(page.getByRole("timer")).toBeVisible();
+    const duration = await page.getByRole("timer").locator("div > div").evaluate((el) => getComputedStyle(el).transitionDuration);
+    // Chromium báo thời lượng gần như bằng 0 ("1e-05s") khi bị tắt chuyển động.
+    expect(parseFloat(duration)).toBeLessThan(0.001);
+    const tileDuration = await tile(page, /Hà Nội/).evaluate((el) => getComputedStyle(el).transitionDuration);
+    expect(parseFloat(tileDuration)).toBeLessThan(0.001);
+  });
+
   test("mã tham gia hết hiệu lực (phiên đã bị xoá) thì quay về nhập PIN kèm lời nhắn", async ({ page }) => {
     const { teacher, session } = await newSession();
     await enter(page, session.pin, "Mồ côi");
@@ -129,6 +192,9 @@ test.describe("học sinh: chơi trọn một phiên", () => {
     await expect(heading(page, "Thủ đô của Việt Nam là gì?")).toBeVisible();
     await expect(page.getByText("Đã gửi đáp án. Chờ cả lớp…")).toBeVisible();
     await expect(tile(page, /Huế/)).toBeDisabled();
+    // Ô đã chọn vẫn được đánh dấu sau khi tải lại, để biết mình đã gửi gì.
+    await expect(tile(page, /Hà Nội/)).toHaveAttribute("aria-pressed", "true");
+    await expect(tile(page, /Huế/)).toHaveAttribute("aria-pressed", "false");
     expect((await session.state()).players).toHaveLength(1);
 
     await session.close();

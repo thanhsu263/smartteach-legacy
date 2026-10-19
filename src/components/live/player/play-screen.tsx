@@ -48,6 +48,18 @@ export function PlayScreen({ initialPin }: { initialPin: string }) {
     focusRef.current?.focus({ preventScroll: true });
   }, [phaseKey]);
 
+  /**
+   * Rời phòng: quên mã ở máy này TRƯỚC (để vòng hỏi trạng thái dừng ngay, nếu không sẽ thấy "mã hết hiệu lực"
+   * thoáng qua), rồi báo máy chủ trả chỗ và biệt danh. Báo thất bại (mất mạng) thì đành để người chơi ma
+   * cho giáo viên loại.
+   */
+  function leave() {
+    const supabase = getBrowserSupabase();
+    const leavingToken = token;
+    stored.forget();
+    if (supabase && leavingToken) void player.leave(supabase, leavingToken);
+  }
+
   async function submit(answer: AnswerValue) {
     const supabase = getBrowserSupabase();
     if (!supabase || !token) return { ok: false as const, message: "Chưa kết nối được máy chủ.", fatal: false };
@@ -87,7 +99,7 @@ export function PlayScreen({ initialPin }: { initialPin: string }) {
       </div>
     );
   } else if (state.phase === "lobby") {
-    body = <Lobby nickname={state.nickname} playerCount={state.player_count ?? 0} persisted={stored.persisted} onLeave={stored.forget} />;
+    body = <Lobby nickname={state.nickname} playerCount={state.player_count ?? 0} persisted={stored.persisted} onLeave={leave} />;
   } else if (state.phase === "question") {
     body = <Question key={state.question_index} state={state} clock={live.clock} submit={submit} />;
   } else if (state.phase === "reveal") {

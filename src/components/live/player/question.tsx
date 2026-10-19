@@ -23,8 +23,10 @@ type QuestionProps = {
  */
 export function Question({ state, clock, submit }: QuestionProps) {
   const question = state.question;
-  const [selected, setSelected] = useState<number[]>([]);
-  const [text, setText] = useState("");
+  // Tải lại trang giữa câu: máy chủ trả lại đáp án đã gửi của chính mình để hiện đúng ô đã chọn.
+  const mine = state.your_answer;
+  const [selected, setSelected] = useState<number[]>(() => (typeof mine === "number" ? [mine] : Array.isArray(mine) ? mine : []));
+  const [text, setText] = useState(() => (typeof mine === "string" ? mine : ""));
   const [pending, setPending] = useState(false);
   const [sent, setSent] = useState(state.answered === true);
   const [error, setError] = useState<string | null>(null);

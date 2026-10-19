@@ -196,3 +196,17 @@ Kết quả kiểm tra (chưa commit): typecheck, lint đạt; **202 unit** (11 
 - **Trang `/play` có `h1` ngay cả trước khi hydrate** (dựng sẵn "Đang tải…") vì `?pin=` chỉ đọc được ở trình duyệt nên phần chính nằm trong Suspense; kiểm tra cấp tiêu đề bắt được lỗi này.
 - **Hỗ trợ trình đọc màn hình:** màn có `role="status"` cho đổi trạng thái (vùng ẩn đọc "Câu n trên N...", "Bạn trả lời đúng..."), và đưa focus về đầu màn hình khi sang pha hoặc câu mới (nút vừa bấm bị gỡ).
 - **Chưa kiểm tra:** Safari iOS và điện thoại thật (giờ máy chủ, bàn phím ảo che ô nhập); số kết nối Realtime thật (task 8.1). Chưa có bộ lọc biệt danh (giáo viên loại người chơi ở phase 6).
+
+### Sửa sau review phase 5
+
+Review (`hs-code-review`, commit `6f53614`) không có Critical hay High. Đã xử lý:
+
+| Mục | Cách sửa | Kiểm chứng |
+|---|---|---|
+| Medium: "Rời phòng" để lại người chơi ma, giữ chỗ và biệt danh | Hàm mới `leave_session(token)` (sửa tại chỗ migration phase 3 vì chưa áp lên dự án thật): ở phòng chờ thì xoá dòng; đã bắt đầu thì đánh dấu `removed` kèm `left_at` (cột mới) để không còn tính vào xếp hạng, vẫn giữ lịch sử; người bị giáo viên loại gọi thì không làm gì và biệt danh vẫn bị giữ (chỉ người tự rời mới được dùng lại tên). `host_state` thêm cờ `left` cho phase 6. Giao diện quên mã trước rồi mới báo máy chủ (tránh nhá "mã hết hiệu lực"). | 5 test DB mới (xoá dòng, trả chỗ khi đầy 50, rời giữa chừng, người bị loại, mã sai) và 1 e2e "vào lại bằng tên cũ, không người ma"; phá thử (không xoá dòng, không ghi `left_at`, giao diện không báo máy chủ) đều làm test hỏng |
+| Low: tải lại giữa câu không thấy mình đã chọn gì | `player_state` trả thêm `your_answer` (đáp án của chính mình, null nếu chưa gửi, không kèm khoá); `Question` khôi phục ô đã chọn hoặc chữ đã gõ | Test DB (chỉ của mình, người khác thấy null, không có khoá), 2 e2e (một đáp án và điền từ); phá thử hai chỗ đều hỏng |
+| Verification Gap | e2e cho trình duyệt chặn lưu trữ (cảnh báo hiện ra, tải lại thì phải nhập lại PIN) và cho `prefers-reduced-motion` (thanh đếm giờ và ô đáp án không còn chuyển tiếp; Chromium báo `1e-05s`) | Đạt |
+
+Kết quả: typecheck, lint, 202 unit, 115 test DB (hai lần liên tiếp, gồm Realtime thật), 151 e2e (hai lần liên tiếp) đạt.
+
+Còn mở: **chưa chạy WebKit/Safari iOS** (Playwright cần tải thêm trình duyệt WebKit, cần bạn đồng ý) và điện thoại thật (giờ máy chủ, bàn phím ảo che ô nhập).

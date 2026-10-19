@@ -9,6 +9,7 @@ import {
   hostState,
   join,
   joinOk,
+  leave,
   newQuiz,
   playerState,
   psql,
@@ -785,6 +786,110 @@ commit;`);
     await clearJoinAttempts();
     expect((await join(s.pin, "Sau khi hết án", evader)).result).toBe("ok");
   }, 60_000);
+});
+
+// ---------------------------------------------------------------------------------------------
+describe("học sinh tự rời phòng", () => {
+  let t: TestUser;
+  beforeAll(async () => {
+    t = await signUp("live-leave");
+  }, 60_000);
+
+  it("rời ở phòng chờ: xoá dòng, trả lại chỗ và biệt danh; token cũ không dùng được nữa", async () => {
+    const s = await startSession(t, await newQuiz(t));
+    const token = await joinOk(s.pin, "Mai");
+    expect((await hostState(t, s.id)).players).toHaveLength(1);
+    expect((await join(s.pin, "mai")).result).toBe("nickname_taken");
+
+    const left = await leave(token);
+    expect(left.error).toBeNull();
+    expect((await hostState(t, s.id)).players).toHaveLength(0);
+    expect((await anon.rpc("player_state", { p_token: token })).error?.message).toContain("invalid_token");
+    expect((await leave(token)).error?.message).toContain("invalid_token");
+    // Vào lại bằng đúng tên cũ được vì không còn người ma.
+    expect((await join(s.pin, "Mai")).result).toBe("ok");
+    await hostOk(t, "host_end_session", { p_session: s.id });
+  });
+
+  it("phòng đầy 50 người: một bạn rời thì bạn khác vào được", async () => {
+    const s = await startSession(t, await newQuiz(t));
+    const tokens: string[] = [];
+    for (let i = 0; i < 50; i += 1) tokens.push(await joinOk(s.pin, `Bạn ${i}`));
+    expect((await join(s.pin, "Thứ 51")).result).toBe("room_full");
+    expect((await leave(tokens[7])).error).toBeNull();
+    expect((await join(s.pin, "Thứ 51")).result).toBe("ok");
+    await hostOk(t, "host_end_session", { p_session: s.id });
+  }, 60_000);
+
+  it("rời khi đã bắt đầu: không còn tính vào xếp hạng và số trả lời, biệt danh trống để dùng lại; người bị loại thì giữ tên", async () => {
+    const s = await startSession(t, await newQuiz(t, [questions[0]]), false);
+    const a = await joinOk(s.pin, "Rời đi");
+    const b = await joinOk(s.pin, "Bị loại");
+    const c = await joinOk(s.pin, "Ở lại");
+    await hostOk(t, "host_open_question", { p_session: s.id });
+    await submitOk(a, 0);
+    await submitOk(c, 0);
+    const players = (await hostState(t, s.id)).players as { id: string; nickname: string }[];
+
+    expect((await leave(a)).error).toBeNull();
+    await hostOk(t, "host_remove_participant", { p_session: s.id, p_participant: players.find((p) => p.nickname === "Bị loại")!.id });
+    // Người đã bị loại gọi rời phòng: không lỗi, không đổi gì (tên vẫn bị giữ).
+    expect((await leave(b)).error).toBeNull();
+
+    const state = await hostState(t, s.id);
+    const byName = Object.fromEntries((state.players as { nickname: string; removed: boolean; left: boolean }[]).map((p) => [p.nickname, p]));
+    expect(byName["Rời đi"]).toMatchObject({ removed: true, left: true });
+    expect(byName["Bị loại"]).toMatchObject({ removed: true, left: false });
+    expect(byName["Ở lại"]).toMatchObject({ removed: false, left: false });
+    expect(state.answered_count).toBe(1);
+    expect((await playerState(a)).phase).toBe("removed");
+
+    await hostOk(t, "host_close_question", { p_session: s.id });
+    const board = (await anon.rpc("player_leaderboard", { p_token: c })).data as { top: { nickname: string }[]; me: { rank: number } };
+    expect(board.top.map((row) => row.nickname)).toEqual(["Ở lại"]);
+    expect(board.me.rank).toBe(1);
+    expect((await join(s.pin, "Rời đi")).result).toBe("session_started");
+    await hostOk(t, "host_end_session", { p_session: s.id });
+    // Phiên đã kết thúc: rời phòng không lỗi.
+    expect((await leave(c)).error).toBeNull();
+  });
+
+  it("mã tham gia sai thì từ chối, và rời phòng không đụng tới người khác", async () => {
+    const s = await startSession(t, await newQuiz(t));
+    const other = await joinOk(s.pin, "Người khác");
+    expect((await leave(crypto.randomUUID())).error?.message).toContain("invalid_token");
+    expect((await anon.rpc("leave_session", { p_token: "khong-phai-uuid" })).error).not.toBeNull();
+    expect((await playerState(other)).phase).toBe("lobby");
+    await hostOk(t, "host_end_session", { p_session: s.id });
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
+describe("đáp án của chính mình trong lúc câu đang mở", () => {
+  it("chỉ có sau khi đã gửi và chỉ là đáp án của mình, không kèm khoá", async () => {
+    const t = await signUp("live-mine");
+    const s = await startSession(t, await newQuiz(t, [questions[0], questions[3]]));
+    const a = await joinOk(s.pin, "A");
+    const b = await joinOk(s.pin, "B");
+    await hostOk(t, "host_open_question", { p_session: s.id });
+
+    expect((await playerState(a)).your_answer).toBeNull();
+    await submitOk(a, 2);
+    const mine = await playerState(a);
+    expect(mine.your_answer).toBe(2);
+    expect(mine.answered).toBe(true);
+    // Người khác không thấy đáp án của A.
+    const theirs = await playerState(b);
+    expect(theirs.your_answer).toBeNull();
+    expect(JSON.stringify(theirs)).not.toContain('"your_answer":2');
+    for (const key of ["is_correct", "correct", "key", "accepted_answers"]) expect(allKeys(mine).has(key), key).toBe(false);
+
+    await hostOk(t, "host_close_question", { p_session: s.id });
+    await hostOk(t, "host_next", { p_session: s.id });
+    await submitOk(b, "  con mèo ");
+    expect((await playerState(b)).your_answer).toBe("  con mèo ");
+    await hostOk(t, "host_end_session", { p_session: s.id });
+  });
 });
 
 // ---------------------------------------------------------------------------------------------

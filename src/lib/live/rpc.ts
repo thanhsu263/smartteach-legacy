@@ -106,6 +106,13 @@ export const player = {
     return error ? fail(error) : { ok: true };
   },
 
+  /** Tự rời phòng: giải phóng chỗ và biệt danh (xoá dòng nếu còn ở phòng chờ, đánh dấu rời nếu đã bắt đầu). */
+  async leave(supabase: SupabaseClient, token: string): Promise<LiveResult<object>> {
+    if (!isUuid(token)) return BAD_TOKEN;
+    const { error } = await call(supabase, "leave_session", { p_token: token });
+    return error ? fail(error) : { ok: true };
+  },
+
   async leaderboard(supabase: SupabaseClient, token: string): Promise<LiveResult<{ board: LeaderboardView }>> {
     if (!isUuid(token)) return BAD_TOKEN;
     const { data, error } = await call(supabase, "player_leaderboard", { p_token: token });

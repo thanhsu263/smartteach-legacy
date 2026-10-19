@@ -111,6 +111,10 @@ export async function playerState(token: string): Promise<Json> {
   return data as Json;
 }
 
+export async function leave(token: string) {
+  return anon.rpc("leave_session", { p_token: token });
+}
+
 export async function submit(token: string, answer: unknown) {
   return anon.rpc("submit_answer", { p_token: token, p_answer: answer });
 }

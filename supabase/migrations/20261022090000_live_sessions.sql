@@ -57,12 +57,15 @@ create table public.participants (
   token uuid not null default gen_random_uuid(),
   score integer not null default 0,
   removed boolean not null default false,
+  -- Học sinh tự rời phòng (khác với bị giáo viên loại): giải phóng biệt danh nhưng giữ dòng để không mất điểm đã có.
+  left_at timestamptz,
   joined_at timestamptz not null default now(),
   constraint participants_nickname_length check (char_length(btrim(nickname)) between 1 and 20)
 );
 
 create unique index participants_token_key on public.participants (token);
-create unique index participants_nickname_key on public.participants (session_id, lower(nickname));
+-- Biệt danh của người bị giáo viên loại vẫn bị giữ (chặn vào lại bằng tên cũ); người tự rời thì được dùng lại.
+create unique index participants_nickname_key on public.participants (session_id, lower(nickname)) where left_at is null;
 create index participants_session_idx on public.participants (session_id, joined_at);
 
 create table public.answers (
@@ -744,6 +747,7 @@ begin
       'nickname', p.nickname,
       'score', p.score,
       'removed', p.removed,
+      'left', p.left_at is not null,
       'answered', v_position >= 0 and exists (
         select 1 from public.answers a where a.participant_id = p.id and a.position = v_position
       )
@@ -856,7 +860,8 @@ begin
     return;
   end if;
   if exists (
-    select 1 from public.participants where session_id = v_session.id and lower(nickname) = lower(v_nickname)
+    select 1 from public.participants
+    where session_id = v_session.id and left_at is null and lower(nickname) = lower(v_nickname)
   ) then
     return query select 'nickname_taken'::text, null::uuid, null::text;
     return;
@@ -929,6 +934,10 @@ begin
       'time_up', clock_timestamp() >= v_session.question_closes_at,
       'answered', exists (
         select 1 from public.answers a where a.participant_id = v_player.id and a.position = v_position
+      ),
+      -- Đáp án của chính người chơi (không phải bí mật): để tải lại trang vẫn thấy mình đã chọn gì. Null nếu chưa trả lời.
+      'your_answer', (
+        select a.answer from public.answers a where a.participant_id = v_player.id and a.position = v_position
       )
     );
   elsif v_status = 'reveal' then
@@ -1033,6 +1042,39 @@ begin
 end;
 $$;
 
+-- Học sinh tự rời phòng. Còn ở phòng chờ thì xoá hẳn dòng (giải phóng chỗ và biệt danh); đã bắt đầu thì
+-- đánh dấu rời để không còn tính vào xếp hạng nhưng vẫn giữ lịch sử. Người đã bị loại thì không làm gì
+-- (biệt danh vẫn bị giữ).
+create function public.leave_session(p_token uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_player public.participants;
+  v_session public.live_sessions;
+begin
+  select * into v_player from public.participants where token = p_token;
+  if not found then
+    raise exception 'invalid_token' using errcode = 'PT404';
+  end if;
+
+  -- Khoá chia sẻ để giáo viên không bắt đầu giữa chừng; đọc lại người chơi sau khi có khoá.
+  select * into v_session from public.live_sessions where id = v_player.session_id for share;
+  select * into v_player from public.participants where id = v_player.id;
+  if not found or v_player.removed then
+    return;
+  end if;
+
+  if v_session.status = 'lobby' and v_session.expires_at > clock_timestamp() then
+    delete from public.participants where id = v_player.id;
+  else
+    update public.participants set removed = true, left_at = clock_timestamp() where id = v_player.id;
+  end if;
+end;
+$$;
+
 -- ---------------------------------------------------------------------------------------------
 -- Quyền thực thi
 -- ---------------------------------------------------------------------------------------------
@@ -1079,11 +1121,13 @@ revoke execute on function
   public.join_session(text, text),
   public.player_state(uuid),
   public.submit_answer(uuid, jsonb),
-  public.player_leaderboard(uuid)
+  public.player_leaderboard(uuid),
+  public.leave_session(uuid)
   from public;
 grant execute on function
   public.join_session(text, text),
   public.player_state(uuid),
   public.submit_answer(uuid, jsonb),
-  public.player_leaderboard(uuid)
+  public.player_leaderboard(uuid),
+  public.leave_session(uuid)
   to anon, authenticated;
