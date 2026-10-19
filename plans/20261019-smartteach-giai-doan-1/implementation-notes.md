@@ -215,3 +215,28 @@ typecheck, lint đạt; 87 unit, 22 test RLS/DB, 115 e2e (hai lần liên tiếp
 4. **Tên thương hiệu và tên miền** (hiện là "SmartTeach" tạm); thêm `metadataBase` khi có domain.
 5. **CSP đầy đủ cho script** (hiện mới có `frame-ancestors`). Dùng nonce buộc các trang phải dựng động, đánh đổi với việc dựng tĩnh, nên chưa làm; cần quyết định.
 6. Kiểm tra thủ công trên điện thoại thật và bằng trình đọc màn hình.
+
+## Triển khai và nghiệm thu thật (5.2, 5.3)
+
+Chủ dự án tự thao tác trên dịch vụ thật theo hướng dẫn từng bước; tôi chỉ kiểm tra phần đọc được từ bên ngoài. Địa chỉ công khai: `https://smartteachvn.vercel.app` (Vercel Hobby, dự án Supabase gói Free).
+
+| Việc | Ai làm | Bằng chứng |
+|---|---|---|
+| Tạo dự án Supabase | Chủ dự án | Mã dự án `xzrgcpifdknxrgomkdrv` |
+| Áp migration lên dự án thật (`supabase db push`) | Chủ dự án | Chủ dự án dán kết quả `supabase migration list`: cả hai migration `20261019150000` và `20261020090000` có ở cột Local và Remote |
+| Đẩy mã lên GitHub (repo riêng tư) và tạo dự án Vercel với hai biến môi trường | Chủ dự án | Tôi kiểm tra trang đã triển khai: các trang chính trả 200, id game sai trả 404, `/my-classes` khi chưa đăng nhập chuyển tới `/login?next=%2Fmy-classes`, đủ header bảo mật, gói trình duyệt chứa địa chỉ dự án và Publishable key, không có giá trị `sb_secret_` hay JWT `service_role` |
+| Bật Google và Email trong Supabase, đặt Site URL và Redirect URL, thêm nguồn JavaScript cho Google | Chủ dự án | Tôi đọc cấu hình công khai của dự án (`/auth/v1/settings`): Google bật, Email bật, xác nhận email bật (`mailer_autoconfirm: false`), đăng ký mở |
+| Nghiệm thu bằng tay mục A-E (khách trên điện thoại thật, đăng ký email có xác nhận, lớp và yêu thích, đăng nhập Google, tài khoản thứ hai không thấy dữ liệu của tài khoản đầu) | Chủ dự án | Chủ dự án xác nhận **cả năm mục đều đạt**. Không có ảnh chụp hay chi tiết từng bước đi kèm; tôi không tự kiểm tra lại được vì các bước này tạo tài khoản và dữ liệu thật |
+
+Hệ quả cho bảng nghiệm thu ở trên: các dòng từng ghi "chưa thử điện thoại thật", "Google chưa thử" và "chưa chạy trên dự án Supabase thật" nay đã có xác nhận của chủ dự án (không phải kết quả tự động). Dòng "Triển khai công khai trên free tier" đạt về mặt kỹ thuật; chi phí hạ tầng 0 dựa trên trang giá ngày 2026-10-19.
+
+### Phát hiện khi triển khai
+
+- Lệnh `echo "# smartTeach" >> README.md` trong hướng dẫn nhanh của GitHub, chạy bằng PowerShell, đã nối vào cuối `README.md` một dòng mã hoá UTF-16 (có byte NUL), làm hỏng tệp; nó nằm trong commit `e578d06 first commit` (đã có trên GitHub nếu đã `push`). Đã cắt bỏ phần rác khỏi tệp ở máy, chưa commit. Cần commit rồi `push` bản sửa.
+- Thứ tự triển khai trong README đã sửa lại theo đúng thứ tự thực tế: Vercel trước, rồi Google và Supabase, vì cần tên miền thật.
+
+### Việc còn lại trước khi mời người dùng thật
+
+1. Đọc và duyệt trang `/privacy`, điền `contactEmail`, đặt `privacyReviewed: true` trong `src/config/site.ts`, rồi triển khai lại.
+2. Quyết định tên thương hiệu và tên miền riêng (đang dùng tên tạm "SmartTeach" và `smartteachvn.vercel.app`).
+3. Cân nhắc CSP đầy đủ cho script, tự xoá tài khoản và quên mật khẩu (chưa có).
