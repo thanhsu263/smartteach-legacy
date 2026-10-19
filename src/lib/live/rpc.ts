@@ -51,9 +51,11 @@ export const host = {
   },
 
   async state(supabase: SupabaseClient, sessionId: string): Promise<LiveResult<{ state: HostState }>> {
-    if (!isUuid(sessionId)) return BAD_SESSION;
+    // Id sai dạng thì hỏi tiếp cũng vô ích: báo hỏng hẳn để màn hình nói "không tìm thấy" thay vì quay mãi.
+    if (!isUuid(sessionId)) return { ...BAD_SESSION, fatal: true };
     const { data, error } = await call(supabase, "host_state", { p_session: sessionId });
-    if (error || !data) return fail(error, false);
+    // Không phải chủ phiên (hoặc phiên không còn): hỏi tiếp cũng vô ích nên báo hỏng hẳn để giao diện nói rõ.
+    if (error || !data) return fail(error, ["session_not_found", "not_authenticated"].includes(liveErrorKey(error) ?? ""));
     return { ok: true, state: data as HostState };
   },
 

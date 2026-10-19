@@ -58,6 +58,15 @@ export async function runHostAction(
   return result;
 }
 
+const HOST_POLL_MS = 1500;
+
+/** Nhịp hỏi của màn hình giáo viên theo pha: dày khi phòng chờ và đang hỏi, thưa hơn khi hiện đáp án, ngừng khi kết thúc. */
+export function hostPollMs(status: string | undefined): number {
+  const base = pollIntervalForPhase(status);
+  if (base === 0) return 0;
+  return status === "reveal" ? 3000 : HOST_POLL_MS;
+}
+
 export type HostLive = SyncSnapshot<HostState> & {
   refresh: () => Promise<void>;
   /** Chạy một thao tác điều khiển rồi báo cho người chơi. */
@@ -74,7 +83,9 @@ export function useHostLive(sessionId: string): HostLive {
       sync: createLiveSync<HostState>({
         fetchState: hostFetcher(supabase, sessionId),
         channelFor: (state) => ({ key: state.id, source: session.source }),
-        pollMs: (state) => pollIntervalForPhase(state?.status),
+        // Màn chiếu của giáo viên là một client duy nhất nên hỏi dày hơn học sinh (số người vào và đã trả lời cập nhật mỗi ~1,5 giây).
+        pollMs: (state) => hostPollMs(state?.status),
+        livePollMs: HOST_POLL_MS,
       }),
       channel: session,
     };

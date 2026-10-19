@@ -1,3 +1,4 @@
+import { expect, type Page } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { readLocalSupabase } from "../../scripts/supabase-local.mjs";
 
@@ -21,7 +22,7 @@ function client(key: string): SupabaseClient {
 const admin = () => client(localConfig().serviceRoleKey);
 const createdUsers: string[] = [];
 
-export type Teacher = { client: SupabaseClient; id: string };
+export type Teacher = { client: SupabaseClient; id: string; email: string; password: string };
 
 export async function newTeacher(label = "live-e2e"): Promise<Teacher> {
   const email = `${label}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}@example.test`;
@@ -32,7 +33,33 @@ export async function newTeacher(label = "live-e2e"): Promise<Teacher> {
   const teacher = client(localConfig().anonKey);
   const signedIn = await teacher.auth.signInWithPassword({ email, password });
   if (signedIn.error) throw signedIn.error;
-  return { client: teacher, id: created.data.user.id };
+  return { client: teacher, id: created.data.user.id, email, password };
+}
+
+/** Đăng nhập giao diện bằng tài khoản giáo viên thử rồi tới trang `next`. */
+export async function loginAs(page: Page, teacher: Teacher, next = "/my-quizzes") {
+  await page.goto(`/login?next=${encodeURIComponent(next)}`);
+  await page.getByLabel("Email").fill(teacher.email);
+  await page.getByLabel("Mật khẩu").fill(teacher.password);
+  await page.getByRole("button", { name: "Đăng nhập", exact: true }).last().click();
+  await expect(page).toHaveURL((url) => url.pathname === next);
+}
+
+/** Học sinh mô phỏng qua hàm (không qua giao diện): vào phòng và trả lời bằng mã tham gia. */
+export async function joinPlayer(pin: string, nickname: string) {
+  const anon = client(localConfig().anonKey);
+  const { data, error } = await anon.rpc("join_session", { p_pin: pin, p_nickname: nickname });
+  if (error) throw error;
+  const row = (data as { result: string; player_token: string | null }[])[0];
+  if (row.result !== "ok" || !row.player_token) throw new Error(`${nickname} không vào được: ${row.result}`);
+  const token = row.player_token;
+  return {
+    token,
+    async answer(value: unknown) {
+      const { error: submitError } = await anon.rpc("submit_answer", { p_token: token, p_answer: value });
+      if (submitError) throw new Error(`submit_answer: ${submitError.message}`);
+    },
+  };
 }
 
 export type QuestionSpec = {

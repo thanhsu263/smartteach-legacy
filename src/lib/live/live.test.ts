@@ -5,7 +5,7 @@ import { host, player, playerFetcher } from "./rpc";
 import { clearPlayer, loadPlayer, savePlayer } from "./storage";
 import { createServerClock, parseServerTime } from "./clock";
 import { attachWakeListeners } from "./wake";
-import { runHostAction } from "./use-live-state";
+import { hostPollMs, runHostAction } from "./use-live-state";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const UUID = "11111111-1111-4111-8111-111111111111";
@@ -219,13 +219,32 @@ describe("channel", () => {
     expect(fake.sent).toHaveLength(1);
   });
 
-  it("gửi thất bại hoặc chưa có kênh thì bỏ qua, không ném lỗi", async () => {
+  it("gửi thất bại thì bỏ qua, không ném lỗi", async () => {
     const fake = fakeSupabase();
     const session = createSessionChannel(fake.supabase, UUID);
-    await expect(session.notify(1)).resolves.toBeUndefined(); // chưa đăng ký kênh
     session.source({ onSignal: vi.fn(), onStatus: vi.fn() });
     fake.channel.send.mockRejectedValueOnce(new Error("socket đóng"));
     await expect(session.notify(2)).resolves.toBeUndefined();
+  });
+
+  it("kênh đã được nhả (phiên vừa kết thúc) vẫn báo được qua kênh tạm rồi bỏ kênh đó", async () => {
+    const fake = fakeSupabase();
+    const session = createSessionChannel(fake.supabase, UUID);
+    const stop = session.source({ onSignal: vi.fn(), onStatus: vi.fn() });
+    stop(); // lõi đồng bộ nhả kênh khi trạng thái đã cuối cùng
+    (fake.supabase.removeChannel as ReturnType<typeof vi.fn>).mockClear();
+    await session.notify(9);
+    expect(fake.sent).toEqual([{ type: "broadcast", event: SIGNAL_EVENT, payload: { seq: 9 } }]);
+    expect(fake.supabase.removeChannel).toHaveBeenCalledTimes(1);
+    // Kênh tạm gửi lỗi cũng không ném.
+    fake.channel.send.mockRejectedValueOnce(new Error("không gửi được"));
+    await expect(session.notify(10)).resolves.toBeUndefined();
+  });
+
+  it("chưa từng đăng ký kênh vẫn gửi được qua kênh tạm", async () => {
+    const fake = fakeSupabase();
+    await createSessionChannel(fake.supabase, UUID).notify(3);
+    expect(fake.sent).toEqual([{ type: "broadcast", event: SIGNAL_EVENT, payload: { seq: 3 } }]);
   });
 });
 
@@ -354,6 +373,28 @@ describe("attachWakeListeners (hỏi lại khi trình duyệt thức dậy)", ()
     expect(doc.count("visibilitychange")).toBe(0);
     expect(win.count("online") + win.count("pageshow") + win.count("focus")).toBe(0);
     expect(() => attachWakeListeners(vi.fn(), undefined, undefined)()).not.toThrow();
+  });
+});
+
+describe("màn hình giáo viên: nhịp hỏi và lỗi không thể tự khỏi", () => {
+  it("hỏi dày (1,5 giây) khi phòng chờ và đang hỏi, thưa khi hiện đáp án, ngừng khi kết thúc", () => {
+    expect(hostPollMs("lobby")).toBe(1500);
+    expect(hostPollMs("question")).toBe(1500);
+    expect(hostPollMs(undefined)).toBe(1500);
+    expect(hostPollMs("reveal")).toBe(3000);
+    expect(hostPollMs("ended")).toBe(0);
+  });
+
+  it("phiên không phải của mình hoặc id sai dạng là lỗi hỏng hẳn để nói rõ 'không tìm thấy'", async () => {
+    const rpc = vi.fn();
+    const c = { rpc } as unknown as SupabaseClient;
+    expect(await host.state(c, "khong-phai-uuid")).toMatchObject({ ok: false, fatal: true });
+    expect(rpc).not.toHaveBeenCalled();
+
+    const notOwner = { rpc: vi.fn(async () => ({ data: null, error: { message: "session_not_found", code: "PT404" } })) } as unknown as SupabaseClient;
+    expect(await host.state(notOwner, UUID)).toMatchObject({ ok: false, fatal: true });
+    const network = { rpc: vi.fn(async () => ({ data: null, error: { message: "TypeError: Failed to fetch" } })) } as unknown as SupabaseClient;
+    expect(await host.state(network, UUID)).toMatchObject({ ok: false, fatal: false });
   });
 });
 

@@ -49,13 +49,18 @@ export function createSessionChannel(supabase: SupabaseClient, sessionId: string
   return {
     source,
     async notify(seq) {
-      const current = channel;
-      if (!current || !Number.isSafeInteger(seq) || seq < 0) return;
+      if (!Number.isSafeInteger(seq) || seq < 0) return;
+      // Lõi đồng bộ nhả kênh khi phiên đã kết thúc, nhưng tin báo "đã kết thúc" vẫn phải tới người chơi: khi đó
+      // dùng một kênh tạm (chưa tham gia nên thư viện gửi qua REST) rồi bỏ ngay.
+      const temporary = channel === null;
+      const current = channel ?? supabase.channel(channelName(sessionId), { config: { broadcast: { self: false } } });
       try {
         // Chỉ gửi seq, tuyệt đối không kèm dữ liệu khác.
         await current.send({ type: "broadcast", event: SIGNAL_EVENT, payload: { seq } });
       } catch {
         // Người chơi vẫn đồng bộ được bằng polling.
+      } finally {
+        if (temporary) void supabase.removeChannel(current);
       }
     },
   };

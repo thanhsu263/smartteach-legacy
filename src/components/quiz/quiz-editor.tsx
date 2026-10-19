@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button, ButtonLink } from "@/components/button";
+import { StartSession } from "@/components/live/host/start-session";
 import { useFocusRequest } from "@/components/use-focus-request";
 import type { Result } from "@/lib/classes/api";
 import {
@@ -269,6 +270,8 @@ export function QuizEditor({ quizId }: { quizId: string }) {
       </header>
 
       <QuizProblems problems={problems} />
+
+      <StartSession quizId={quizId} problems={problems} />
 
       {message ? (
         <p role={message.kind === "error" ? "alert" : "status"} className={message.kind === "error" ? styles.error : styles.notice}>

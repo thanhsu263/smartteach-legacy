@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/button";
+import { StartSession } from "@/components/live/host/start-session";
 import { useFocusRequest } from "@/components/use-focus-request";
 import type { Result } from "@/lib/classes/api";
 import { createQuiz, deleteQuiz, duplicateQuiz, listQuizzes, MAX_QUIZZES } from "@/lib/quiz/api";
@@ -212,6 +213,7 @@ export function QuizzesManager() {
                   </div>
                 ) : (
                   <div className={styles.actions}>
+                    <StartSession quizId={quiz.id} />
                     <Button
                       variant="secondary"
                       aria-label={`Nhân đôi quiz ${quiz.title}`}

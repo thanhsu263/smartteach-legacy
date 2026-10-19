@@ -210,3 +210,29 @@ Review (`hs-code-review`, commit `6f53614`) không có Critical hay High. Đã x
 Kết quả: typecheck, lint, 202 unit, 115 test DB (hai lần liên tiếp, gồm Realtime thật), 151 e2e (hai lần liên tiếp) đạt.
 
 Còn mở: **chưa chạy WebKit/Safari iOS** (Playwright cần tải thêm trình duyệt WebKit, cần bạn đồng ý) và điện thoại thật (giờ máy chủ, bàn phím ảo che ô nhập).
+
+## Phase 6 - Màn hình giáo viên
+
+Kết quả kiểm tra (chưa commit): typecheck, lint đạt; **206 unit**; 115 test DB (hai lần liên tiếp); **167 e2e** (hai lần liên tiếp, gồm 17 test mới: `e2e/host.spec.ts` 9, `e2e/live.spec.ts` 1 nhiều trình duyệt, `e2e/host-a11y.spec.ts` 6 và 1 tiêu đề `/host`).
+
+### Đã làm
+
+- **Tuyến và bảo vệ:** `/host` thêm vào `PROTECTED_PREFIXES`, matcher của `proxy.ts`, `src/app/host/layout.tsx` (`RequireUser`) và `src/app/host/[id]/page.tsx`. Người không phải chủ phiên hoặc id sai dạng thấy "Không tìm thấy phiên chơi này" (`host.state` báo hỏng hẳn với `session_not_found`, `not_authenticated` và id sai dạng); khách bị chuyển tới đăng nhập.
+- **6.1** `StartSession` ("Chơi ngay") ở danh sách quiz và trình soạn: chặn quiz còn lỗi và nêu từng lý do kèm liên kết "Sửa quiz"; tuỳ chọn điểm tốc độ (mặc định bật); nếu đang có phiên chưa kết thúc thì hiện "Tiếp tục phiên đang chạy" hoặc "Kết thúc phiên cũ" (có xác nhận); tạo phiên rồi chuyển tới `/host/[id]`.
+- **6.2** `HostScreen` trong khung `ToolStage` (toàn màn hình vào và thoát được): phòng chờ (PIN cỡ lớn, địa chỉ `/play`, nút sao chép link, danh sách người chơi, khoá phòng, loại có xác nhận), đang hỏi (đề cỡ lớn, đếm giờ theo giờ máy chủ, số đã trả lời, KHÔNG có khoá đáp án vì màn này được chiếu), hiện đáp án (đáp án đúng, số lượt chọn từng lựa chọn, thống kê, top 5), kết thúc (bục top 3). Space cho thao tác chính (không ghi đè Space trên nút hay ô nhập). Hết giờ thì tự đóng câu một lần. Hỏi `host_state` mỗi 1,5 giây ở phòng chờ và đang hỏi.
+- **6.3** Tải lại giữa phiên phục hồi đúng trạng thái; kết thúc phiên có xác nhận (mặc định focus "Giữ phiên"); phiên đã kết thúc hoặc hết hạn hiện kết quả, không còn nút điều khiển.
+- **6.4** `e2e/live.spec.ts`: một giáo viên và bốn điện thoại (ngữ cảnh riêng): ba bạn vào, khoá phòng khiến bạn thứ tư bị từ chối, loại một bạn, đủ bốn dạng câu, hạng cuối khớp điểm tính tay (3000 và 2000), một bạn tải lại giữa chừng; chạy hai lần liên tiếp đều đạt.
+- axe WCAG A/AA, không tràn ngang, cấp tiêu đề đúng ở 1280px và 375px cho: bảng bắt đầu phiên (quiz lỗi, sẵn sàng, đã có phiên, xác nhận kết thúc phiên cũ), phòng chờ (trống, có người, khoá, xác nhận loại), đang hỏi, hiện đáp án, xác nhận kết thúc, mất kết nối, kết thúc, không tìm thấy.
+
+### Lỗi bắt được khi làm
+
+- **Tin báo "đã kết thúc" không bao giờ tới học sinh:** lõi đồng bộ của giáo viên nhả kênh Realtime ngay khi thấy phiên đã kết thúc (phase 4), rồi `notify` thấy không có kênh và bỏ qua. Học sinh chỉ biết kết thúc nhờ polling (tới 10 giây). Test nhiều trình duyệt phát hiện. Đã sửa: `createSessionChannel.notify` dùng kênh tạm (gửi qua REST, rồi bỏ) khi kênh đã được nhả; test đơn vị và e2e đều hỏng khi phá thử bản sửa.
+- `host.state` với id sai dạng trước đó quay mãi ở "Đang tải": nay báo hỏng hẳn.
+
+### Quyết định và lệch so với plan
+
+- **Hỏi `host_state` mỗi 1,5 giây** (`hostPollMs`), kể cả khi kênh Realtime sống, vì màn của giáo viên cần số người vào và số đã trả lời mới theo nhịp cố định (plan ghi 1-2 giây); hiện đáp án 3 giây, kết thúc thì ngừng.
+- **`e2e/host-a11y.spec.ts` riêng** thay vì bổ sung `e2e/a11y-auth.spec.ts` (các test này cần Realtime và phiên chơi).
+- Người chơi tự rời (`left`) và người bị loại không hiện trong danh sách phòng chờ và không tính vào "đã trả lời / tổng".
+- Kết quả chi tiết sau buổi, xuất báo cáo và xoá dữ liệu sau 90 ngày là phase 7.
+- **Chưa kiểm tra:** máy chiếu thật và độ đọc từ cuối lớp (chữ PIN và đề dùng `clamp` theo chiều rộng, chưa đo ngoài đời); điện thoại thật.
