@@ -26,6 +26,12 @@ const MESSAGES: [string, string][] = [
 
 const NETWORK = /failed to fetch|networkerror|network request failed|load failed|fetch failed/i;
 
+/** Mã nghiệp vụ khớp với lỗi (vd. "already_answered"), hoặc null nếu là lỗi khác; để giao diện rẽ nhánh. */
+export function liveErrorKey(error: ErrorLike): string | null {
+  const message = error?.message ?? "";
+  return MESSAGES.find(([needle]) => message.includes(needle))?.[0] ?? null;
+}
+
 /** Đổi lỗi từ PostgREST/Postgres sang tiếng Việt; không bao giờ lộ thông báo kỹ thuật. */
 export function describeLiveError(error: ErrorLike): string {
   if (!error) return GENERIC;

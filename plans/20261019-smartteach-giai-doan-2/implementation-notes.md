@@ -168,3 +168,31 @@ Review (`hs-code-review`, commit `0a3b3ab`) không có Critical hay High. Đã x
 Kết quả: typecheck, lint, 183 unit, 110 test DB (ba lần liên tiếp, gồm Realtime thật), 131 e2e đạt.
 
 Còn mở: kiểm tra giờ trên Safari iOS thật khi làm màn hình học sinh (phase 5) và số kết nối Realtime thật (task 8.1).
+
+## Phase 5 - Màn hình học sinh
+
+Kết quả kiểm tra (chưa commit): typecheck, lint đạt; **202 unit** (11 test mới cho 6 ô đáp án và tương phản); 110 test DB; **147 e2e** (hai lần liên tiếp, gồm 15 test mới ở 375px: `e2e/play.spec.ts` và `e2e/play-a11y.spec.ts`).
+
+### Đã làm
+
+- **5.1** Sáu cặp (chữ A-F, hình, màu) trong `DESIGN.md` và `globals.css` (`--color-tile-a..f`), `src/components/live/player/answer-styles.ts`. Hình: lục giác, ngôi sao, dấu cộng, ngũ giác, bán nguyệt, giọt nước (không dùng bộ của Kahoot). Chữ trắng trên mọi ô đạt từ 5.35:1 tới 7.21:1; ô so với nền trang từ 5.03:1. Đang chọn có vòng Mực cách ô bởi khe nền trang cộng dấu tích. Test: tương phản, độ khác nhau của chữ/hình/màu, DESIGN.md khớp globals.css.
+- **5.2** `/play?pin=`: `JoinForm`, `Lobby`, tải lại vào lại đúng người chơi (mã tham gia trong `sessionStorage`, bắt lỗi khi bị chặn), thông báo bị loại, mã hết hiệu lực quay về nhập PIN kèm lời nhắn.
+- **5.3** `Question` (đếm giờ theo giờ máy chủ, một đáp án/đúng sai chạm là gửi, nhiều đáp án chọn rồi Gửi, điền từ), `Result` (đúng/sai bằng chữ và biểu tượng, điểm câu, tổng điểm, hạng, đáp án đúng, top), `Final`, `StatusBanner`. Gửi lỗi giữ nguyên lựa chọn và chữ đã gõ; "đã trả lời rồi" từ máy chủ được coi là đã gửi.
+- **5.4** axe WCAG A/AA, không tràn ngang, cấp tiêu đề cho mọi trạng thái ở 375px: nhập PIN (kể cả lỗi), phòng chờ, từng dạng câu, đã chọn, đã gửi, kết quả đúng và sai, điền từ, kết thúc, hết giờ, chưa trả lời, mất kết nối, bị loại; thêm điều hướng bàn phím.
+
+### Phá thử
+
+| Phá thử | Kết quả |
+|---|---|
+| Không khoá ô sau khi gửi | Hai test e2e hỏng |
+| Coi "đã trả lời rồi" là lỗi | Test gửi lại sau khi mất phản hồi hỏng |
+
+### Quyết định và lệch so với plan
+
+- **Một form hai ô (PIN và biệt danh)** thay vì hai bước: `join_session` cần cả hai và máy chủ không có cách kiểm tra PIN riêng mà không tạo người chơi.
+- **`e2e/play-a11y.spec.ts` riêng** thay vì bổ sung `e2e/a11y.spec.ts` (các test này cần Supabase cục bộ còn `a11y.spec.ts` thì không).
+- **Giáo viên mô phỏng** (`e2e/helpers/live.ts`) gọi các hàm `host_*` rồi báo `{ seq }` qua REST của Realtime, nên e2e cũng kiểm tra luôn đường tin báo.
+- **Tên truy cập của ô đáp án** là "A 2" (chữ cái rồi nội dung); thử dùng "A: 2" bằng một đoạn ẩn thì trình đọc ghép thành "A:2". Dấu cách nay là ký tự thật giữa hai thành phần.
+- **Trang `/play` có `h1` ngay cả trước khi hydrate** (dựng sẵn "Đang tải…") vì `?pin=` chỉ đọc được ở trình duyệt nên phần chính nằm trong Suspense; kiểm tra cấp tiêu đề bắt được lỗi này.
+- **Hỗ trợ trình đọc màn hình:** màn có `role="status"` cho đổi trạng thái (vùng ẩn đọc "Câu n trên N...", "Bạn trả lời đúng..."), và đưa focus về đầu màn hình khi sang pha hoặc câu mới (nút vừa bấm bị gỡ).
+- **Chưa kiểm tra:** Safari iOS và điện thoại thật (giờ máy chủ, bàn phím ảo che ô nhập); số kết nối Realtime thật (task 8.1). Chưa có bộ lọc biệt danh (giáo viên loại người chơi ở phase 6).

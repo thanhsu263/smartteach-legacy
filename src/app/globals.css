@@ -17,6 +17,14 @@
   --color-danger: #b3261e;
   --color-on-primary-muted: #dbe5ff;
 
+  /* Sáu ô đáp án A-F của quiz trực tiếp; chữ trắng trên mọi ô đạt 4.5:1 (xem contrast.test.ts). */
+  --color-tile-a: #1d4fd7;
+  --color-tile-b: #0a6c74;
+  --color-tile-c: #2b7a2e;
+  --color-tile-d: #6d3fa6;
+  --color-tile-e: #b3265e;
+  --color-tile-f: #a8480a;
+
   --font-sans: var(--font-be-vietnam-pro), system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --text-xs: 0.75rem;

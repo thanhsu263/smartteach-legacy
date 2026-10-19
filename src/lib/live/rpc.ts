@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isUuid } from "@/lib/classes/api";
-import { describeJoinCode, describeLiveError, isFatalPlayerError } from "@/lib/live/errors";
+import { describeJoinCode, describeLiveError, isFatalPlayerError, liveErrorKey } from "@/lib/live/errors";
 import type { FetchOutcome } from "@/lib/live/sync";
 import type { AnswerValue, HostState, JoinCode, LeaderboardView, PlayerState } from "@/lib/live/types";
 
@@ -16,6 +16,8 @@ type Failure = {
   fatal: boolean;
   /** Với `join`: mã kết quả để giao diện biết lỗi thuộc ô PIN hay ô biệt danh. */
   code?: JoinCode | string;
+  /** Mã nghiệp vụ của lỗi (vd. "already_answered", "answer_closed") để giao diện rẽ nhánh; null nếu lỗi khác. */
+  reason?: string | null;
 };
 
 export type LiveResult<T> = ({ ok: true } & T) | Failure;
@@ -23,7 +25,7 @@ export type LiveResult<T> = ({ ok: true } & T) | Failure;
 type ErrorLike = { code?: string; message?: string } | null | undefined;
 
 function fail(error: ErrorLike, fatal = isFatalPlayerError(error)): Failure {
-  return { ok: false, message: describeLiveError(error), fatal };
+  return { ok: false, message: describeLiveError(error), fatal, reason: liveErrorKey(error) };
 }
 
 const BAD_TOKEN: Failure = { ok: false, message: describeLiveError({ message: "invalid_token" }), fatal: true };

@@ -108,6 +108,14 @@ export function CloseIcon(props: IconProps) {
   );
 }
 
+export function CheckIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 12.5l5 5L20 6.5" />
+    </Icon>
+  );
+}
+
 export function LogoMark({ size = 32, ...props }: IconProps) {
   return (
     <svg

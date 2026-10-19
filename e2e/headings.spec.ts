@@ -9,6 +9,7 @@ const routes = [
   "/tools",
   ...tools.map((tool) => tool.href),
   "/login",
+  "/play",
   "/privacy",
 ];
 

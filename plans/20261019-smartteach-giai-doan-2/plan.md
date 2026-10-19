@@ -30,7 +30,7 @@ Ngoài phạm vi: bài tự làm có hạn nộp, hình ảnh và công thức T
 | 2 | [Soạn quiz và chia sẻ](./phase-02-soan-quiz.md) | 1 | Done (chờ review) |
 | 3 | [Máy chủ chơi trực tiếp](./phase-03-may-chu-choi-truc-tiep.md) | 1 | Done (chờ review) |
 | 4 | [Đồng bộ thời gian thực](./phase-04-dong-bo-thoi-gian-thuc.md) | 3 | Done (chờ review) |
-| 5 | [Màn hình học sinh](./phase-05-man-hinh-hoc-sinh.md) | 4 | Pending |
+| 5 | [Màn hình học sinh](./phase-05-man-hinh-hoc-sinh.md) | 4 | Done (chờ review) |
 | 6 | [Màn hình giáo viên](./phase-06-man-hinh-giao-vien.md) | 2, 4 | Pending |
 | 7 | [Kết quả, lưu trữ và quyền riêng tư](./phase-07-ket-qua-luu-tru.md) | 3, 6 | Pending |
 | 8 | [Thử tải, triển khai và nghiệm thu](./phase-08-thu-tai-trien-khai.md) | 1-7 | Pending |

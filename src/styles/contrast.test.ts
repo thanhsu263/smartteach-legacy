@@ -62,6 +62,36 @@ describe("tương phản WCAG AA của token màu", () => {
   });
 });
 
+describe("ô đáp án của quiz trực tiếp", () => {
+  const tiles = ["a", "b", "c", "d", "e", "f"].map((letter) => `tile-${letter}`);
+
+  it.each(tiles)("chữ và hình trắng trên %s đạt 4.5:1", (name) => {
+    expect(contrast(WHITE, token(name))).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each(tiles)("%s so với nền trang và bề mặt đạt 3:1", (name) => {
+    expect(contrast(token(name), token("bg"))).toBeGreaterThanOrEqual(3);
+    expect(contrast(token(name), token("surface"))).toBeGreaterThanOrEqual(3);
+  });
+
+  it("vòng chọn bằng Mực cách ô một khoảng nên so với nền trang và bề mặt đạt 3:1 (nhìn ra ô đang chọn)", () => {
+    expect(contrast(token("ink"), token("bg"))).toBeGreaterThanOrEqual(3);
+    expect(contrast(token("ink"), token("surface"))).toBeGreaterThanOrEqual(3);
+  });
+
+  it("sáu màu ô đều khác nhau", () => {
+    expect(new Set(tiles.map(token)).size).toBe(tiles.length);
+  });
+
+  it("DESIGN.md khớp globals.css cho sáu màu ô", () => {
+    const design = readFileSync(join(process.cwd(), "DESIGN.md"), "utf8");
+    for (const name of tiles) {
+      const match = design.match(new RegExp(`${name}:\\s*"(#[0-9a-fA-F]{6})"`));
+      expect(match?.[1].toLowerCase(), name).toBe(token(name).toLowerCase());
+    }
+  });
+});
+
 describe("tương phản thành phần giao diện (3:1)", () => {
   it("viền ô nhập so với bề mặt", () => {
     expect(contrast(token("border-strong"), token("surface"))).toBeGreaterThanOrEqual(3);

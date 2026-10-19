@@ -16,6 +16,12 @@ colors:
   success: "#14703F"
   danger: "#B3261E"
   on-primary-muted: "#DBE5FF"
+  tile-a: "#1D4FD7"
+  tile-b: "#0A6C74"
+  tile-c: "#2B7A2E"
+  tile-d: "#6D3FA6"
+  tile-e: "#B3265E"
+  tile-f: "#A8480A"
 typography:
   display:
     fontFamily: "Be Vietnam Pro, system-ui, sans-serif"
@@ -160,6 +166,13 @@ Phẳng khi nghỉ. Chiều sâu truyền bằng viền mảnh và khác biệt 
 - **Secondary:** nền Bề mặt, chữ Xanh bảng, viền Control Edge; hover đổi nền sang Xanh nhạt.
 - **On primary:** trên nền hero xanh, nút phụ trong suốt với viền và chữ trắng.
 - **Disabled:** nền Hairline, chữ Mực nhạt, con trỏ not-allowed, vẫn đạt đọc được.
+
+### Answer tiles (quiz trực tiếp)
+- **Shape:** ô lớn bo góc 16px, cao tối thiểu 72px, chữ trắng đậm; mỗi ô có **chữ cái (A-F), một hình riêng và một màu riêng**, nên không phân biệt chỉ bằng màu.
+- **Bộ sáu cặp:** A lục giác Xanh bảng (#1D4FD7); B ngôi sao Xanh ngọc (#0A6C74); C dấu cộng Xanh lá (#2B7A2E); D ngũ giác Tím (#6D3FA6); E bán nguyệt Hồng đỏ (#B3265E); F giọt nước Cam nâu (#A8480A). Bộ hình và màu riêng của dự án, không sao chép bộ của nơi khác.
+- **Tương phản:** chữ và hình trắng trên mỗi ô đạt tối thiểu 4.5:1; mỗi ô so với nền trang đạt tối thiểu 3:1 (kiểm tra trong `contrast.test.ts`).
+- **Trạng thái:** đang chọn có vòng Mực 4px cách ô 3px (vòng nằm trên nền trang nên đạt 3:1) cộng dấu tích, không chỉ đổi màu; đã khoá thì giữ nguyên màu, chỉ giảm độ rõ và hiện "Đã gửi"; câu đã đóng đánh dấu đáp án đúng bằng dấu tích và chữ "Đáp án đúng".
+- **Chuyển động:** 150-250ms, tắt khi `prefers-reduced-motion`.
 
 ### Cards / Containers
 - **Corner Style:** bo góc lớn (16px).
