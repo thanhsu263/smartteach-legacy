@@ -1,0 +1,77 @@
+[
+  { "name": "quiz chưa có câu nào", "questions": [], "expect": [[0, "no_questions"]] },
+  {
+    "name": "trắc nghiệm 1 đáp án hợp lệ",
+    "questions": [{ "kind": "single", "prompt": "1 + 1 bằng mấy?", "options": [{ "label": "1" }, { "label": "2", "is_correct": true }, { "label": "3" }] }],
+    "expect": []
+  },
+  {
+    "name": "trắc nghiệm 1 đáp án nhưng không có đáp án đúng",
+    "questions": [{ "kind": "single", "prompt": "Câu hỏi", "options": [{ "label": "A" }, { "label": "B" }] }],
+    "expect": [[1, "correct_count"]]
+  },
+  {
+    "name": "trắc nghiệm 1 đáp án nhưng có hai đáp án đúng",
+    "questions": [{ "kind": "single", "prompt": "Câu hỏi", "options": [{ "label": "A", "is_correct": true }, { "label": "B", "is_correct": true }] }],
+    "expect": [[1, "correct_count"]]
+  },
+  {
+    "name": "trắc nghiệm chỉ có một lựa chọn",
+    "questions": [{ "kind": "single", "prompt": "Câu hỏi", "options": [{ "label": "A", "is_correct": true }] }],
+    "expect": [[1, "too_few_options"]]
+  },
+  {
+    "name": "trắc nghiệm có hai lựa chọn trùng nhau (không phân biệt hoa thường)",
+    "questions": [{ "kind": "single", "prompt": "Câu hỏi", "options": [{ "label": "Hà Nội", "is_correct": true }, { "label": "hà nội " }] }],
+    "expect": [[1, "duplicate_options"]]
+  },
+  {
+    "name": "đúng/sai hợp lệ",
+    "questions": [{ "kind": "true_false", "prompt": "Trái đất tròn.", "options": [{ "label": "Đúng", "is_correct": true }, { "label": "Sai" }] }],
+    "expect": []
+  },
+  {
+    "name": "đúng/sai sai nhãn",
+    "questions": [{ "kind": "true_false", "prompt": "Câu hỏi", "options": [{ "label": "Yes", "is_correct": true }, { "label": "No" }] }],
+    "expect": [[1, "bad_true_false"]]
+  },
+  {
+    "name": "đúng/sai có hai đáp án đúng",
+    "questions": [{ "kind": "true_false", "prompt": "Câu hỏi", "options": [{ "label": "Đúng", "is_correct": true }, { "label": "Sai", "is_correct": true }] }],
+    "expect": [[1, "bad_true_false"]]
+  },
+  {
+    "name": "nhiều đáp án đúng hợp lệ",
+    "questions": [{ "kind": "multi", "prompt": "Số nguyên tố?", "options": [{ "label": "2", "is_correct": true }, { "label": "3", "is_correct": true }, { "label": "4" }] }],
+    "expect": []
+  },
+  {
+    "name": "nhiều đáp án đúng nhưng không chọn đáp án nào đúng",
+    "questions": [{ "kind": "multi", "prompt": "Câu hỏi", "options": [{ "label": "A" }, { "label": "B" }] }],
+    "expect": [[1, "no_correct"]]
+  },
+  {
+    "name": "nhiều đáp án đúng chỉ có một lựa chọn và không có đáp án đúng",
+    "questions": [{ "kind": "multi", "prompt": "Câu hỏi", "options": [{ "label": "A" }] }],
+    "expect": [[1, "no_correct"], [1, "too_few_options"]]
+  },
+  {
+    "name": "điền từ hợp lệ",
+    "questions": [{ "kind": "short_text", "prompt": "Thủ đô của Việt Nam?", "accepted_answers": ["Hà Nội", "Hanoi"] }],
+    "expect": []
+  },
+  {
+    "name": "điền từ không có đáp án chấp nhận",
+    "questions": [{ "kind": "short_text", "prompt": "Câu hỏi", "accepted_answers": [] }],
+    "expect": [[1, "no_answers"]]
+  },
+  {
+    "name": "lỗi ở nhiều câu, câu giữa hợp lệ",
+    "questions": [
+      { "kind": "single", "prompt": "Câu 1", "options": [{ "label": "A" }, { "label": "B" }] },
+      { "kind": "true_false", "prompt": "Câu 2", "options": [{ "label": "Đúng" }, { "label": "Sai", "is_correct": true }] },
+      { "kind": "short_text", "prompt": "Câu 3", "accepted_answers": [] }
+    ],
+    "expect": [[1, "correct_count"], [3, "no_answers"]]
+  }
+]
