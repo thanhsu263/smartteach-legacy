@@ -20,7 +20,7 @@ Phòng chờ hiện mã QR cạnh PIN để người xem quét bằng camera và
 
 - Quét QR (giải mã bằng `jsqr` trong test) ra đúng `<origin>/play?pin=<PIN>`.
 - Trang `/play` mở từ địa chỉ đó có ô PIN đã điền.
-- axe đạt ở 1280px và 375px; QR có nền trắng và vùng yên tĩnh đủ trong cả giao diện tối.
+- axe đạt ở 1280px và 375px; QR có nền trắng và vùng yên tĩnh đủ (màu cố định, không phụ thuộc giao diện).
 - Không đổi hành vi phòng chờ ngoài việc thêm QR; test hiện có đạt.
 
 ## Risks

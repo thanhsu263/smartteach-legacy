@@ -17,8 +17,9 @@ const LIGHT = "#fff";
 const DARK = "#000";
 
 /**
- * Mã QR vẽ bằng SVG từ ma trận (không chèn HTML thô). Hình có tên truy cập và mô tả ghi rõ nội dung,
- * nên người dùng trình đọc màn hình biết đây là mã dẫn tới đâu. Kích thước co theo khung chứa (`width` từ CSS).
+ * Mã QR vẽ bằng SVG từ ma trận (không chèn HTML thô). Tên truy cập chỉ là `label` (ngắn); địa chỉ đích nằm ở mô tả
+ * (`aria-describedby`) để trình đọc màn hình không đọc cả địa chỉ và PIN như một cái tên. Hình luôn rộng bằng khung chứa:
+ * nơi dùng quyết định kích thước bằng khung bao, không đặt `width` lên chính hình.
  */
 export function QrCode({ value, label = "Mã QR", className }: QrCodeProps) {
   const id = useId();
@@ -38,7 +39,8 @@ export function QrCode({ value, label = "Mã QR", className }: QrCodeProps) {
       className={[styles.qr, className].filter(Boolean).join(" ")}
       viewBox={`0 0 ${drawing.size} ${drawing.size}`}
       role="img"
-      aria-labelledby={`${id}-title ${id}-desc`}
+      aria-labelledby={`${id}-title`}
+      aria-describedby={`${id}-desc`}
       shapeRendering="crispEdges"
       data-value={value}
     >

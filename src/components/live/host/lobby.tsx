@@ -55,7 +55,11 @@ export function HostLobby({ title, pin, locked, players, busy, onToggleLock, onR
               </Button>
             </div>
           </div>
-          {origin ? <QrCode value={joinUrl} label="Mã QR vào phòng" className={styles.qr} /> : null}
+          {origin ? (
+            <div className={styles.qrFrame}>
+              <QrCode value={joinUrl} label="Mã QR vào phòng" />
+            </div>
+          ) : null}
         </div>
         {copied ? (
           <p role="status" className={styles.joinNote}>

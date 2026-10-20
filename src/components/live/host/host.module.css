@@ -139,8 +139,8 @@
   min-width: 0;
 }
 
-.qr {
-  /* Cỡ cho hai chế độ: vừa bên cạnh PIN khi chiếu, vừa một màn hình điện thoại. */
+/* Khung quyết định cỡ của QR: vừa một màn hình điện thoại, và lớn hơn bên cạnh PIN khi chiếu. */
+.qrFrame {
   width: min(100%, 14rem);
 }
 
@@ -150,7 +150,7 @@
     justify-items: center;
   }
 
-  .qr {
+  .qrFrame {
     width: min(26vw, 20rem, 55vh);
   }
 }

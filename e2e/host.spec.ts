@@ -104,14 +104,14 @@ test.describe("giáo viên: mã QR vào phòng", () => {
     await teacherWithQuiz(page);
     const pin = await startFromUi(page);
 
-    const qr = page.getByRole("img", { name: "Mã QR vào phòng" });
+    const qr = page.getByRole("img", { name: /Mã QR vào phòng/ });
     await expect(qr).toBeVisible();
     const value = await qr.getAttribute("data-value");
     expect(value).toBe(`${new URL(page.url()).origin}/play?pin=${pin}`);
-    // Mô tả đọc được cho trình đọc màn hình, kèm địa chỉ đích.
-    await expect(qr.locator("desc")).toHaveText(`Quét để mở ${value}`);
-    // Nền QR luôn sáng và mô-đun tối, kể cả khi giao diện tối.
-    await page.emulateMedia({ colorScheme: "dark" });
+    // Tên truy cập CHỈ là "Mã QR vào phòng" (không kèm địa chỉ và PIN); địa chỉ đích nằm ở mô tả.
+    await expect(qr).toHaveAccessibleName("Mã QR vào phòng");
+    await expect(qr).toHaveAccessibleDescription(`Quét để mở ${value}`);
+    // QR cần mô-đun tối trên nền sáng: màu cố định trong SVG, không phụ thuộc giao diện (ứng dụng chưa có giao diện tối).
     expect(await qr.locator("rect").getAttribute("fill")).toBe("#fff");
     expect(await qr.locator("path").getAttribute("fill")).toBe("#000");
 
