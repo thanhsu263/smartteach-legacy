@@ -81,3 +81,16 @@ Kết quả: typecheck, lint, 218 unit, 165 test DB, 185 e2e (hai lần liên ti
 - Kiểm chứng: `e2e/treasure.spec.ts` 7 test (3 đúng cho rương thắng và 3 sai cho rương an ủi, mở bằng Enter, điểm khớp học sinh/bảng xếp hạng/giáo viên ngay sau khi mở, tải lại vẫn thấy kết quả, bảng tin; rương chưa mở tự mở và được báo, tổng kết kết thúc và cột ở trang kết quả; tắt chế độ thì không có gì; bảng bắt đầu; reduced motion; axe 1280/375 qua rương chưa mở, đã mở, thông báo tự mở, bảng tin, màn kết thúc, trang kết quả). Phá thử phía client: bỏ lời gọi làm mới sau khi mở rương làm test hỏng (điểm cũ sau 4 giây), bỏ phần điểm trong khoá bảng xếp hạng làm test hỏng. Test đơn vị `treasure.test.ts` (tăng/giảm/giữ nguyên, định dạng, lời giải thích loại rương) và `player.openChest`.
 - Không cần token màu mới (dùng lại token có sẵn); `DESIGN.md` không đổi.
 - Kết quả: typecheck, lint, 221 unit, 165 test DB, 192 e2e (hai lần liên tiếp), `scan:bundle` sạch.
+
+### Sửa sau review phase 4
+
+Review (`1368f3e`) không có Critical hay High; bốn mục đã sửa.
+
+| Mục | Cách sửa | Kiểm chứng |
+|---|---|---|
+| Medium (trợ năng): trình đọc màn hình không được báo về rương | Tách `announcement` thành `src/lib/live/announce.ts` (`playerAnnouncement`) và đưa rương vào vùng đọc cố định của màn học sinh: rương chưa mở ("Bạn nhận được một rương kho báu. Chọn một rương để mở."), rương đã mở ("Rương: Nhân đôi điểm, 3000 thành 6000 điểm."), rương tự mở ở câu kế, tổng kết kho báu ở màn kết thúc | `announce.test.ts` 4 test; e2e kiểm nội dung vùng đọc cố định ở cả ba thời điểm; phá thử bỏ nhánh rương chưa mở thì test đơn vị hỏng. Hệ quả cho test: vùng đọc cố định là `role="status"` nên các bộ chọn trạng thái trong e2e phải giới hạn trong vùng "Kho báu" (đã đổi) |
+| Verification Gap (Low): mở rương mất mạng thử lại chưa có test | e2e mới: chặn `open_chest` bằng `route.abort`, kỳ vọng báo "Bạn bấm mở lại nhé" và vẫn đủ ba rương, điểm chưa đổi; bỏ chặn rồi bấm lại ra đúng một kết quả, điểm đổi đúng một lần, tải lại vẫn cùng kết quả | Phá thử bỏ `setError` thì test hỏng |
+| Low: `STREAK_TARGET = 3` viết cứng ở giao diện, canh bằng chú thích | Hàm `private.streak_target()` là nguồn duy nhất, dùng cho `update_streaks` và trả về trong `player_state.streak.target`; giao diện (`StreakChip`, `describeChestKind`) dùng `target`, bỏ hằng số; sửa tại chỗ migration 20261025 (chưa áp lên dự án thật) | Test DB kiểm `streak.target` và `private.streak_target() = 3`; test đơn vị `describeChestKind("win", 4)` ra "4 câu" |
+| Low (nhỏ): `aria-disabled` thừa trên `<label>` ở bảng bắt đầu phiên | Bỏ (radio đã có `disabled`) | e2e bảng bắt đầu vẫn đạt |
+
+Kết quả: typecheck, lint, 225 unit, 165 test DB, 193 e2e (hai lần liên tiếp), `scan:bundle` sạch.

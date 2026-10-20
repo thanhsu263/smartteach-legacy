@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chestTone, describeChange, describeChestKind, formatDelta, STREAK_TARGET, type OpenedChest } from "./treasure";
+import { chestTone, describeChange, describeChestKind, formatDelta, type OpenedChest } from "./treasure";
 
 const chest = (before: number, after: number): OpenedChest => ({
   status: "opened",
@@ -28,8 +28,9 @@ describe("kho báu (hiển thị)", () => {
   });
 
   it("giải thích loại rương và nói rõ rương an ủi không bị trừ điểm", () => {
-    expect(describeChestKind("win")).toContain(`${STREAK_TARGET} câu liên tiếp`);
-    expect(describeChestKind("comfort")).toContain("không bị trừ");
-    expect(STREAK_TARGET).toBe(3);
+    expect(describeChestKind("win", 3)).toContain("3 câu liên tiếp");
+    expect(describeChestKind("win", 4)).toContain("4 câu liên tiếp"); // theo ngưỡng của máy chủ, không viết cứng
+    expect(describeChestKind("comfort", 3)).toContain("không bị trừ");
+    expect(describeChestKind("win")).toContain("nhiều câu liên tiếp");
   });
 });

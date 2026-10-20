@@ -1,5 +1,4 @@
 import { CheckIcon, CloseIcon } from "@/components/icons";
-import { STREAK_TARGET } from "@/lib/live/treasure";
 import type { PlayerState } from "@/lib/live/types";
 import styles from "./player.module.css";
 
@@ -12,7 +11,7 @@ export function StreakChip({ streak }: { streak: PlayerState["streak"] }) {
     <p className={styles.chip} data-tone={winning ? "win" : "lose"}>
       {winning ? <CheckIcon size={18} /> : <CloseIcon size={18} />}
       <span>
-        {winning ? "Chuỗi đúng" : "Chuỗi chưa đúng"} {count}/{STREAK_TARGET}
+        {winning ? "Chuỗi đúng" : "Chuỗi chưa đúng"} {count}/{streak.target}
       </span>
     </p>
   );

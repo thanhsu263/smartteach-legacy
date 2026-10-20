@@ -193,7 +193,7 @@ export function StartSession({ quizId, problems: knownProblems = null }: { quizI
                     // Kho báu cần đủ thời gian để học sinh mở rương: máy chủ ép tối thiểu 8 giây, nên không cho chọn 5.
                     const tooShort = treasureMode && seconds < MIN_TREASURE_REVEAL;
                     return (
-                      <label key={seconds} className={styles.check} aria-disabled={tooShort}>
+                      <label key={seconds} className={styles.check}>
                         <input
                           type="radio"
                           name={`${baseId}-reveal`}

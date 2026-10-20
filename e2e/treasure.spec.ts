@@ -95,7 +95,7 @@ test.describe("kho báu", () => {
     // An mở bằng bàn phím (Enter): kết quả có nhãn hiệu ứng, điểm trước và sau, tăng/giảm bằng chữ.
     await an.getByRole("button", { name: "Rương 2" }).focus();
     await an.keyboard.press("Enter");
-    const result = an.getByRole("status").filter({ hasText: /thành \d+ điểm/ });
+    const result = an.getByRole("region", { name: "Kho báu", exact: true }).getByRole("status");
     await expect(result).toBeVisible();
     const text = (await result.textContent()) ?? "";
     const [, before, after] = /(\d+) thành (\d+) điểm/.exec(text)!;
@@ -109,17 +109,17 @@ test.describe("kho báu", () => {
     await expect(an.getByRole("list", { name: "Bảng xếp hạng" }).getByRole("listitem").filter({ hasText: "(bạn)" })).toContainText(after, { timeout: 4000 });
     // Tải lại giữa chừng: vẫn thấy đúng kết quả đã mở (không mở thêm lần nữa).
     await an.reload();
-    await expect(an.getByRole("status").filter({ hasText: `${before} thành ${after} điểm` })).toBeVisible();
+    await expect(an.getByRole("region", { name: "Kho báu", exact: true }).getByRole("status").filter({ hasText: `${before} thành ${after} điểm` })).toBeVisible();
     await expect(an.getByRole("button", { name: /^Rương \d$/ })).toHaveCount(0);
 
     // Bình mở rương an ủi: không bao giờ giảm điểm.
     await binh.getByRole("button", { name: "Rương 1" }).click();
-    const comfort = binh.getByRole("status").filter({ hasText: /thành \d+ điểm/ });
+    const comfort = binh.getByRole("region", { name: "Kho báu", exact: true }).getByRole("status");
     await expect(comfort).toBeVisible();
     expect(await comfort.textContent()).not.toContain("Điểm giảm");
 
     // Giáo viên thấy bảng tin của cả hai rương.
-    const feed = teacherPage.getByRole("region", { name: "Kho báu" });
+    const feed = teacherPage.getByRole("region", { name: "Kho báu", exact: true });
     await expect(feed.getByText(/An.*mở rương thắng:/)).toBeVisible({ timeout: 15_000 });
     await expect(feed.getByText(/Bình.*mở rương an ủi:/)).toBeVisible();
 
@@ -155,13 +155,13 @@ test.describe("kho báu", () => {
     await playQuestion(ctx, 4, "A", "B");
     await next(teacherPage, "Xem kết quả");
     await expect(heading(an, "Kết thúc!")).toBeVisible();
-    const summary = an.getByRole("region", { name: "Kho báu" });
+    const summary = an.getByRole("region", { name: "Kho báu", exact: true });
     await expect(summary).toContainText("Bạn đã mở 1 rương");
     const delta = Number(after) - Number(before);
     await expect(summary).toContainText(delta > 0 ? `+${delta} điểm` : delta < 0 ? `-${Math.abs(delta)} điểm` : "0 điểm");
     await expect(summary).toContainText("Rương này đã tự mở cho bạn.");
     // Bình không có rương nào: không có phần tổng kết.
-    await expect(binh.getByRole("region", { name: "Kho báu" })).toHaveCount(0);
+    await expect(binh.getByRole("region", { name: "Kho báu", exact: true })).toHaveCount(0);
 
     // Trang kết quả của giáo viên có cột Kho báu khớp.
     await teacherPage.goto(`/host/${session.id}/results`);
@@ -185,7 +185,7 @@ test.describe("kho báu", () => {
     await expect(heading(an, "Đúng rồi!")).toBeVisible();
     await expect(an.getByText(/Chuỗi /)).toHaveCount(0);
     await expect(an.getByRole("heading", { name: /rương kho báu/ })).toHaveCount(0);
-    await expect(teacherPage.getByRole("region", { name: "Kho báu" })).toHaveCount(0);
+    await expect(teacherPage.getByRole("region", { name: "Kho báu", exact: true })).toHaveCount(0);
   });
 
   test("bảng bắt đầu phiên: công tắc kho báu mặc định tắt; bật cùng tự động thì chỉ chọn được từ 8 giây", async ({ page }) => {
@@ -206,6 +206,47 @@ test.describe("kho báu", () => {
     await expect(page.getByText("kho báu cần tối thiểu 8 giây")).toBeVisible();
     await treasure.uncheck();
     await expect(page.getByRole("radio", { name: "5 giây", exact: true })).toBeEnabled();
+  });
+
+  test("mở rương gặp lỗi mạng thì báo lỗi, bấm lại được và điểm chỉ đổi một lần; vùng đọc cố định báo rương cho trình đọc màn hình", async ({ browser }) => {
+    test.setTimeout(150_000);
+    const ctx = await setup(browser, 4);
+    const { teacherPage, an } = ctx;
+    await playQuestion(ctx, 1, "A", "B");
+    await next(teacherPage);
+    await playQuestion(ctx, 2, "A", "B");
+    await next(teacherPage);
+    await playQuestion(ctx, 3, "A", "B");
+    await expect(an.getByRole("heading", { name: "Bạn nhận được một rương kho báu!" })).toBeVisible();
+
+    // Vùng đọc cố định (có sẵn trong trang, chỉ đổi nội dung) báo có rương ngay khi hiện đáp án.
+    const announcer = an.locator('p[role="status"].visually-hidden').first();
+    await expect(announcer).toContainText("Bạn nhận được một rương kho báu. Chọn một rương để mở.");
+    // Chữ giải thích dùng ngưỡng do máy chủ trả (3), không viết cứng ở giao diện.
+    await expect(an.getByText("Bạn đã đúng 3 câu liên tiếp")).toBeVisible();
+
+    // Lời gọi mở rương không tới được máy chủ: báo lỗi và vẫn còn ba rương để bấm lại.
+    await an.route("**/rest/v1/rpc/open_chest", (route) => route.abort("failed"));
+    await an.getByRole("button", { name: "Rương 1" }).click();
+    await expect(an.getByRole("alert").filter({ hasText: "Bạn bấm mở lại nhé" })).toBeVisible();
+    await expect(an.getByRole("button", { name: /^Rương \d$/ })).toHaveCount(3);
+    expect(await score(an)).toBe(3000); // chưa mở được nên điểm chưa đổi
+
+    // Có mạng lại: bấm lại ra đúng một kết quả; điểm đổi đúng một lần và khớp kết quả.
+    await an.unroute("**/rest/v1/rpc/open_chest");
+    await an.getByRole("button", { name: "Rương 2" }).click();
+    const result = an.getByRole("region", { name: "Kho báu", exact: true }).getByRole("status");
+    await expect(result).toBeVisible();
+    const [, before, after] = /(\d+) thành (\d+) điểm/.exec((await result.textContent()) ?? "")!;
+    expect(Number(before)).toBe(3000);
+    await expect.poll(() => score(an), { timeout: 4000 }).toBe(Number(after));
+    await expect(announcer).toContainText(`Rương: `);
+    await expect(announcer).toContainText(`${before} thành ${after} điểm`);
+
+    // Tải lại: cùng kết quả, không đổi điểm lần nữa.
+    await an.reload();
+    await expect(an.getByRole("region", { name: "Kho báu", exact: true }).getByRole("status").filter({ hasText: `${before} thành ${after} điểm` })).toBeVisible();
+    expect(await score(an)).toBe(Number(after));
   });
 
   test("hoạt hình lật rương tắt khi người dùng chọn giảm chuyển động", async ({ browser }) => {
@@ -258,9 +299,9 @@ for (const viewport of [
       await audit(an, "rương chưa mở");
 
       await an.getByRole("button", { name: "Rương 1" }).click();
-      await expect(an.getByRole("status").filter({ hasText: /thành \d+ điểm/ })).toBeVisible();
+      await expect(an.getByRole("region", { name: "Kho báu", exact: true }).getByRole("status")).toBeVisible();
       await audit(an, "rương đã mở");
-      await expect(teacherPage.getByRole("region", { name: "Kho báu" }).getByText(/An.*mở rương thắng:/)).toBeVisible({ timeout: 15_000 });
+      await expect(teacherPage.getByRole("region", { name: "Kho báu", exact: true }).getByText(/An.*mở rương thắng:/)).toBeVisible({ timeout: 15_000 });
       await audit(teacherPage, "bảng tin kho báu của giáo viên");
 
       // Bình không mở: sang câu 4 thì rương tự mở và có thông báo.

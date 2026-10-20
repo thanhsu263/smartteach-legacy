@@ -84,7 +84,7 @@ export function Result({ state, token, clock, onChestOpened }: { state: PlayerSt
         </div>
       </dl>
 
-      {state.chest ? <Chest chest={state.chest} token={token} onOpened={onChestOpened} /> : null}
+      {state.chest ? <Chest chest={state.chest} token={token} target={state.streak?.target} onOpened={onChestOpened} /> : null}
 
       <section className={styles.review} aria-label="Đáp án đúng">
         <h2 className={styles.reviewTitle}>{question.prompt}</h2>

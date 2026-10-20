@@ -542,12 +542,13 @@ describe("cấu hình và quyền", () => {
     await playPatterns(t, s, { an: "CC", binh: "WW" });
     await hostOk(t, "host_next", { p_session: s.id });
     const state = await playerState(s.tokens.an);
-    expect(state.streak).toEqual({ win: 2, lose: 0 });
+    expect(state.streak).toEqual({ win: 2, lose: 0, target: 3 }); // target do máy chủ trả, cùng nguồn với ngưỡng phát rương
+    expect(Number(psql("select private.streak_target();"))).toBe(3);
     const keys = allKeys(state);
     for (const secret of ["is_correct", "correct", "accepted_answers", "ignore_diacritics", "quiz_snapshot", "token", "chest"]) {
       expect(keys.has(secret), secret).toBe(false);
     }
-    expect((await playerState(s.tokens.binh)).streak).toEqual({ win: 0, lose: 2 });
+    expect((await playerState(s.tokens.binh)).streak).toEqual({ win: 0, lose: 2, target: 3 });
     await hostOk(t, "host_end_session", { p_session: s.id });
   }, 120_000);
 });

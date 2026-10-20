@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/button";
+import { playerAnnouncement } from "@/lib/live/announce";
 import { player } from "@/lib/live/rpc";
-import type { AnswerValue, PlayerState } from "@/lib/live/types";
+import type { AnswerValue } from "@/lib/live/types";
 import { usePlayerLive } from "@/lib/live/use-live-state";
 import { useStoredPlayer } from "@/lib/live/use-stored-player";
 import { getBrowserSupabase } from "@/lib/supabase/client";
@@ -14,23 +15,6 @@ import { Question } from "./question";
 import { Result } from "./result";
 import { StatusBanner } from "./status-banner";
 import styles from "./player.module.css";
-
-/** Lời nhắn đọc cho trình đọc màn hình mỗi khi sang pha hoặc câu mới (vùng role="status" luôn có mặt). */
-function announcement(state: PlayerState | null): string {
-  if (!state) return "";
-  switch (state.phase) {
-    case "lobby":
-      return "Bạn đã vào phòng. Chờ thầy cô bắt đầu.";
-    case "question":
-      return `Câu ${state.question_index} trên ${state.question_total}: ${state.question?.prompt ?? ""}`;
-    case "reveal":
-      return state.answered ? (state.is_correct ? "Bạn trả lời đúng." : "Bạn trả lời chưa đúng.") : "Bạn chưa trả lời câu này.";
-    case "ended":
-      return "Trò chơi đã kết thúc.";
-    case "removed":
-      return "Thầy cô đã mời bạn rời phòng.";
-  }
-}
 
 /** Toàn bộ luồng của học sinh: nhập PIN, phòng chờ, từng câu, kết quả, kết thúc. */
 export function PlayScreen({ initialPin }: { initialPin: string }) {
@@ -121,7 +105,7 @@ export function PlayScreen({ initialPin }: { initialPin: string }) {
   return (
     <div ref={focusRef} tabIndex={-1} className={styles.focusRoot}>
       <p className="visually-hidden" role="status" aria-live="polite">
-        {announcement(state)}
+        {playerAnnouncement(state)}
       </p>
       {offline ? (
         <div className={styles.bannerWrap}>

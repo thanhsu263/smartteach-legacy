@@ -106,7 +106,8 @@ export type PlayerState = {
   paused?: boolean;
   next_at?: string | null;
   /** Chỉ khi phiên bật kho báu: chuỗi đang chạy, và rương của câu vừa đóng (ở pha hiện đáp án). */
-  streak?: { win: number; lose: number };
+  /** `target`: số câu liền nhau để nhận rương, do máy chủ quyết định (một nguồn duy nhất với việc phát rương). */
+  streak?: { win: number; lose: number; target: number };
   chest?: ChestView;
   /** Pha hỏi: rương câu liền trước nếu máy chủ tự mở nó. Pha kết thúc: rương cuối tự mở (nếu có). */
   last_chest?: ChestView;

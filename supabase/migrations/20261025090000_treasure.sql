@@ -188,6 +188,17 @@ begin
 end;
 $$;
 
+-- Số câu đúng (hoặc sai) liền nhau để nhận một rương. MỘT nguồn duy nhất: update_streaks dùng để phát rương và
+-- player_state trả cho giao diện (streak.target) để chữ "Chuỗi đúng 2/3" không lệch khi đổi ngưỡng.
+create function private.streak_target()
+returns integer
+language sql
+immutable
+set search_path = ''
+as $$
+  select 3;
+$$;
+
 -- Cập nhật chuỗi sau khi chấm một câu và phát rương khi đủ 3. Đúng thì tăng chuỗi thắng và đặt lại chuỗi thua; sai hoặc
 -- bỏ trống thì tăng chuỗi thua và đặt lại chuỗi thắng. Người bị loại hoặc đã rời phòng không được tính.
 create function private.update_streaks(p_session public.live_sessions)
@@ -196,7 +207,7 @@ language plpgsql
 set search_path = ''
 as $$
 declare
-  v_threshold constant integer := 3;
+  v_threshold constant integer := private.streak_target();
   v_row record;
   v_win integer;
   v_lose integer;
@@ -686,7 +697,7 @@ begin
   if v_session.treasure_mode then
     if v_status in ('question', 'reveal') then
       v_result := v_result || jsonb_build_object(
-        'streak', jsonb_build_object('win', v_player.win_streak, 'lose', v_player.lose_streak)
+        'streak', jsonb_build_object('win', v_player.win_streak, 'lose', v_player.lose_streak, 'target', private.streak_target())
       );
     end if;
     if v_status = 'reveal' then
@@ -845,6 +856,7 @@ revoke execute on function
   private.chest_json(public.treasure_chests),
   private.open_chest_row(uuid, boolean),
   private.settle_chests(uuid),
+  private.streak_target(),
   private.update_streaks(public.live_sessions)
   from public, anon, authenticated;
 

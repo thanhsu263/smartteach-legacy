@@ -35,7 +35,7 @@ export function ChestResult({ chest, note }: { chest: OpenedChest; note?: string
  * Rương của câu vừa đóng. Chưa mở: ba rương để chọn (lựa chọn chỉ là hình thức, hiệu ứng do máy chủ quyết định nên
  * rương nào cũng như nhau). Đã mở: kết quả. Mở lại là an toàn (máy chủ trả đúng kết quả cũ), nên mất mạng thì bấm thử lại.
  */
-export function Chest({ chest, token, onOpened }: { chest: ChestView; token: string; onOpened: () => void }) {
+export function Chest({ chest, token, target, onOpened }: { chest: ChestView; token: string; target?: number; onOpened: () => void }) {
   const headingId = useId();
   const [opened, setOpened] = useState<OpenedChest | null>(null);
   const [pending, setPending] = useState(false);
@@ -77,7 +77,7 @@ export function Chest({ chest, token, onOpened }: { chest: ChestView; token: str
       <h2 id={headingId} className={styles.reviewTitle}>
         Bạn nhận được một rương kho báu!
       </h2>
-      <p className={styles.hint}>{describeChestKind(chest.kind)} Chọn một rương để mở.</p>
+      <p className={styles.hint}>{describeChestKind(chest.kind, target)} Chọn một rương để mở.</p>
       <div role="group" aria-label="Chọn một rương" className={styles.chestButtons}>
         {[1, 2, 3].map((n) => (
           <Button key={n} variant="primary" className={styles.chestButton} disabled={pending} onClick={() => void open()}>

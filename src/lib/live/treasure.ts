@@ -1,8 +1,5 @@
 import type { ChestView } from "@/lib/live/types";
 
-/** Số câu đúng (hoặc sai) liền nhau để nhận một rương. Phải khớp hằng `v_threshold` trong `private.update_streaks`. */
-export const STREAK_TARGET = 3;
-
 export type OpenedChest = Extract<ChestView, { status: "opened" }>;
 
 export type ChestTone = "up" | "down" | "same";
@@ -32,9 +29,10 @@ export function formatDelta(delta: number): string {
   return "0 điểm";
 }
 
-/** Câu giải thích vì sao có rương. */
-export function describeChestKind(kind: ChestView["kind"]): string {
+/** Câu giải thích vì sao có rương. `target` là số câu liền nhau do máy chủ quyết định (thiếu thì nói chung chung). */
+export function describeChestKind(kind: ChestView["kind"], target?: number): string {
+  const count = target ? `${target} câu` : "nhiều câu";
   return kind === "win"
-    ? `Bạn đã đúng ${STREAK_TARGET} câu liên tiếp nên được một rương kho báu.`
-    : `Bạn có ${STREAK_TARGET} câu liên tiếp chưa đúng, nên được một rương an ủi: chỉ có thêm điểm, không bị trừ.`;
+    ? `Bạn đã đúng ${count} liên tiếp nên được một rương kho báu.`
+    : `Bạn có ${count} liên tiếp chưa đúng, nên được một rương an ủi: chỉ có thêm điểm, không bị trừ.`;
 }
