@@ -3,6 +3,14 @@ import type { QuestionInput } from "@/lib/quiz/types";
 /** Giới hạn của việc nhập tệp (đọc hoàn toàn ở trình duyệt). */
 export const IMPORT_MAX_BYTES = 1_000_000;
 export const IMPORT_MAX_ROWS = 500;
+/** Văn bản dán: tổng độ dài và độ dài một dòng (dòng dài bất thường làm các biểu thức chính quy chậm theo bình phương). */
+export const IMPORT_MAX_TEXT = 1_000_000;
+export const IMPORT_MAX_LINE = 2000;
+/** Tệp .xlsx là zip: kích thước SAU khi giải nén của một mục và của cả tệp (xem `zip-guard.ts`). */
+export const IMPORT_MAX_ENTRY_BYTES = 20_000_000;
+export const IMPORT_MAX_UNZIPPED_BYTES = 30_000_000;
+/** Hàng tiêu đề phải nằm trong chừng này hàng đầu (phía trên có thể có dòng tiêu đề trang). */
+export const IMPORT_HEADER_SCAN_ROWS = 10;
 
 /** Bảng ô văn bản (CSV hoặc trang tính đầu tiên của .xlsx): mỗi phần tử là một hàng. */
 export type Grid = string[][];

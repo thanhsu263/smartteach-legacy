@@ -6,6 +6,8 @@ export type CsvResult = {
   encodingSuspect: boolean;
   /** Số hàng vượt `IMPORT_MAX_ROWS` bị bỏ. */
   truncated: number;
+  /** Dòng nơi một dấu ngoặc kép được mở mà đến hết tệp vẫn chưa đóng (null nếu mọi ngoặc đều đóng). */
+  unterminatedQuoteLine: number | null;
 };
 
 /** Dấu phân cách Excel tiếng Việt thường lưu là `;` chứ không phải `,`: chọn theo hàng đầu (ngoài ngoặc kép). */
@@ -41,6 +43,9 @@ export function parseCsv(input: string): CsvResult {
   let row: string[] = [];
   let cell = "";
   let quoted = false;
+  let quoteLine = 0;
+  // Số dòng gốc của ký tự đang đọc (dòng `sep=` đã bị cắt khỏi `text` nên cộng lại).
+  let line = 1 + (sep ? 1 : 0);
   let i = 0;
   const endCell = () => {
     row.push(cell);
@@ -63,16 +68,20 @@ export function parseCsv(input: string): CsvResult {
         }
         quoted = false;
       } else {
+        if (char === "\n") line += 1;
         cell += char;
       }
     } else if (char === '"' && cell === "") {
       quoted = true;
+      quoteLine = line;
     } else if (char === delimiter) {
       endCell();
     } else if (char === "\r") {
       if (text[i + 1] === "\n") i += 1;
+      line += 1;
       endRow();
     } else if (char === "\n") {
+      line += 1;
       endRow();
     } else {
       cell += char;
@@ -83,7 +92,12 @@ export function parseCsv(input: string): CsvResult {
   if (cell !== "" || row.length > 0) endRow();
 
   const total = rows.length;
-  return { grid: rows.slice(0, IMPORT_MAX_ROWS + 1), encodingSuspect, truncated: Math.max(0, total - (IMPORT_MAX_ROWS + 1)) };
+  return {
+    grid: rows.slice(0, IMPORT_MAX_ROWS + 1),
+    encodingSuspect,
+    truncated: Math.max(0, total - (IMPORT_MAX_ROWS + 1)),
+    unterminatedQuoteLine: quoted ? quoteLine : null,
+  };
 }
 
 /** Giới hạn kích thước tệp trước khi đọc. */

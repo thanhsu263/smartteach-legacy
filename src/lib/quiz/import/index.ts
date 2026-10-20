@@ -39,6 +39,11 @@ export async function parseImportFile(file: File): Promise<ImportParse> {
     if (csv.encodingSuspect) {
       return fail("Tệp CSV có chữ bị lỗi mã hoá (chữ có dấu thành �). Thầy cô lưu tệp ở dạng CSV UTF-8 (hoặc dùng .xlsx) rồi chọn lại nhé.");
     }
+    if (csv.unterminatedQuoteLine !== null) {
+      return fail(
+        `Dấu ngoặc kép mở ở dòng ${csv.unterminatedQuoteLine} nhưng chưa đóng, nên phần còn lại của tệp bị gộp vào một ô. Thầy cô kiểm tra ô ở dòng đó rồi lưu lại nhé.`,
+      );
+    }
     const parsed = rowsToQuestions(csv.grid);
     if (csv.truncated > 0) parsed.issues.push(truncatedWarning(csv.truncated));
     return parsed;

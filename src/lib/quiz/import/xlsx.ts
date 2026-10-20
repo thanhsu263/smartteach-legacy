@@ -1,4 +1,5 @@
 import { IMPORT_MAX_BYTES, IMPORT_MAX_ROWS, type Grid } from "./types";
+import { checkZipSizes } from "./zip-guard";
 
 export type XlsxResult = { ok: true; grid: Grid; truncated: number } | { ok: false; message: string };
 
@@ -33,8 +34,12 @@ export async function readXlsxGrid(input: File | Blob | ArrayBuffer): Promise<Xl
     return { ok: false, message: `Tệp quá lớn (tối đa ${Math.round(IMPORT_MAX_BYTES / 1_000_000)} MB). Thầy cô tách thành nhiều tệp nhỏ hơn nhé.` };
   }
   try {
+    // Đọc danh mục zip trước: tệp khai báo giải nén quá lớn bị từ chối mà chưa giải nén gì.
+    const bytes = new Uint8Array(input instanceof ArrayBuffer ? input : await input.arrayBuffer());
+    const refusal = await checkZipSizes(bytes);
+    if (refusal) return { ok: false, message: refusal };
     const { readSheet } = await import("read-excel-file/browser");
-    const rows = await readSheet(input, 1);
+    const rows = await readSheet(bytes.buffer as ArrayBuffer, 1);
     const grid = rows.map((row) => row.map(cellText));
     return { ok: true, grid: grid.slice(0, IMPORT_MAX_ROWS + 1), truncated: Math.max(0, grid.length - (IMPORT_MAX_ROWS + 1)) };
   } catch (error) {

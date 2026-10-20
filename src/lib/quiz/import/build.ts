@@ -41,16 +41,27 @@ function isTrueFalseOptions(options: RawQuestion["options"]): boolean {
 function resolveToken(token: string, options: RawQuestion["options"]): { slot: number } | { error: string } {
   const text = token.trim();
   const upper = text.toUpperCase();
-  if (/^[A-F]$/.test(upper)) {
-    const slot = LETTERS.indexOf(upper as (typeof LETTERS)[number]);
-    return options.some((option) => option.slot === slot) ? { slot } : { error: `Đáp án đúng "${text}" không có lựa chọn ${upper} tương ứng.` };
+  // Mục có thể là VỊ TRÍ (chữ cái A-F hoặc số 1-6) hoặc NỘI DUNG của một lựa chọn. Hai cách hiểu có thể trỏ tới hai lựa chọn
+  // khác nhau (ví dụ các lựa chọn là 2, 3, 4, 5 mà đáp án ghi 2): chọn ngầm một cách sẽ làm khoá đáp án sai mà không ai biết.
+  const positional = /^[A-F]$/.test(upper) ? LETTERS.indexOf(upper as (typeof LETTERS)[number]) : /^[1-6]$/.test(text) ? Number(text) - 1 : null;
+  const byLabel = fold(text) === "" ? undefined : options.find((option) => fold(option.label) === fold(text));
+  const hasPositional = positional !== null && options.some((option) => option.slot === positional);
+
+  if (hasPositional) {
+    if (byLabel && byLabel.slot !== positional) {
+      return {
+        error:
+          `Đáp án đúng "${text}" có thể là vị trí (lựa chọn ${slotName(positional)}) hoặc nội dung của lựa chọn ${slotName(byLabel.slot)}, ` +
+          "nên chưa rõ ý. Thầy cô đổi nội dung lựa chọn cho khác đi, hoặc ghi lại đáp án cho rõ nhé.",
+      };
+    }
+    return { slot: positional };
   }
-  if (/^[1-6]$/.test(text)) {
-    const slot = Number(text) - 1;
-    return options.some((option) => option.slot === slot) ? { slot } : { error: `Đáp án đúng "${text}" không có lựa chọn thứ ${text} tương ứng.` };
+  // Không có lựa chọn ở vị trí đó thì chỉ còn cách hiểu là nội dung.
+  if (byLabel) return { slot: byLabel.slot };
+  if (positional !== null) {
+    return { error: `Đáp án đúng "${text}" không có lựa chọn ${/^[A-F]$/.test(upper) ? upper : `thứ ${text}`} tương ứng.` };
   }
-  const match = options.find((option) => fold(option.label) === fold(text) && fold(text) !== "");
-  if (match) return { slot: match.slot };
   return { error: `Đáp án đúng "${text}" không khớp lựa chọn nào (dùng chữ cái A-F, số 1-6 hoặc đúng nội dung lựa chọn).` };
 }
 

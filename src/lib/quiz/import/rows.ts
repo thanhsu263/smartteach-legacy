@@ -1,7 +1,7 @@
 import { MAX_QUESTIONS_PER_QUIZ } from "@/lib/quiz/limits";
 import { buildQuestion } from "./build";
 import { fold } from "./normalize";
-import type { Grid, ImportedQuestion, ImportIssue, ImportParse, RawQuestion } from "./types";
+import { IMPORT_HEADER_SCAN_ROWS, type Grid, type ImportedQuestion, type ImportIssue, type ImportParse, type RawQuestion } from "./types";
 
 type Column = "kind" | "prompt" | "correct" | "time" | "accepted" | "ignore" | { option: number };
 
@@ -41,10 +41,14 @@ export function rowsToQuestions(grid: Grid): ImportParse {
   const issues: ImportIssue[] = [];
   const questions: ImportedQuestion[] = [];
 
-  const headerIndex = grid.findIndex((row) => row.some((cell) => cell.trim() !== ""));
-  if (headerIndex < 0) {
+  const firstFilled = grid.findIndex((row) => row.some((cell) => cell.trim() !== ""));
+  if (firstFilled < 0) {
     return { questions, issues: [{ line: 0, severity: "error", message: "Tệp không có dữ liệu." }] };
   }
+  // Hàng tiêu đề là hàng đầu tiên (trong IMPORT_HEADER_SCAN_ROWS hàng đầu) có cột "Câu hỏi"; phía trên nó có thể có dòng tiêu
+  // đề trang hay ghi chú. Số dòng báo lỗi vẫn là số hàng gốc nên đếm từ hàng đầu của tệp.
+  let headerIndex = grid.slice(0, IMPORT_HEADER_SCAN_ROWS).findIndex((row) => row.some((cell) => classify(fold(cell)) === "prompt"));
+  if (headerIndex < 0) headerIndex = firstFilled;
 
   const columns = new Map<number, Column>();
   grid[headerIndex].forEach((cell, index) => {
@@ -61,7 +65,7 @@ export function rowsToQuestions(grid: Grid): ImportParse {
         {
           line: headerIndex + 1,
           severity: "error",
-          message: 'Không thấy cột "Câu hỏi" ở hàng tiêu đề. Thầy cô tải tệp mẫu rồi điền theo đúng tên cột nhé.',
+          message: `Không thấy cột "Câu hỏi" trong ${IMPORT_HEADER_SCAN_ROWS} hàng đầu của tệp. Thầy cô tải tệp mẫu rồi điền theo đúng tên cột nhé.`,
         },
       ],
     };

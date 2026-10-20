@@ -1,7 +1,7 @@
 import { MAX_QUESTIONS_PER_QUIZ } from "@/lib/quiz/limits";
 import { buildQuestion } from "./build";
 import { fold } from "./normalize";
-import type { ImportedQuestion, ImportIssue, ImportParse, RawQuestion } from "./types";
+import { IMPORT_MAX_LINE, IMPORT_MAX_TEXT, type ImportedQuestion, type ImportIssue, type ImportParse, type RawQuestion } from "./types";
 
 // Lựa chọn: "A. nội dung", "A) nội dung", đánh dấu đúng bằng `*` đứng trước chữ cái hoặc sau nội dung.
 const OPTION = /^\s*(\*|✓|✔)?\s*([A-Fa-f])\s*[.)]\s+(.+?)\s*(\*)?\s*$/;
@@ -19,9 +19,29 @@ const YES = new Set(["co", "x", "1", "true", "yes", "y", "dung"]);
  * điền từ (thêm dòng `Bỏ dấu: có` nếu không phân biệt dấu).
  */
 export function parseQuizText(text: string): ImportParse {
-  const lines = text.replace(/\r\n?/g, "\n").split("\n");
   const issues: ImportIssue[] = [];
   const questions: ImportedQuestion[] = [];
+
+  // Giới hạn đầu vào trước khi chạy các biểu thức chính quy: dòng dài bất thường (hàng chục nghìn khoảng trắng) làm chúng
+  // chậm theo bình phương, đủ treo tab.
+  if (text.length > IMPORT_MAX_TEXT) {
+    return {
+      questions,
+      issues: [{ line: 0, severity: "error", message: `Văn bản quá dài (tối đa ${IMPORT_MAX_TEXT / 1000} nghìn ký tự). Thầy cô tách thành nhiều lần dán nhé.` }],
+    };
+  }
+  const lines = text.replace(/\r\n?/g, "\n").split("\n");
+  const tooLong = lines.flatMap((content, index) => (content.length > IMPORT_MAX_LINE ? [{ n: index + 1, length: content.length }] : []));
+  if (tooLong.length > 0) {
+    return {
+      questions,
+      issues: tooLong.slice(0, 5).map(({ n, length }) => ({
+        line: n,
+        severity: "error" as const,
+        message: `Dòng này dài ${length} ký tự (tối đa ${IMPORT_MAX_LINE}). Thầy cô xuống dòng giữa các phần nhé.`,
+      })),
+    };
+  }
 
   // Gom các khối cách nhau bằng dòng trống, nhớ số dòng gốc.
   const blocks: { start: number; lines: { n: number; text: string }[] }[] = [];
