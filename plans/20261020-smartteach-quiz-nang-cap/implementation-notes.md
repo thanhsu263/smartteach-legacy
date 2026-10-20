@@ -143,3 +143,23 @@ Review (`ab9561c`) không có Critical hay High; một mục Medium và hai Low,
 | Low: tên quiz giữ tên của tệp đầu dù đã chọn tệp khác | `titleEdited`: tên theo tệp mới cho đến khi thầy cô tự gõ (xoá hết thì lại theo tệp) | e2e: bai-1 → bai-2 theo tệp, gõ tay rồi chọn bai-3 thì giữ tên tự đặt; 2 phá thử bị bắt |
 
 Kết quả: typecheck, lint, `scan:bundle` sạch, 204 e2e (hai lần liên tiếp; thêm 1 test).
+
+## Phase 7 - Hoàn thiện, thử tải (7.1-7.4)
+
+Phần 7.5 (review cả đợt), 7.6 (phát hành) và 7.7 (nghiệm thu thiết bị thật) còn lại; 7.6 và 7.7 cần chủ dự án.
+
+- **7.1 Quyền riêng tư.** `/privacy`: thêm vào mục "Quiz chơi trực tiếp" dữ liệu rương của chế độ kho báu (loại, hiệu ứng, điểm trước và sau; giữ và xoá cùng buổi chơi kể cả khi giáo viên xoá buổi) và đoạn về mã QR (chỉ chứa địa chỉ vào phòng và PIN); mục mới "Nhập quiz từ tệp" (tệp chỉ đọc trong trình duyệt, chỉ lưu khi bấm "Tạo quiz"); ngày cập nhật 20/10/2026. `e2e/privacy.spec.ts` kiểm các câu mới (thêm 1 test). Việc `delete_session` xoá cả rương đã có test ở `live-treasure.test.ts` (task 3.7).
+- **7.2 README.** Mục mới "Nâng cấp quiz (giai đoạn 2.5)": QR, tự động qua câu (kèm lưu ý phải để cửa sổ điều khiển hiển thị), luật kho báu, nhập quiz (mẫu CSV, `.xlsx`, cú pháp dán, giới hạn), ba gói mới và lý do chọn, biến thử tải mới; cập nhật danh sách migration cần `db push` (kèm `--dry-run`).
+- **7.3 Thử tải.** `tests/load/live-load.test.ts` có `LOAD_AUTO=1` (giáo viên chỉ bấm mở câu đầu, sau đó chỉ nhắc máy chủ đóng câu và mở câu kế đúng lúc tới hạn như đồng hồ của màn hình điều khiển; `LOAD_REVEAL` 5/8/12, mặc định 8; câu 10 giây để tự hết giờ) và `LOAD_TREASURE=1` (học sinh chẵn luôn đúng, lẻ luôn sai nên ai cũng nhận rương ở câu 3; 3/4 tự mở rương, 1/4 để máy chủ tự mở). Báo cáo thêm số thao tác giáo viên bấm tay, số lần chuyển câu tự động, rương mở/lỗi/tự mở và `open_chest` p95; có khẳng định: giáo viên chỉ bấm 1 lần mỗi lớp, mọi lần chuyển câu (cả lần kết thúc) do máy chủ, mở rương không lỗi, có rương do máy chủ tự mở, `open_chest` p95 dưới 100 ms. Máy thử như trước (Windows, Docker Desktop, Supabase cục bộ), 5 câu, vào phòng rải 3 giây:
+
+| Cấu hình | Kết nối | Tin Realtime cao nhất/giây | HTTP cao nhất/giây | Lỗi yêu cầu | Thấy đủ 5 câu | Độ trễ thấy đề, trung vị / p95 | `open_chest` p95 | Giáo viên bấm / tự chuyển câu |
+|---|---|---|---|---|---|---|---|---|
+| 1x40 tự động | 41 | 41 | 122 | 0 | 40/40 | 54 / 65 ms | - | 1 / 5 |
+| 1x40 kho báu | 41 | 41 | 96 | 0 | 40/40 | 56 / 86 ms | 16 ms (30 mở tay, 10 máy chủ tự mở) | 11 / 0 |
+| 1x40 cả hai | 41 | 41 | 122 | 0 | 40/40 | 51 / 62 ms | 10 ms | 1 / 5 |
+| 4x40 tự động (lần 2 và 3) | 164 | 164 | 468 / 462 | 0 | 160/160 | 70 / 163 và 62 / 122 ms | - | 4 / 20 |
+| 4x40 kho báu | 164 | 164 | 332 | 0 (27 lần gửi lại do socket bị đóng) | 160/160 | 53 / 108 ms | 7 ms (120 mở tay, 40 máy chủ tự mở) | 44 / 0 |
+| 4x40 cả hai | 164 | 164 | 471 | 0 | 160/160 | 46 / 72 ms | 8 ms | 4 / 20 |
+
+  Đạt mốc chấp nhận: không lỗi ở ≤ 170 kết nối, đỉnh tin mỗi lớp vẫn 41/giây (4 lớp 164 cộng dồn, như giai đoạn 2), `open_chest` p95 từ 7 đến 16 ms (mốc 100 ms), mọi người chơi thấy đủ câu. Nhận xét: (1) tự động làm đỉnh yêu cầu HTTP của một lớp tăng từ 85 lên khoảng 122 mỗi giây (chưa tách nguyên nhân; nhiều khả năng vì giáo viên không chen khoảng nghỉ giữa các pha nên các đợt `player_state` và `player_leaderboard` của 40 học sinh dồn sát nhau); vẫn là truy vấn nhẹ (`player_state` p95 dưới 110 ms ở 4 lớp). (2) **Lần đầu 4x40 tự động có 29 lỗi `UND_ERR_SOCKET` ở `player_state` (231 lần gửi lại) và 30-39/40 học sinh thấy đủ câu**; hai lần chạy lại cho 0 lỗi (0 và 3 lần gửi lại). Đây là hiện tượng đã biết của cổng Docker Desktop trên máy thử khi hàng trăm yêu cầu dồn trong cùng giây (xem mục giới hạn của README), không tái hiện trên cùng cấu hình, nên không coi là lỗi ứng dụng; ghi lại cho đầy đủ. (3) Chạy lần đầu có 13 lỗi `open_chest` 409 ở 1x40 kho báu, do chính kịch bản: học sinh mở rương sau khi giáo viên đã sang câu kế (máy chủ đã tự mở), nên hợp lệ; đã chỉnh kịch bản (học sinh mở trong 0,3-1,2 giây, giáo viên chờ 2,5 giây) thay vì che lỗi.
+- **7.4 Kiểm thử toàn bộ.** typecheck, lint, 279 unit, 173 test DB, 205 e2e (hai lần liên tiếp), `npm audit --omit=dev` 0 lỗ hổng, `build`, `scan:bundle` sạch (356 tệp). Kích thước gói (đo bằng cách tìm chuỗi đặc trưng trong `.next/static/chunks`, nên là ước lượng): thư viện QR một chunk khoảng 37 kB (12,6 kB gzip, chỉ ở khu vực `/host`); `read-excel-file` một chunk khoảng 53 kB (14 kB gzip), nạp động chỉ khi chọn `.xlsx`; mã trang nhập quiz khoảng 34 kB (11,7 kB gzip).

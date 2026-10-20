@@ -22,6 +22,7 @@ test.describe("trang Quyền riêng tư", () => {
       "Giáo viên có tài khoản",
       "Tên học sinh",
       "Quiz chơi trực tiếp",
+      "Nhập quiz từ tệp",
       "Dữ liệu được lưu ở đâu",
       "Cookie và theo dõi",
       "Game do bên khác cung cấp",
@@ -51,6 +52,18 @@ test.describe("trang Quyền riêng tư", () => {
     await expect(page.getByRole("heading", { level: 2, name: "Giáo viên có tài khoản" }).locator("..")).toContainText("các buổi đã chơi");
     await expect(page.getByRole("heading", { level: 2, name: "Xoá dữ liệu" }).locator("..")).toContainText("Các buổi đã chơi");
     await expect(page.getByRole("heading", { level: 2, name: "Xoá dữ liệu" }).locator("..")).toContainText("khoảng 90 ngày");
+  });
+
+  test("nêu rõ rương kho báu, mã QR và việc nhập tệp chỉ đọc trong trình duyệt", async ({ page }) => {
+    await page.goto("/privacy");
+    const quiz = page.locator("section", { has: page.getByRole("heading", { level: 2, name: "Quiz chơi trực tiếp" }) });
+    await expect(quiz).toContainText("chế độ kho báu");
+    await expect(quiz).toContainText("điểm trước và sau khi mở");
+    await expect(quiz).toContainText("được giữ và xoá cùng buổi chơi, kể cả khi thầy cô xoá buổi đó");
+    await expect(quiz).toContainText("chỉ chứa địa chỉ vào phòng kèm mã PIN, không chứa thông tin cá nhân");
+    const imported = page.locator("section", { has: page.getByRole("heading", { level: 2, name: "Nhập quiz từ tệp" }) });
+    await expect(imported).toContainText("hoàn toàn trong trình duyệt");
+    await expect(imported).toContainText("tệp không được tải lên máy chủ");
   });
 
   test("hiện biểu ngữ bản nháp cho tới khi chủ dự án duyệt, và email liên hệ đúng cấu hình", async ({ page }) => {

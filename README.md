@@ -145,6 +145,29 @@ Mức Free của Supabase Realtime: **200 kết nối đồng thời, 100 tin m�
 - **Tải cơ sở dữ liệu:** trung bình 28 yêu cầu/giây cho một lớp đang chơi (đỉnh 85 khi đổi pha), chủ yếu `player_state`; `player_state` có p95 dưới 70 ms, `submit_answer` dưới 20 ms.
 - **Lưu ý về lỗi ở 198-205 kết nối:** các lỗi là `UND_ERR_SOCKET`, kết nối bị reset ở cổng 54321 của Docker Desktop trên máy thử khi hơn ~170 máy khách cùng mở kết nối mới; Kong và PostgREST không ghi lỗi nào, `Connection: close` không làm hết lỗi. Kịch bản gửi lại một lần như trình duyệt rồi mới tính lỗi, và chỉ khẳng định "không lỗi" ở tối đa 170 kết nối. Đây là giới hạn của máy thử chứ không phải của dịch vụ thật; số kết nối và số tin mới là phần đáng tin, độ trễ chỉ là cận dưới vì không có mạng thật.
 
+### Nâng cấp quiz (giai đoạn 2.5): mã QR, tự động qua câu, kho báu, nhập từ tệp
+
+**Mã QR.** Ở phòng chờ, màn hình điều khiển hiện mã QR cùng PIN; học sinh quét bằng camera điện thoại để vào đúng phòng với PIN điền sẵn. Mã chỉ chứa địa chỉ vào phòng và PIN. Mã chỉ có ở phòng chờ (tối đa 50 người một phòng) và được dựng ngay trong trình duyệt bằng `qrcode-generator@2.0.4` (MIT, không phụ thuộc gói nào, khoảng 12 kB nén gzip, chỉ tải ở khu vực `/host`).
+
+**Tự động qua câu.** Khi tạo phiên có thể bật "Tự động": hết giờ thì hiện đáp án 5, 8 hoặc 12 giây rồi tự sang câu kế, giáo viên không phải bấm; vẫn có Tạm dừng và Tiếp tục (sau Tiếp tục có 3 giây ân hạn). Việc chuyển câu do **màn hình điều khiển của giáo viên** nhắc máy chủ, nên **hãy giữ cửa sổ điều khiển luôn hiển thị**, đừng thu nhỏ hay để tab khác che: khi tab bị ẩn, trình duyệt giảm tần suất hẹn giờ và câu kế có thể mở chậm. Giờ do máy chủ quyết định (`clock_timestamp()`), không phải đồng hồ máy giáo viên.
+
+**Kho báu.** Bật "Chế độ kho báu" khi tạo phiên. Luật (mọi hằng số nằm trong hàm Postgres, chỉnh bằng một migration nhỏ):
+
+- Đúng liên tiếp 3 câu → một **rương thắng**; sai hoặc bỏ trống liên tiếp 3 câu → một **rương an ủi**. Ngưỡng 3 do máy chủ trả về, giao diện không tự đoán. Nhận rương xong chuỗi bắt đầu đếm lại.
+- Hiệu ứng chỉ tác động **điểm của chính người mở**, không bao giờ trừ điểm bạn khác. Rương thắng: +500, +1000, ×2, ×1,5, −300, ÷2 (có xác suất cho từng hiệu ứng); rương an ủi chỉ có +500, +1000, ×2. Phần điểm tăng thêm không quá +2000 một rương, điểm không bao giờ âm.
+- Rương do học sinh bấm mở; nếu chưa mở, máy chủ **tự mở khi câu kế mở** và trước khi chốt xếp hạng cuối, nên điểm luôn khớp bảng xếp hạng.
+- Mở rương có tính idempotent (bấm hai lần chỉ có một kết quả). Bật cả tự động thì thời gian hiện đáp án tối thiểu là 8 giây.
+
+**Nhập quiz từ tệp.** Ở "Quiz của tôi" bấm "Nhập từ file" (`/my-quizzes/import`): chọn tệp Excel (`.xlsx`) hoặc CSV theo mẫu, hoặc dán văn bản. Giới hạn: tệp tối đa 1 MB, tối đa 50 câu mỗi quiz và 50 quiz mỗi tài khoản. Tệp **chỉ được đọc trong trình duyệt**, không tải lên; xem trước từng câu, lỗi báo theo số dòng gốc, còn lỗi thì chưa cho tạo. Tạo quiz là một giao dịch (hàm `import_quiz`): hỏng giữa chừng thì không có quiz dở.
+
+- Tải tệp mẫu CSV ngay trên trang (UTF-8 có BOM và dòng `sep=,` để Excel mở đúng chữ có dấu). Cột: Loại câu (có thể để trống), Câu hỏi, Lựa chọn A-F, Đáp án đúng (chữ cái, `A, C` cho nhiều đáp án, Đúng/Sai, hoặc đáp án điền từ ngăn bằng `|`), Thời gian, Đáp án chấp nhận, Bỏ dấu.
+- Cú pháp dán: các câu cách nhau bằng dòng trống; lựa chọn `A. nội dung`; đáp án đúng đánh dấu `*` hoặc dòng `Đáp án: B`; câu điền từ `Đáp án: a | b`; thời gian `[30s]` cuối dòng đề. Ví dụ đầy đủ nằm ngay trong trang nhập.
+- Không nhận `.xls` cũ, `.docx` hay PDF (hoãn sang giai đoạn đề thi).
+
+**Gói mới (ghim đúng phiên bản):** `qrcode-generator@2.0.4` (vẽ mã QR); `read-excel-file@9.3.12` (đọc `.xlsx`, nạp động chỉ khi chọn tệp, khoảng 93 kB JS chưa nén; chọn vì `xlsx` của SheetJS trên npm kẹt ở bản có lỗ hổng đã biết, bản vá chỉ phát hành ngoài npm); `fflate@0.8.3` (kiểm danh mục tệp zip trước khi đọc để chặn "zip bomb"). `npm audit --omit=dev` vẫn 0 lỗ hổng. Lý do và nguồn chi tiết ở `plans/20261020-smartteach-quiz-nang-cap/plan.md`.
+
+**Kiểm thử mới.** `npm run test:load` có thêm `LOAD_AUTO=1` (phiên tự động, giáo viên không bấm sau câu đầu) và `LOAD_TREASURE=1` (học sinh mở rương khi có). Các test DB mới: `tests/db/live-auto.test.ts`, `live-treasure.test.ts`, `quiz-import.test.ts`; e2e: `e2e/quiz-import.spec.ts` cùng các test QR, tự động và kho báu.
+
 ### Rà soát trước khi triển khai
 
 - `npm audit --omit=dev`: 0 lỗ hổng.
@@ -155,7 +178,7 @@ Mức Free của Supabase Realtime: **200 kết nối đồng thời, 100 tin m�
 
 Các bước này ghi vào dịch vụ thật, không tự động hoá.
 
-1. `npx supabase db push` để áp ba migration quiz (`20261021090000_quizzes`, `20261022090000_live_sessions`, `20261023090000_results_retention`). Chỉ `db push`, không `config push`.
+1. `npx supabase db push` để áp các migration quiz (giai đoạn 2: `20261021090000_quizzes`, `20261022090000_live_sessions`, `20261023090000_results_retention`; nâng cấp quiz: `20261024090000_auto_advance`, `20261025090000_treasure`, `20261026090000_import_quiz`). Chạy `npx supabase db push --dry-run` trước để xem danh sách. Chỉ `db push`, không `config push`.
 2. Tiện ích `unaccent` (so khớp câu điền từ không dấu) nằm ở schema `extensions`; migration tự tạo nếu chưa có. Sau khi áp, kiểm tra trong SQL Editor: `select extensions.unaccent('extensions.unaccent'::regdictionary, 'Đà Nẵng');` trả về `Da Nang`.
 3. Bật `pg_cron` ở Database, Extensions rồi chạy lại phần lập lịch của migration cuối (hoặc `select cron.schedule('smartteach-purge-old-sessions', '17 3 * * *', 'select private.purge_old_sessions()');`). Không bật thì dữ liệu cũ chỉ bị xoá cơ hội và trang Quyền riêng tư sẽ không đúng. Kiểm tra: `select jobname, schedule from cron.job;`.
 4. Realtime: giữ cho phép kênh công khai Broadcast (Realtime Settings, tắt "Enable Realtime private channels only" nếu có). Ứng dụng dùng kênh công khai `session:<id>` chỉ mang `{ seq }`. Nếu kênh không nối được thì trò chơi vẫn chạy bằng polling nhưng chậm hơn.

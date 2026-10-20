@@ -94,6 +94,10 @@ export default function PrivacyPage() {
           <li>
             Một <strong>bản sao đề</strong> (câu hỏi và đáp án) tại thời điểm bắt đầu, để kết quả không đổi nếu thầy cô sửa quiz về sau.
           </li>
+          <li>
+            Nếu thầy cô bật chế độ <strong>kho báu</strong>: các <strong>rương</strong> của từng biệt danh (loại rương, hiệu ứng đã mở, điểm trước và
+            sau khi mở). Dữ liệu này thuộc về buổi chơi nên được giữ và xoá cùng buổi chơi, kể cả khi thầy cô xoá buổi đó.
+          </li>
         </ul>
         <p>
           Mục đích là để chạy trò chơi, hiện bảng xếp hạng cho cả lớp (biệt danh và điểm) và cho thầy cô xem kết quả sau buổi.
@@ -106,9 +110,24 @@ export default function PrivacyPage() {
           Xoá quiz không xoá các buổi đã chơi của nó; các buổi đó vẫn theo hạn 90 ngày hoặc thầy cô tự xoá.
         </p>
         <p>
+          <strong>Mã QR</strong> ở phòng chờ chỉ chứa địa chỉ vào phòng kèm mã PIN, không chứa thông tin cá nhân nào; ai quét được mã (hoặc biết PIN)
+          thì vào được phòng khi phòng còn mở, nên thầy cô chỉ chiếu mã cho lớp mình và khoá phòng khi đã đủ người.
+        </p>
+        <p>
           Trên điện thoại của học sinh, mã tham gia được giữ trong bộ nhớ tạm của tab trình duyệt để tải lại trang vẫn vào lại đúng người
           chơi, và mất khi đóng tab. Ứng dụng <strong>không ghi lại địa chỉ mạng (IP)</strong> của học sinh và không giới hạn số lần nhập
           mã PIN, nên một bạn gõ nhầm nhiều lần không ảnh hưởng đến cả lớp.
+        </p>
+      </section>
+
+      <section aria-labelledby="import" className={styles.section}>
+        <h2 id="import" className={styles.heading}>
+          Nhập quiz từ tệp
+        </h2>
+        <p>
+          Khi thầy cô nhập câu hỏi từ tệp Excel (.xlsx), CSV hoặc văn bản dán, việc đọc tệp diễn ra <strong>hoàn toàn trong trình duyệt của thầy cô</strong>:
+          tệp không được tải lên máy chủ. Chỉ khi thầy cô bấm “Tạo quiz” thì các câu hỏi đã xem trước mới được lưu thành một quiz như soạn tay.
+          Thầy cô không nên đưa tên hay thông tin cá nhân của học sinh vào nội dung câu hỏi.
         </p>
       </section>
 
@@ -163,7 +182,7 @@ export default function PrivacyPage() {
         </p>
       </section>
 
-      <p className={styles.updated}>Cập nhật lần cuối: 19/10/2026.</p>
+      <p className={styles.updated}>Cập nhật lần cuối: 20/10/2026.</p>
     </div>
   );
 }

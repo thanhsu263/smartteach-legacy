@@ -61,7 +61,7 @@ Brief để mở các chi tiết sau; kế hoạch đặt giá trị khởi đ�
 | 4 | [Kho báu: giao diện](./phase-04-kho-bau-giao-dien.md) | 3 | Done (chờ review) |
 | 5 | [Import: bộ đọc tệp và văn bản](./phase-05-import-bo-doc.md) | không | Done (chờ review) |
 | 6 | [Import: máy chủ và giao diện](./phase-06-import-giao-dien.md) | 5 | Done (chờ review) |
-| 7 | [Hoàn thiện, thử tải và phát hành](./phase-07-hoan-thien-phat-hanh.md) | 1-6 | Pending |
+| 7 | [Hoàn thiện, thử tải và phát hành](./phase-07-hoan-thien-phat-hanh.md) | 1-6 | In progress (7.1-7.4 xong; 7.5-7.7 còn) |
 
 Thứ tự khuyến nghị cho một người làm: 1, 2, 3, 4, 5, 6, 7. Chuỗi 1, (2-3-4) và (5-6) **không dùng chung tệp** nên có thể chạy song song nếu cần; riêng phase 2, 3 cùng sửa các hàm Postgres của phiên nên phải tuần tự, và mỗi lần `create or replace` một hàm phải lấy **định nghĩa mới nhất** từ migration gần nhất (xem Risks).
 
