@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import jsQR from "jsqr";
 import {
   cleanupLive,
   fourKinds,
@@ -95,6 +96,48 @@ test.describe("giáo viên: bắt đầu phiên", () => {
     await speed.uncheck();
     await page.getByRole("button", { name: "Bắt đầu phiên" }).click();
     await expect(page).toHaveURL(/\/host\/[0-9a-f-]{36}$/);
+  });
+});
+
+test.describe("giáo viên: mã QR vào phòng", () => {
+  test("phòng chờ có mã QR trỏ đúng tới /play?pin=<PIN>; mở địa chỉ đó thì ô PIN đã điền", async ({ page, browser }) => {
+    await teacherWithQuiz(page);
+    const pin = await startFromUi(page);
+
+    const qr = page.getByRole("img", { name: "Mã QR vào phòng" });
+    await expect(qr).toBeVisible();
+    const value = await qr.getAttribute("data-value");
+    expect(value).toBe(`${new URL(page.url()).origin}/play?pin=${pin}`);
+    // Mô tả đọc được cho trình đọc màn hình, kèm địa chỉ đích.
+    await expect(qr.locator("desc")).toHaveText(`Quét để mở ${value}`);
+    // Nền QR luôn sáng và mô-đun tối, kể cả khi giao diện tối.
+    await page.emulateMedia({ colorScheme: "dark" });
+    expect(await qr.locator("rect").getAttribute("fill")).toBe("#fff");
+    expect(await qr.locator("path").getAttribute("fill")).toBe("#000");
+
+    // Quét thật: vẽ đúng SVG đang hiển thị ra điểm ảnh rồi giải mã (kiểm cả đường vẽ, không chỉ ma trận).
+    const pixels = await qr.evaluate(async (svg) => {
+      const size = 330;
+      const clone = svg.cloneNode(true) as SVGElement;
+      clone.setAttribute("width", String(size));
+      clone.setAttribute("height", String(size));
+      const image = new Image();
+      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(clone))}`;
+      await image.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const context = canvas.getContext("2d", { willReadFrequently: true })!;
+      context.drawImage(image, 0, 0, size, size);
+      return { size, data: Array.from(context.getImageData(0, 0, size, size).data) };
+    });
+    expect(jsQR(Uint8ClampedArray.from(pixels.data), pixels.size, pixels.size)?.data).toBe(value);
+
+    // Học sinh quét QR = mở đúng địa chỉ đó: ô PIN đã có sẵn, chỉ còn chọn biệt danh.
+    const phone = await browser.newPage({ viewport: { width: 375, height: 812 } });
+    await phone.goto(value as string);
+    await expect(phone.getByLabel(/PIN/)).toHaveValue(pin);
+    await phone.close();
   });
 });
 

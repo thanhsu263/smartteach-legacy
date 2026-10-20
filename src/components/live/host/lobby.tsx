@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/button";
+import { QrCode } from "@/components/qr-code";
 import type { HostPlayer } from "@/lib/live/types";
 import styles from "./host.module.css";
 
@@ -16,7 +17,7 @@ type LobbyProps = {
   onStart: () => void;
 };
 
-/** Phòng chờ: PIN cỡ lớn, địa chỉ tham gia, danh sách người chơi (loại được), khoá phòng và nút bắt đầu. */
+/** Phòng chờ: PIN cỡ lớn kèm mã QR, địa chỉ tham gia, danh sách người chơi (loại được), khoá phòng và nút bắt đầu. */
 export function HostLobby({ title, pin, locked, players, busy, onToggleLock, onRemove, onStart }: LobbyProps) {
   const [copied, setCopied] = useState<"ok" | "manual" | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -40,16 +41,21 @@ export function HostLobby({ title, pin, locked, players, busy, onToggleLock, onR
       <h1 className={styles.title}>Phòng chờ: {title}</h1>
 
       <section className={styles.join} aria-label="Cách vào phòng">
-        <p className={styles.joinLine}>
-          Vào <strong>{shown}/play</strong> trên điện thoại và nhập PIN
-        </p>
-        <p className={styles.pin} aria-label={`PIN: ${pin.split("").join(" ")}`}>
-          {pin}
-        </p>
-        <div className={styles.buttons}>
-          <Button variant="on-primary" onClick={copy}>
-            Sao chép link vào phòng
-          </Button>
+        <div className={styles.joinBody}>
+          <div className={styles.joinInfo}>
+            <p className={styles.joinLine}>
+              Quét mã QR, hoặc vào <strong>{shown}/play</strong> trên điện thoại và nhập PIN
+            </p>
+            <p className={styles.pin} aria-label={`PIN: ${pin.split("").join(" ")}`}>
+              {pin}
+            </p>
+            <div className={styles.buttons}>
+              <Button variant="on-primary" onClick={copy}>
+                Sao chép link vào phòng
+              </Button>
+            </div>
+          </div>
+          {origin ? <QrCode value={joinUrl} label="Mã QR vào phòng" className={styles.qr} /> : null}
         </div>
         {copied ? (
           <p role="status" className={styles.joinNote}>

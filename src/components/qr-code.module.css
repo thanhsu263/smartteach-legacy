@@ -1,0 +1,8 @@
+.qr {
+  display: block;
+  /* Vuông, co theo khung chứa nhưng không vượt khung nhìn; nền trắng nằm trong chính hình (vùng yên tĩnh). */
+  width: min(100%, 70vmin, 24rem);
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+}
