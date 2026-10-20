@@ -57,7 +57,7 @@ Brief để mở các chi tiết sau; kế hoạch đặt giá trị khởi đ�
 |---|---|---|---|
 | 1 | [Mã QR ở phòng chờ](./phase-01-ma-qr.md) | không | Done (chờ review) |
 | 2 | [Tự động qua câu](./phase-02-tu-dong-qua-cau.md) | không | Done (chờ review) |
-| 3 | [Kho báu: máy chủ](./phase-03-kho-bau-may-chu.md) | 2 | Pending |
+| 3 | [Kho báu: máy chủ](./phase-03-kho-bau-may-chu.md) | 2 | Done (chờ review) |
 | 4 | [Kho báu: giao diện](./phase-04-kho-bau-giao-dien.md) | 3 | Pending |
 | 5 | [Import: bộ đọc tệp và văn bản](./phase-05-import-bo-doc.md) | không | Pending |
 | 6 | [Import: máy chủ và giao diện](./phase-06-import-giao-dien.md) | 5 | Pending |

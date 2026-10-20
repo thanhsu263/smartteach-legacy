@@ -347,6 +347,22 @@ describe("rpc", () => {
     expect(await host.advanceIfDue(notYet, UUID)).toEqual({ ok: true, advanced: false });
   });
 
+  it("mở rương gọi đúng hàm; mã sai không gọi máy chủ; lỗi chưa tới pha hiện đáp án có lời nhắn riêng", async () => {
+    const opened = { status: "opened", kind: "win", label: "Nhân đôi điểm", op: "mul", operand: 2, before: 3000, after: 6000 };
+    const ok = client(async () => ({ data: opened, error: null }));
+    expect(await player.openChest(ok, UUID)).toEqual({ ok: true, chest: opened });
+    expect(ok.rpc).toHaveBeenCalledWith("open_chest", { p_token: UUID });
+
+    const early = client(async () => ({ data: null, error: { message: "chest_not_ready" } }));
+    const result = await player.openChest(early, UUID);
+    expect(result.ok === false && result.message).toContain("hiện đáp án");
+    expect(result.ok === false && result.reason).toBe("chest_not_ready");
+
+    const rpc = vi.fn(async () => ({ data: null, error: null }));
+    expect(await player.openChest({ rpc } as unknown as SupabaseClient, "sai")).toMatchObject({ ok: false, fatal: true });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it("tạo phiên trả id và PIN; lỗi quiz chưa chơi được có lời nhắn riêng", async () => {
     const ok = client(async () => ({ data: [{ session_id: UUID, pin: "042913" }], error: null }));
     expect(await host.create(ok, UUID, { speedBonus: true })).toEqual({ ok: true, sessionId: UUID, pin: "042913" });

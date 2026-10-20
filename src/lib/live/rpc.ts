@@ -3,7 +3,7 @@ import { isUuid } from "@/lib/classes/api";
 import { describeJoinCode, describeLiveError, isFatalPlayerError, liveErrorKey } from "@/lib/live/errors";
 import type { HistoryRow, HostResults } from "@/lib/live/results";
 import type { FetchOutcome } from "@/lib/live/sync";
-import type { AnswerValue, HostState, JoinCode, LeaderboardView, PlayerState } from "@/lib/live/types";
+import type { AnswerValue, ChestView, HostState, JoinCode, LeaderboardView, PlayerState } from "@/lib/live/types";
 
 /**
  * Lớp gọi các hàm Postgres của phiên chơi (xem migration live_sessions), trả kết quả có kiểu và lỗi
@@ -176,6 +176,14 @@ export const player = {
     if (!isUuid(token)) return BAD_TOKEN;
     const { error } = await call(supabase, "leave_session", { p_token: token });
     return error ? fail(error) : { ok: true };
+  },
+
+  /** Mở rương của câu vừa đóng (chỉ ở pha hiện đáp án). Gọi lại trả đúng kết quả đã mở, nên thử lại khi mất mạng là an toàn. */
+  async openChest(supabase: SupabaseClient, token: string): Promise<LiveResult<{ chest: ChestView }>> {
+    if (!isUuid(token)) return BAD_TOKEN;
+    const { data, error } = await call(supabase, "open_chest", { p_token: token });
+    if (error || !data) return fail(error);
+    return { ok: true, chest: data as ChestView };
   },
 
   async leaderboard(supabase: SupabaseClient, token: string): Promise<LiveResult<{ board: LeaderboardView }>> {

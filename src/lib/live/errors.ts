@@ -11,6 +11,8 @@ const MESSAGES: [string, string][] = [
   ["answer_closed", "Hết giờ rồi nên câu trả lời không được nhận."],
   ["already_answered", "Bạn đã trả lời câu này rồi."],
   ["participant_removed", "Giáo viên đã mời bạn rời phòng."],
+  ["chest_not_ready", "Chưa mở rương được lúc này. Bạn đợi đến khi hiện đáp án nhé."],
+  ["no_chest", "Bạn chưa có rương nào để mở."],
   ["invalid_answer", "Câu trả lời chưa hợp lệ. Bạn kiểm tra lại rồi gửi nhé."],
   // Giáo viên.
   ["session_already_active", "Thầy cô đang có một phiên chưa kết thúc. Kết thúc phiên đó trước khi bắt đầu phiên mới."],

@@ -4,8 +4,8 @@ import { buildMatrix, correctRate, describeAnswer, describeCell, formatDateTime,
 const base: Pick<HostResults, "ranking" | "answers" | "question_total"> = {
   question_total: 3,
   ranking: [
-    { id: "p1", nickname: "Lan", score: 2000, rank: 1, removed: false, left: false, answered: 2, correct: 2, avg_response_ms: 1200 },
-    { id: "p2", nickname: "Huy", score: 0, rank: 2, removed: false, left: false, answered: 1, correct: 0, avg_response_ms: 3000 },
+    { id: "p1", nickname: "Lan", score: 2000, rank: 1, removed: false, left: false, answered: 2, correct: 2, avg_response_ms: 1200, treasure_delta: 0, treasure_chests: 0 },
+    { id: "p2", nickname: "Huy", score: 0, rank: 2, removed: false, left: false, answered: 1, correct: 0, avg_response_ms: 3000, treasure_delta: 0, treasure_chests: 0 },
   ],
   answers: [
     { player: "p1", q: 1, answer: 0, ok: true, points: 1000, ms: 900 },

@@ -12,6 +12,9 @@ export type RankedPlayer = {
   answered: number;
   correct: number;
   avg_response_ms: number | null;
+  /** Tổng thay đổi điểm do rương kho báu đã mở (0 nếu không bật chế độ). */
+  treasure_delta: number;
+  treasure_chests: number;
 };
 
 export type QuestionResult = {
@@ -44,6 +47,7 @@ export type HostResults = {
   created_at: string;
   ended_at: string | null;
   speed_bonus: boolean;
+  treasure_mode: boolean;
   question_total: number;
   player_count: number;
   average_score: number;

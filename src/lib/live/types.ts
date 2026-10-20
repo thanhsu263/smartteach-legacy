@@ -14,7 +14,17 @@ export type PublicQuestion = {
 /** Khoá đáp án; chỉ có sau khi câu đã đóng. */
 export type QuestionKey = { correct: number[] } | { accepted_answers: string[]; ignore_diacritics: boolean };
 
-export type LeaderboardRow = { rank: number; nickname: string; score: number };
+/** Loại rương: thắng (3 câu đúng liền nhau) hoặc an ủi (3 câu sai hoặc bỏ trống liền nhau). */
+export type ChestKind = "win" | "comfort";
+
+/** Rương của một học sinh: chưa mở thì chỉ có loại (hiệu ứng được máy chủ giấu tới khi mở). */
+export type ChestView =
+  | { status: "pending"; kind: ChestKind }
+  | { status: "opened"; kind: ChestKind; label: string; op: "add" | "sub" | "mul" | "div"; operand: number; before: number; after: number };
+
+export type TreasureFeedItem = { nickname: string; label: string; kind: ChestKind };
+
+export type LeaderboardRow ={ rank: number; nickname: string; score: number };
 
 export type Distribution = {
   correct: number;
@@ -56,6 +66,9 @@ export type HostState = {
   paused: boolean;
   /** Giờ máy chủ sẽ mở câu kế; null khi không ở pha hiện đáp án, tắt tự động hoặc đang tạm dừng. */
   reveal_ends_at: string | null;
+  /** Chế độ giải trí kho báu. `treasure_feed` (các rương vừa mở, mới nhất trước) chỉ có khi bật. */
+  treasure_mode: boolean;
+  treasure_feed?: TreasureFeedItem[];
   question?: PublicQuestion;
   key?: QuestionKey;
   distribution?: Distribution;
@@ -92,6 +105,9 @@ export type PlayerState = {
   auto_advance?: boolean;
   paused?: boolean;
   next_at?: string | null;
+  /** Chỉ khi phiên bật kho báu: chuỗi đang chạy, và rương của câu vừa đóng (ở pha hiện đáp án). */
+  streak?: { win: number; lose: number };
+  chest?: ChestView;
 };
 
 export type LeaderboardView = {
