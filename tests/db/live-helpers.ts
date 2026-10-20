@@ -68,8 +68,12 @@ export async function newQuiz(host: TestUser, items: QuestionInput[] = questions
   return buildQuiz(host.client, title, items);
 }
 
-export async function startSession(host: TestUser, quizId: string, speedBonus = true) {
-  const { data, error } = await host.client.rpc("create_session", { p_quiz_id: quizId, p_speed_bonus: speedBonus });
+export async function startSession(host: TestUser, quizId: string, speedBonus = true, options: Record<string, unknown> = {}) {
+  const { data, error } = await host.client.rpc("create_session", {
+    p_quiz_id: quizId,
+    p_speed_bonus: speedBonus,
+    p_options: options,
+  });
   expect(error, "create_session").toBeNull();
   const row = (data as { session_id: string; pin: string }[])[0];
   return { id: row.session_id, pin: row.pin };

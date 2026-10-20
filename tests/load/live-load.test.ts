@@ -139,7 +139,7 @@ async function runClass(label: string): Promise<ClassSummary> {
   const teacherClient = loadClient();
   await teacherClient.auth.setSession((await teacher.client.auth.getSession()).data.session!);
   const quizId = await buildQuiz(teacher.client, `Quiz tải ${label}`, quizQuestions);
-  const created = await host.create(teacherClient, quizId, true);
+  const created = await host.create(teacherClient, quizId, { speedBonus: true });
   if (!created.ok) throw new Error(`create_session: ${created.message}`);
   const { sessionId, pin } = created;
 

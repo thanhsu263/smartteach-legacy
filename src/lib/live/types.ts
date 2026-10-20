@@ -50,6 +50,12 @@ export type HostState = {
   closes_at: string | null;
   players: HostPlayer[];
   answered_count: number;
+  /** Tự động qua câu: hết giờ thì hiện đáp án `reveal_seconds` giây rồi máy chủ mở câu kế. */
+  auto_advance: boolean;
+  reveal_seconds: number;
+  paused: boolean;
+  /** Giờ máy chủ sẽ mở câu kế; null khi không ở pha hiện đáp án, tắt tự động hoặc đang tạm dừng. */
+  reveal_ends_at: string | null;
   question?: PublicQuestion;
   key?: QuestionKey;
   distribution?: Distribution;
@@ -82,6 +88,10 @@ export type PlayerState = {
   points?: number;
   rank?: number;
   player_total?: number;
+  /** Chỉ ở pha hiện đáp án: phiên có tự động qua câu không, có đang tạm dừng không, và giờ máy chủ mở câu kế. */
+  auto_advance?: boolean;
+  paused?: boolean;
+  next_at?: string | null;
 };
 
 export type LeaderboardView = {

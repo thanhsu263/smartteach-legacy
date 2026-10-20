@@ -154,8 +154,12 @@ function wrap(teacher: Teacher, id: string, pin: string) {
   };
 }
 
-export async function startSession(teacher: Teacher, quizId: string, speedBonus = false) {
-  const { data, error } = await teacher.client.rpc("create_session", { p_quiz_id: quizId, p_speed_bonus: speedBonus });
+export async function startSession(teacher: Teacher, quizId: string, speedBonus = false, options: Record<string, unknown> = {}) {
+  const { data, error } = await teacher.client.rpc("create_session", {
+    p_quiz_id: quizId,
+    p_speed_bonus: speedBonus,
+    p_options: options,
+  });
   if (error) throw new Error(`create_session: ${error.message}`);
   const row = (data as { session_id: string; pin: string }[])[0];
   return wrap(teacher, row.session_id, row.pin);

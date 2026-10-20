@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button, ButtonLink } from "@/components/button";
+import { AutoAdvanceBar } from "./auto-advance-bar";
 import { ToolStage } from "@/components/tool-stage";
 import { host, type LiveResult } from "@/lib/live/rpc";
 import type { HostPlayer, HostState } from "@/lib/live/types";
@@ -69,6 +70,23 @@ export function HostScreen({ sessionId }: { sessionId: string }) {
     }
     setMessage(null);
     return result.closed;
+  }
+
+  /**
+   * Tới giờ tự mở câu kế: nhờ máy chủ chuyển (chỉ chuyển khi giờ máy chủ đã qua hạn). Trả true nếu đã chuyển; false nếu
+   * chưa tới hạn hoặc gặp lỗi (lỗi được báo và sẽ thử lại). Chỉ khi thật sự chuyển mới báo `seq` cho người chơi.
+   */
+  async function advanceWhenDue(): Promise<boolean> {
+    const supabase = getBrowserSupabase();
+    if (!supabase) return false;
+    const result = await host.advanceIfDue(supabase, sessionId);
+    if (!result.ok) {
+      setMessage(result.message);
+      return false;
+    }
+    setMessage(null);
+    if (result.advanced) await live.act(async () => ({ ok: true as const }));
+    return result.advanced;
   }
 
   const activeCount = state ? state.players.filter((player) => !player.removed).length : 0;
@@ -226,6 +244,16 @@ export function HostScreen({ sessionId }: { sessionId: string }) {
           <p role="alert" className={styles.error}>
             {message}
           </p>
+        ) : null}
+
+        {state.auto_advance && (state.status === "question" || state.status === "reveal") ? (
+          <AutoAdvanceBar
+            state={state}
+            clock={live.clock}
+            busy={busy}
+            onTogglePause={() => void run((s) => host.setPaused(s, sessionId, !state.paused))}
+            onDue={advanceWhenDue}
+          />
         ) : null}
 
         {body}

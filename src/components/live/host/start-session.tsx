@@ -12,6 +12,9 @@ import { host } from "@/lib/live/rpc";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import styles from "./host.module.css";
 
+/** Số giây hiện đáp án khi tự động qua câu (máy chủ chỉ nhận đúng ba giá trị này). */
+const REVEAL_CHOICES = [5, 8, 12] as const;
+
 type ActiveSession = { id: string; pin: string } | null;
 
 type Loaded = { quizId: string; active: ActiveSession; problems: QuizProblem[] | null; error: string | null };
@@ -27,6 +30,8 @@ export function StartSession({ quizId, problems: knownProblems = null }: { quizI
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(true);
+  const [autoAdvance, setAutoAdvance] = useState(false);
+  const [revealSeconds, setRevealSeconds] = useState<(typeof REVEAL_CHOICES)[number]>(8);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmingEnd, setConfirmingEnd] = useState(false);
@@ -66,7 +71,7 @@ export function StartSession({ quizId, problems: knownProblems = null }: { quizI
     if (!supabase || busy) return;
     setBusy(true);
     setError(null);
-    const result = await host.create(supabase, quizId, speedBonus);
+    const result = await host.create(supabase, quizId, { speedBonus, autoAdvance, revealSeconds });
     if (result.ok) {
       router.push(`/host/${result.sessionId}`);
       return;
@@ -159,6 +164,26 @@ export function StartSession({ quizId, problems: knownProblems = null }: { quizI
                 <input type="checkbox" checked={speedBonus} onChange={(event) => setSpeedBonus(event.target.checked)} />
                 <span>Tính thêm điểm theo tốc độ (trả lời nhanh được điểm cao hơn, 500 đến 1000 mỗi câu)</span>
               </label>
+              <label className={styles.check}>
+                <input type="checkbox" checked={autoAdvance} onChange={(event) => setAutoAdvance(event.target.checked)} />
+                <span>Tự động qua câu (hết giờ thì hiện đáp án rồi tự sang câu kế; cần để màn hình điều khiển mở suốt buổi)</span>
+              </label>
+              {autoAdvance ? (
+                <fieldset className={styles.choices}>
+                  <legend className={styles.choicesLegend}>Thời gian hiện đáp án trước khi sang câu kế</legend>
+                  {REVEAL_CHOICES.map((seconds) => (
+                    <label key={seconds} className={styles.check}>
+                      <input
+                        type="radio"
+                        name={`${baseId}-reveal`}
+                        checked={revealSeconds === seconds}
+                        onChange={() => setRevealSeconds(seconds)}
+                      />
+                      <span>{seconds} giây</span>
+                    </label>
+                  ))}
+                </fieldset>
+              ) : null}
               <div className={styles.buttons}>
                 <Button variant="primary" disabled={busy} onClick={start}>
                   {busy ? "Đang tạo phiên…" : "Bắt đầu phiên"}

@@ -1,8 +1,10 @@
 "use client";
 
 import { CheckIcon, ClockIcon, CloseIcon } from "@/components/icons";
+import { parseServerTime, type ServerClock } from "@/lib/live/clock";
 import type { LeaderboardView, PlayerState } from "@/lib/live/types";
 import { useLeaderboard } from "@/lib/live/use-leaderboard";
+import { useNow } from "@/lib/live/use-now";
 import { ReviewTiles } from "./answer-tiles";
 import { answerStyle } from "./answer-styles";
 import styles from "./player.module.css";
@@ -34,8 +36,12 @@ function Board({ top, myRank, nickname }: { top: LeaderboardView["top"]; myRank:
 }
 
 /** Kết quả một câu sau khi đóng: đúng hay sai bằng chữ và biểu tượng, điểm, đáp án đúng và bảng xếp hạng. */
-export function Result({ state, token }: { state: PlayerState; token: string }) {
+export function Result({ state, token, clock }: { state: PlayerState; token: string; clock: ServerClock }) {
   const board = useLeaderboard(token, `${state.seq}`);
+  const auto = state.auto_advance === true;
+  const nextAt = state.next_at ? parseServerTime(state.next_at) : Number.NaN;
+  const counting = auto && state.paused !== true && Number.isFinite(nextAt);
+  const now = useNow(500, counting);
   const question = state.question;
   const key = state.key;
   if (!question || !key) return null;
@@ -104,7 +110,20 @@ export function Result({ state, token }: { state: PlayerState; token: string }) 
 
       <p role="status" className={styles.waiting}>
         <ClockIcon aria-hidden="true" />
-        <span>Chờ thầy cô sang câu tiếp theo…</span>
+        {!auto ? (
+          <span>Chờ thầy cô sang câu tiếp theo…</span>
+        ) : state.paused === true ? (
+          <span>Thầy cô đang tạm dừng. Câu tiếp theo bắt đầu khi thầy cô tiếp tục.</span>
+        ) : (
+          <>
+            {/* Câu chữ cố định cho trình đọc màn hình; số giây đổi mỗi nhịp chỉ để nhìn. */}
+            <span className="visually-hidden">{state.question_index! >= state.question_total ? "Kết quả cuối sẽ tự hiện." : "Câu tiếp theo sẽ tự bắt đầu, bạn không cần bấm gì."}</span>
+            <span aria-hidden="true">
+              {state.question_index! >= state.question_total ? "Kết quả cuối hiện" : "Câu tiếp theo bắt đầu"}
+              {counting ? ` sau ${Math.max(0, Math.ceil((nextAt - (now + clock.offsetMs())) / 1000))} giây` : " ngay"}
+            </span>
+          </>
+        )}
       </p>
     </div>
   );

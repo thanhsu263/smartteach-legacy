@@ -22,6 +22,7 @@ const MESSAGES: [string, string][] = [
   ["session_not_ended", "Phiên còn đang chạy nên chưa có kết quả đầy đủ."],
   ["session_active", "Phiên còn đang chạy. Thầy cô kết thúc phiên trước rồi hãy xoá."],
   ["invalid_transition", "Bước này chưa làm được ở thời điểm hiện tại. Thầy cô làm mới trang rồi thử lại."],
+  ["invalid_options", "Tuỳ chọn của phiên chưa hợp lệ. Thầy cô chọn lại rồi bắt đầu nhé."],
   ["participant_not_found", "Không tìm thấy người chơi này. Có thể bạn ấy đã được loại."],
   ["not_authenticated", "Thầy cô đăng nhập để dùng chức năng này nhé."],
 ];

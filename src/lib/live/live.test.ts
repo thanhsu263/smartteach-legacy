@@ -314,15 +314,44 @@ describe("rpc", () => {
     expect(rpc).toHaveBeenCalledWith("host_remove_participant", { p_session: UUID, p_participant: UUID });
     const calls = rpc.mock.calls.length;
     expect(await host.next(c, "sai")).toMatchObject({ ok: false });
-    expect(await host.create(c, "sai", true)).toMatchObject({ ok: false });
+    expect(await host.create(c, "sai", { speedBonus: true })).toMatchObject({ ok: false });
     expect(rpc.mock.calls.length).toBe(calls);
+  });
+
+  it("tuỳ chọn tự động qua câu: chỉ gửi khi bật; hàm advanceIfDue và setPaused gọi đúng tên hàm", async () => {
+    const rpc = vi.fn(async (fn: string) => ({ data: fn === "create_session" ? [{ session_id: UUID, pin: "042913" }] : true, error: null }));
+    const c = { rpc } as unknown as SupabaseClient;
+
+    await host.create(c, UUID, { speedBonus: true });
+    expect(rpc).toHaveBeenLastCalledWith("create_session", { p_quiz_id: UUID, p_speed_bonus: true, p_options: {} });
+    await host.create(c, UUID, { speedBonus: false, autoAdvance: true, revealSeconds: 12 });
+    expect(rpc).toHaveBeenLastCalledWith("create_session", {
+      p_quiz_id: UUID,
+      p_speed_bonus: false,
+      p_options: { auto_advance: true, reveal_seconds: 12 },
+    });
+    // Tắt tự động thì giây hiện đáp án không được gửi dù có chọn.
+    await host.create(c, UUID, { speedBonus: true, autoAdvance: false, revealSeconds: 5 });
+    expect(rpc).toHaveBeenLastCalledWith("create_session", { p_quiz_id: UUID, p_speed_bonus: true, p_options: {} });
+
+    expect(await host.advanceIfDue(c, UUID)).toEqual({ ok: true, advanced: true });
+    expect(rpc).toHaveBeenLastCalledWith("host_advance_if_due", { p_session: UUID });
+    await host.setPaused(c, UUID, true);
+    expect(rpc).toHaveBeenLastCalledWith("host_set_paused", { p_session: UUID, p_paused: true });
+    const calls = rpc.mock.calls.length;
+    expect(await host.advanceIfDue(c, "sai")).toMatchObject({ ok: false });
+    expect(await host.setPaused(c, "sai", false)).toMatchObject({ ok: false });
+    expect(rpc.mock.calls.length).toBe(calls);
+
+    const notYet = { rpc: vi.fn(async () => ({ data: false, error: null })) } as unknown as SupabaseClient;
+    expect(await host.advanceIfDue(notYet, UUID)).toEqual({ ok: true, advanced: false });
   });
 
   it("tạo phiên trả id và PIN; lỗi quiz chưa chơi được có lời nhắn riêng", async () => {
     const ok = client(async () => ({ data: [{ session_id: UUID, pin: "042913" }], error: null }));
-    expect(await host.create(ok, UUID, true)).toEqual({ ok: true, sessionId: UUID, pin: "042913" });
+    expect(await host.create(ok, UUID, { speedBonus: true })).toEqual({ ok: true, sessionId: UUID, pin: "042913" });
     const bad = client(async () => ({ data: null, error: { message: "quiz_not_playable" } }));
-    const result = await host.create(bad, UUID, true);
+    const result = await host.create(bad, UUID, { speedBonus: true });
     expect(result.ok === false && result.message).toContain("chơi được");
   });
 });

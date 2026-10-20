@@ -41,11 +41,31 @@ async function action(supabase: SupabaseClient, fn: string, args: Record<string,
   return error ? fail(error, false) : { ok: true };
 }
 
+/** Tuỳ chọn khi bắt đầu phiên. */
+export type SessionOptions = {
+  speedBonus: boolean;
+  /** Hết giờ thì hiện đáp án rồi tự mở câu kế. */
+  autoAdvance?: boolean;
+  /** Số giây hiện đáp án khi tự động: 5, 8 hoặc 12 (máy chủ từ chối giá trị khác). */
+  revealSeconds?: number;
+};
+
 /** Hàm của giáo viên. */
 export const host = {
-  async create(supabase: SupabaseClient, quizId: string, speedBonus: boolean): Promise<LiveResult<{ sessionId: string; pin: string }>> {
+  async create(
+    supabase: SupabaseClient,
+    quizId: string,
+    options: SessionOptions,
+  ): Promise<LiveResult<{ sessionId: string; pin: string }>> {
     if (!isUuid(quizId)) return { ok: false, message: describeLiveError({ message: "quiz_not_found" }), fatal: false };
-    const { data, error } = await call(supabase, "create_session", { p_quiz_id: quizId, p_speed_bonus: speedBonus });
+    const { data, error } = await call(supabase, "create_session", {
+      p_quiz_id: quizId,
+      p_speed_bonus: options.speedBonus,
+      // Chỉ gửi những gì giáo viên bật: khoá vắng mặt thì máy chủ dùng mặc định (tắt tự động, 8 giây).
+      p_options: {
+        ...(options.autoAdvance ? { auto_advance: true, reveal_seconds: options.revealSeconds ?? 8 } : {}),
+      },
+    });
     const row = Array.isArray(data) ? (data[0] as { session_id?: string; pin?: string } | undefined) : undefined;
     if (error || !row?.session_id || !row.pin) return fail(error, false);
     return { ok: true, sessionId: row.session_id, pin: row.pin };
@@ -105,6 +125,16 @@ export const host = {
     const { data, error } = await call(supabase, "host_close_if_expired", { p_session: sessionId });
     return error ? fail(error, false) : { ok: true, closed: data === true };
   },
+
+  /** Tự mở câu kế khi tới giờ: máy chủ chỉ làm nếu giờ của nó đã qua `reveal_ends_at`. `advanced` false nghĩa là chưa tới hạn hoặc đã chuyển rồi. */
+  async advanceIfDue(supabase: SupabaseClient, sessionId: string): Promise<LiveResult<{ advanced: boolean }>> {
+    if (!isUuid(sessionId)) return BAD_SESSION;
+    const { data, error } = await call(supabase, "host_advance_if_due", { p_session: sessionId });
+    return error ? fail(error, false) : { ok: true, advanced: data === true };
+  },
+
+  setPaused: (supabase: SupabaseClient, sessionId: string, paused: boolean) =>
+    isUuid(sessionId) ? action(supabase, "host_set_paused", { p_session: sessionId, p_paused: paused }) : Promise.resolve(BAD_SESSION),
 
   next: (supabase: SupabaseClient, sessionId: string) =>
     isUuid(sessionId) ? action(supabase, "host_next", { p_session: sessionId }) : Promise.resolve(BAD_SESSION),
