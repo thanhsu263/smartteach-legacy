@@ -81,6 +81,19 @@ export async function createQuiz(supabase: SupabaseClient, title: string): Promi
   return { ok: true, id: data.id as string };
 }
 
+/**
+ * Tạo quiz cùng toàn bộ câu hỏi đã đọc từ tệp hoặc văn bản trong MỘT lời gọi (một giao dịch ở máy chủ): lỗi thì không có quiz
+ * nào được tạo. `questions` đã qua bộ đọc `src/lib/quiz/import` nên đã chuẩn hoá và đúng luật; máy chủ vẫn kiểm lại.
+ */
+export async function importQuiz(supabase: SupabaseClient, title: string, questions: readonly QuestionInput[]): Promise<Result<{ id: string }>> {
+  const problem = validateTitle(title);
+  if (problem) return { ok: false, message: problem };
+  if (questions.length === 0) return { ok: false, message: describeQuizError({ message: "empty_import" }) };
+  const { data, error } = await supabase.rpc("import_quiz", { p_title: title.trim(), p_questions: questions });
+  if (error || typeof data !== "string") return fail(error);
+  return { ok: true, id: data };
+}
+
 export async function renameQuiz(supabase: SupabaseClient, id: string, title: string): Promise<Result<object>> {
   const problem = validateTitle(title);
   if (problem) return { ok: false, message: problem };

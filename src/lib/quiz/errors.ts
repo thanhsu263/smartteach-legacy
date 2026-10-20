@@ -29,6 +29,9 @@ export function describeQuizError(error: ErrorLike): string {
   if (message.includes("option_limit_exceeded")) {
     return `Một câu hỏi có tối đa ${MAX_OPTIONS_PER_QUESTION} lựa chọn.`;
   }
+  if (message.includes("empty_import")) {
+    return "Chưa có câu hỏi nào để nhập. Thầy cô kiểm tra lại tệp hoặc văn bản nhé.";
+  }
   if (message.includes("shared_quiz_not_found")) {
     return "Không tìm thấy quiz này. Link có thể đã bị thu hồi hoặc chưa đúng.";
   }

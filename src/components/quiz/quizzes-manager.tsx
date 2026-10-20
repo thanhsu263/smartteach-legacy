@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { useAuth } from "@/components/auth-provider";
-import { Button } from "@/components/button";
+import { Button, ButtonLink } from "@/components/button";
 import { StartSession } from "@/components/live/host/start-session";
 import { useFocusRequest } from "@/components/use-focus-request";
 import type { Result } from "@/lib/classes/api";
@@ -125,6 +125,12 @@ export function QuizzesManager() {
           </Button>
           {atLimit ? <p className={styles.hint}>Đã đủ {MAX_QUIZZES} quiz. Xoá bớt quiz cũ để tạo quiz mới.</p> : null}
         </form>
+        <p className={styles.hint}>Đã có sẵn câu hỏi trong Excel hoặc CSV, hoặc muốn dán từ Word?</p>
+        <div>
+          <ButtonLink href="/my-quizzes/import" variant="secondary">
+            Nhập từ file
+          </ButtonLink>
+        </div>
       </section>
 
       <section aria-labelledby={`${titleId}-list`} className={styles.panel}>
