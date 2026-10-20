@@ -166,7 +166,7 @@ export function StartSession({ quizId, problems: knownProblems = null }: { quizI
               </label>
               <label className={styles.check}>
                 <input type="checkbox" checked={autoAdvance} onChange={(event) => setAutoAdvance(event.target.checked)} />
-                <span>Tự động qua câu (hết giờ thì hiện đáp án rồi tự sang câu kế; cần để màn hình điều khiển mở suốt buổi)</span>
+                <span>Tự động qua câu (hết giờ thì hiện đáp án rồi tự sang câu kế; giữ màn hình điều khiển luôn hiển thị, không thu nhỏ hay che)</span>
               </label>
               {autoAdvance ? (
                 <fieldset className={styles.choices}>

@@ -113,6 +113,27 @@ test("hết giờ thì tự hiện đáp án, đợi đúng thời gian rồi t�
   expect((await session.state()).status).toBe("ended");
 });
 
+test("nhắc máy chủ mở câu kế gặp lỗi mạng thì báo lỗi, giữ nguyên màn hiện đáp án rồi thử lại tới khi sang được", async ({ browser }) => {
+  test.setTimeout(120_000);
+  const { teacherPage, phone } = await autoSession(browser, 5);
+
+  await teacherPage.route("**/rest/v1/rpc/host_advance_if_due", (route) => route.abort("failed"));
+  await teacherPage.getByRole("button", { name: "Bắt đầu" }).click();
+  await expect(teacherPage.getByRole("button", { name: "Câu tiếp theo" })).toBeVisible({ timeout: 15_000 });
+
+  // Quá 5 giây mà lời nhắc không tới được máy chủ: báo lỗi và đứng nguyên ở câu 1 (không tự đổi gì ở máy khách).
+  await expect(teacherPage.getByRole("alert").filter({ hasText: "Mất kết nối" })).toBeVisible({ timeout: 15_000 });
+  await expect(heading(teacherPage, FIRST)).toBeVisible();
+  await expect(teacherPage.getByRole("button", { name: "Câu tiếp theo" })).toBeVisible();
+  await expect(heading(phone, SECOND)).toHaveCount(0);
+
+  // Có mạng lại: lần thử kế tiếp (mỗi giây) sang câu 2 và xoá lời báo lỗi.
+  await teacherPage.unroute("**/rest/v1/rpc/host_advance_if_due");
+  await expect(heading(teacherPage, SECOND)).toBeVisible({ timeout: 10_000 });
+  await expect(teacherPage.getByRole("alert").filter({ hasText: "Mất kết nối" })).toHaveCount(0);
+  await expect(heading(phone, SECOND)).toBeVisible();
+});
+
 test("Tạm dừng giữ nguyên màn hiện đáp án; Tiếp tục thì sang câu kế sau khoảng 3 giây", async ({ browser }) => {
   test.setTimeout(120_000);
   const { teacherPage, phone } = await autoSession(browser, 12);

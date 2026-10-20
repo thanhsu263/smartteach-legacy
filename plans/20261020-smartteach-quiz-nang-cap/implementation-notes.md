@@ -34,3 +34,13 @@ Kết quả: typecheck, lint, 19 test e2e `host` và `host-a11y` đạt.
 - Kiểm chứng: `tests/db/live-auto.test.ts` 13 test (cấu hình, 9 giá trị sai bị từ chối HTTP 400, giờ máy chủ, không mở sớm, đúng một lần kể cả 6 lời gọi song song, không chạy khi tắt hoặc tạm dừng hoặc ngoài pha reveal, câu cuối sang `ended`, tạm dừng/tiếp tục và ân hạn 3 giây, quyền). `e2e/auto-advance.spec.ts` 6 test (bảng bắt đầu, chạy tự động hai câu tới bục vinh danh không ai bấm, không sang trước 5 giây, Tạm dừng/Tiếp tục, bấm tay vẫn dùng được, axe 1280/375 cho bảng bắt đầu và dải ở các pha).
 - Phá thử trên cơ sở dữ liệu cục bộ (bảy thay đổi hàm, khôi phục sau mỗi lần): bỏ kiểm tra giờ, tạm dừng, bật tự động, pha `reveal`, ân hạn 3 giây, chặn khi tắt tự động, xoá `reveal_ends_at` ở `open_next` đều làm test hỏng; riêng "bỏ kiểm tra pha reveal" lúc đầu **không** bị bắt nên đã thêm bước giờ chốt sót ở pha hỏi vào test. Phá thử phía client: dải không nhắc máy chủ thì e2e hỏng.
 - Kết quả: typecheck, lint, 217 unit, 143 test DB, 184 e2e (hai lần liên tiếp), `scan:bundle` sạch, thử tải 1x40 vẫn 41 tin/giây và không lỗi. Thử tải với tự động bật để ở task 7.3.
+
+### Sửa sau review phase 2
+
+Review (`a5ea6e8`) không có Critical hay High.
+
+| Mục | Xử lý | Kiểm chứng |
+|---|---|---|
+| Verification Gap (Low): vòng thử lại của dải tự động khi lời nhắc `host_advance_if_due` thất bại chưa có test | Thêm e2e: chặn lời gọi bằng `route.abort`, kỳ vọng báo "Mất kết nối", màn hình đứng nguyên ở câu 1 và điện thoại chưa sang câu 2; bỏ chặn thì lần thử kế tiếp sang câu 2 và lời báo lỗi biến mất | Phá thử: bỏ lần hẹn thử lại thì test hỏng (hết 10 giây không sang được) |
+| Chữ hướng dẫn ở bảng bắt đầu phiên | Đổi thành "giữ màn hình điều khiển luôn hiển thị, không thu nhỏ hay che" (trước là "cần để màn hình điều khiển mở suốt buổi"); task 7.2 yêu cầu README nêu cùng ý và lý do (tab ẩn thì trình duyệt giảm tần suất hẹn giờ) | `auto-advance.spec.ts` vẫn tìm theo nhãn "Tự động qua câu" |
+| **Medium (chưa sửa, xử lý sau khi thử lớp thật): tự động qua câu và đóng câu hết giờ phụ thuộc tab giáo viên đang hiển thị** | Chrome giảm tần suất hẹn giờ của tab ẩn (khoảng mỗi giây, và sau khoảng 5 phút ẩn chỉ khoảng mỗi phút) nên câu kế có thể mở trễ tới ~1 phút nếu giáo viên che cửa sổ điều khiển. Chưa tái hiện trên Chrome thật. Task 7.7 thêm phép thử bật tự động rồi chuyển sang cửa sổ khác 6-7 phút. Nếu thấy trễ: thêm hàm anon (dùng mã tham gia, máy chủ vẫn tự kiểm giờ và điều kiện nên không thêm quyền) cho điện thoại học sinh nhắc mở câu kế và đóng câu hết giờ, kèm test DB và e2e | Chờ nghiệm thu |
