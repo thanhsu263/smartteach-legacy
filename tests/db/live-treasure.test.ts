@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { admin, anon, cleanupUsers, signUp, simpleQuestion, type TestUser } from "./helpers";
-import { allKeys, host, hostOk, hostState, joinOk, newQuiz, playerState, psql, rpcStatus, startSession, submitOk, type Json } from "./live-helpers";
+import { allKeys, host, hostOk, hostState, joinOk, newQuiz, playerState, psql, psqlAsync, rpcStatus, startSession, submitOk, type Json } from "./live-helpers";
 
 /**
  * Kho báu (phase 3 của giai đoạn 2.5): chuỗi thắng/thua, phát rương, mở rương, hiệu ứng ngẫu nhiên, chốt rương và quyền.
@@ -245,6 +245,123 @@ describe("mở rương", () => {
     expect(await chests(s.id, "an")).toHaveLength(1);
     await hostOk(t, "host_end_session", { p_session: s.id });
   }, 120_000);
+});
+
+describe("đồng thời giữa học sinh mở rương và giáo viên chuyển pha", () => {
+  /** Phiên có một rương thắng đang chờ ở pha hiện đáp án câu 3 (bốn câu). */
+  async function sessionWithPendingChest(t: TestUser) {
+    const s = await treasureSession(t, ["an"], 4);
+    await playPatterns(t, s, { an: "CCC" });
+    const chest = (await admin.from("treasure_chests").select("id, participant_id, status").eq("session_id", s.id).single()).data as {
+      id: string;
+      participant_id: string;
+      status: string;
+    };
+    expect(chest.status).toBe("pending");
+    return { s, chest };
+  }
+
+  it("khoá cùng thứ tự (người chơi rồi rương): học sinh đang giữ khoá người chơi mà giáo viên chốt rương thì chờ chứ không deadlock", async () => {
+    const t = await signUp("tre-lock");
+    const { s, chest } = await sessionWithPendingChest(t);
+
+    // Học sinh: giữ khoá người chơi rồi mở rương bằng đúng hàm mà open_chest dùng, chậm 1,5 giây ở giữa.
+    const student = psqlAsync(`begin;
+select id from public.participants where id = '${chest.participant_id}' for update;
+select pg_sleep(1.5);
+select private.open_chest_row('${chest.id}');
+commit;`);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Giáo viên: mở câu kế (settle_chests) đúng lúc đó.
+    const teacher = psqlAsync(`select private.settle_chests('${s.id}');`);
+    const results = await Promise.allSettled([student, teacher]);
+    expect(results.map((r) => (r.status === "rejected" ? String((r.reason as Error).message) : "ok"))).toEqual(["ok", "ok"]);
+
+    // Rương mở đúng một lần, bởi học sinh (người giữ khoá trước), không bị tính là tự mở.
+    const row = (await admin.from("treasure_chests").select("status, auto_opened, score_before, score_after").eq("id", chest.id).single()).data as {
+      status: string;
+      auto_opened: boolean;
+      score_before: number;
+      score_after: number;
+    };
+    expect(row).toMatchObject({ status: "opened", auto_opened: false, score_before: 3000 });
+    const player = (await admin.from("participants").select("score").eq("id", chest.participant_id).single()).data as { score: number };
+    expect(player.score).toBe(row.score_after);
+    await hostOk(t, "host_end_session", { p_session: s.id });
+  }, 60_000);
+
+  it("qua API thật: giáo viên mở câu kế cùng lúc nhiều lời gọi mở rương, lặp nhiều lần, không lời gọi nào lỗi", async () => {
+    const t = await signUp("tre-api-race");
+    for (let attempt = 1; attempt <= 6; attempt += 1) {
+      const names = ["an", "binh", "chau"];
+      const s = await treasureSession(t, names, 4);
+      await playPatterns(t, s, { an: "CCC", binh: "CCC", chau: "WWW" });
+      const calls = [
+        host(t, "host_next", { p_session: s.id }),
+        ...names.flatMap((n) => [openChest(s.tokens[n]), openChest(s.tokens[n])]),
+      ];
+      const results = await Promise.all(calls);
+      const errors = results.map((r) => r.error?.message).filter((m) => m && !m.includes("chest_not_ready"));
+      expect(errors, `lần ${attempt}`).toEqual([]);
+      // Dù ai thắng cuộc đua, mỗi rương chỉ mở một lần và điểm khớp.
+      const rows = await chests(s.id);
+      expect(rows.every((c) => c.status === "opened")).toBe(true);
+      expect(rows).toHaveLength(3);
+      await hostOk(t, "host_end_session", { p_session: s.id });
+    }
+  }, 240_000);
+});
+
+describe("học sinh biết rương đã tự mở cho mình", () => {
+  it("sang câu kế mà chưa mở thì pha hỏi trả last_chest (auto) khớp điểm; tự mở bằng tay thì không có", async () => {
+    const t = await signUp("tre-last");
+    const s = await treasureSession(t, ["tu_mo", "tay"], 5);
+    await playPatterns(t, s, { tu_mo: "CCC", tay: "CCC" });
+    const manual = await openOk(s.tokens.tay); // "tay" tự bấm mở
+    expect(manual.auto).toBe(false);
+
+    await hostOk(t, "host_next", { p_session: s.id }); // mở câu 4: rương của "tu_mo" tự mở
+    const auto = await playerState(s.tokens.tu_mo);
+    expect(auto.phase).toBe("question");
+    expect(auto.last_chest).toMatchObject({ status: "opened", kind: "win", auto: true, before: 3000 });
+    expect(auto.last_chest.after).toBe(auto.score);
+    expect(auto).not.toHaveProperty("chest"); // rương hiện tại chỉ có ở pha hiện đáp án
+    expect(ALLOWED_WIN).toContain(`${auto.last_chest.op}:${auto.last_chest.operand}`);
+
+    expect(await playerState(s.tokens.tay)).not.toHaveProperty("last_chest");
+    // Sang câu sau nữa thì không còn nhắc lại.
+    await submitOk(s.tokens.tu_mo, 0);
+    await hostOk(t, "host_close_question", { p_session: s.id });
+    await hostOk(t, "host_next", { p_session: s.id });
+    expect(await playerState(s.tokens.tu_mo)).not.toHaveProperty("last_chest");
+    await hostOk(t, "host_end_session", { p_session: s.id });
+  }, 120_000);
+
+  it("pha kết thúc: tổng số rương và tổng thay đổi điểm; rương cuối tự mở được trả lại; người không có rương thấy 0", async () => {
+    const t = await signUp("tre-final");
+    const s = await treasureSession(t, ["dai", "it"], 3);
+    await playPatterns(t, s, { dai: "CCC", it: "CWC" });
+    await hostOk(t, "host_next", { p_session: s.id }); // hết câu: kết thúc, rương cuối của "dai" tự mở
+
+    const dai = await playerState(s.tokens.dai);
+    expect(dai.phase).toBe("ended");
+    expect(dai.treasure.opened).toBe(1);
+    expect(dai.last_chest).toMatchObject({ status: "opened", kind: "win", auto: true, before: 3000 });
+    expect(dai.treasure.delta).toBe(dai.last_chest.after - dai.last_chest.before);
+    expect(dai.score).toBe(3000 + dai.treasure.delta);
+
+    expect((await playerState(s.tokens.it)).treasure).toEqual({ opened: 0, delta: 0 });
+    expect(await playerState(s.tokens.it)).not.toHaveProperty("last_chest");
+  }, 120_000);
+
+  it("tắt kho báu thì pha hỏi và pha kết thúc không có trường kho báu nào", async () => {
+    const t = await signUp("tre-last-off");
+    const s = await treasureSession(t, ["an"], 3, {});
+    await playPatterns(t, s, { an: "CCC" });
+    await hostOk(t, "host_next", { p_session: s.id });
+    const ended = await playerState(s.tokens.an);
+    for (const key of ["treasure", "last_chest", "chest", "streak"]) expect(ended).not.toHaveProperty(key);
+  }, 60_000);
 });
 
 describe("hiệu ứng", () => {

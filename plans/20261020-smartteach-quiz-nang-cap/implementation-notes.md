@@ -57,3 +57,17 @@ Review (`a5ea6e8`) không có Critical hay High.
 - Kiểm chứng: `tests/db/live-treasure.test.ts` 17 test: ngưỡng chuỗi với 6 kiểu chơi cùng lúc (đủ 3, bị cắt, bỏ trống, hỗn hợp), rương thứ nhất tự mở khi sang câu kế, tắt chế độ thì không có gì, người bị loại không tính và ràng buộc duy nhất, mở rương (chưa tới pha, không có rương, hiệu ứng không lộ trước khi mở, điểm sau khớp, gọi lại cùng kết quả, 6 lời gọi song song chỉ mở một lần), `apply_effect` ở các biên, phân phối `pick_effect` 4000 lần theo trọng số, 12 lần mở thật, chốt rương lúc sang câu kế/kết thúc/kết thúc giữa lúc đang hỏi, trang kết quả và xoá buổi xoá rương, cấu hình, quyền (bảng, cột, hàm nội bộ, giáo viên khác), không lộ khoá đáp án.
 - Phá thử 14 thay đổi hàm (bỏ chặn không âm, bỏ trần, bỏ coalesce, ngưỡng 2, bỏ trống không tính, không đặt lại chuỗi, comfort có phép trừ, bỏ kiểm tra pha reveal, bỏ kiểm tra bị loại, lộ hiệu ứng khi chưa mở, bỏ chốt rương ở ba nơi, bỏ gọi `update_streaks`): **mọi thay đổi đều bị test bắt** (khôi phục sau mỗi lần).
 - Kết quả: typecheck, lint, 218 unit, 160 test DB, 185 e2e (hai lần liên tiếp), `scan:bundle` sạch. Các test cũ của giai đoạn 2 và phase 2 vẫn đạt nguyên vẹn (hồi quy khi tắt chế độ).
+
+### Sửa sau review phase 3
+
+Review (`eba9833`) không có Critical hay High. Hai mục Medium và một Verification Gap đã sửa **trong chính migration `20261025090000_treasure.sql`** (chưa áp lên dự án thật, nên sửa tại chỗ được; đã `supabase db reset` cục bộ).
+
+| Mục | Cách sửa | Kiểm chứng |
+|---|---|---|
+| Medium: deadlock giữa học sinh mở rương (khoá người chơi rồi rương) và giáo viên chốt rương (khoá rương rồi người chơi) | `private.open_chest_row` khoá người chơi trước rồi rương (đọc chủ rương không khoá, khoá người chơi, rồi khoá rương). Cả `open_chest` và `settle_chests` cùng thứ tự | Trước khi sửa: thăm dò hai phiên `psql` đồng thời cho `deadlock detected`. Sau khi sửa: test `khoá cùng thứ tự` (học sinh giữ khoá người chơi 1,5 giây, giáo viên chốt rương) cho cả hai giao dịch thành công, rương mở đúng một lần; phá thử trả về thứ tự cũ thì test hỏng |
+| Medium: học sinh không biết rương tự mở cho mình | Cột `treasure_chests.auto_opened` (máy chủ tự mở = true); `chest_json` có `auto`; `player_state`: pha hỏi trả `last_chest` (rương câu liền trước nếu **tự mở**), pha kết thúc trả `treasure { opened, delta }` và `last_chest` (rương cuối tự mở nếu có); tắt chế độ thì không có trường nào | 3 test mới (`last_chest` khớp điểm và không nhắc lại ở câu sau, tổng kết cuối và người không có rương, tắt chế độ); 5 phá thử (cờ auto, bỏ `last_chest`, delta 0, nhắc cả rương tự bấm, thứ tự khoá) đều bị bắt |
+| Verification Gap: chưa có test giáo viên chuyển pha cùng lúc học sinh mở rương | Test qua API thật: `host_next` cùng 6 lời gọi `open_chest` của 3 bạn, lặp 6 lần, không lời gọi nào lỗi (ngoài `chest_not_ready` hợp lệ khi giáo viên thắng cuộc đua) | Đạt |
+
+Client: `ChestView` có `auto`, `PlayerState` có `last_chest` và `treasure`. Phase 4 hiển thị: banner "Rương câu trước tự mở: ..." ở pha hỏi và dòng tổng kết ở màn kết thúc.
+
+Kết quả: typecheck, lint, 218 unit, 165 test DB, 185 e2e (hai lần liên tiếp) đạt.

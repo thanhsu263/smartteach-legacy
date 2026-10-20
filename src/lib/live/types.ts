@@ -20,7 +20,7 @@ export type ChestKind = "win" | "comfort";
 /** Rương của một học sinh: chưa mở thì chỉ có loại (hiệu ứng được máy chủ giấu tới khi mở). */
 export type ChestView =
   | { status: "pending"; kind: ChestKind }
-  | { status: "opened"; kind: ChestKind; label: string; op: "add" | "sub" | "mul" | "div"; operand: number; before: number; after: number };
+  | { status: "opened"; kind: ChestKind; label: string; op: "add" | "sub" | "mul" | "div"; operand: number; before: number; after: number; /** Máy chủ tự mở (sang câu kế hoặc kết thúc) chứ không phải học sinh bấm. */ auto: boolean };
 
 export type TreasureFeedItem = { nickname: string; label: string; kind: ChestKind };
 
@@ -108,6 +108,10 @@ export type PlayerState = {
   /** Chỉ khi phiên bật kho báu: chuỗi đang chạy, và rương của câu vừa đóng (ở pha hiện đáp án). */
   streak?: { win: number; lose: number };
   chest?: ChestView;
+  /** Pha hỏi: rương câu liền trước nếu máy chủ tự mở nó. Pha kết thúc: rương cuối tự mở (nếu có). */
+  last_chest?: ChestView;
+  /** Pha kết thúc: tổng số rương đã mở và tổng thay đổi điểm do kho báu. */
+  treasure?: { opened: number; delta: number };
 };
 
 export type LeaderboardView = {

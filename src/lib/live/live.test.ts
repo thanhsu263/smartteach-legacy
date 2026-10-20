@@ -348,7 +348,7 @@ describe("rpc", () => {
   });
 
   it("mở rương gọi đúng hàm; mã sai không gọi máy chủ; lỗi chưa tới pha hiện đáp án có lời nhắn riêng", async () => {
-    const opened = { status: "opened", kind: "win", label: "Nhân đôi điểm", op: "mul", operand: 2, before: 3000, after: 6000 };
+    const opened = { status: "opened", kind: "win", label: "Nhân đôi điểm", op: "mul", operand: 2, before: 3000, after: 6000, auto: false };
     const ok = client(async () => ({ data: opened, error: null }));
     expect(await player.openChest(ok, UUID)).toEqual({ ok: true, chest: opened });
     expect(ok.rpc).toHaveBeenCalledWith("open_chest", { p_token: UUID });

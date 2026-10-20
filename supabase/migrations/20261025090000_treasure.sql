@@ -35,6 +35,8 @@ create table public.treasure_chests (
   label text,
   score_before integer,
   score_after integer,
+  -- True khi rương được máy chủ tự mở (sang câu kế, kết thúc phiên) chứ không phải học sinh bấm mở.
+  auto_opened boolean not null default false,
   created_at timestamptz not null default clock_timestamp(),
   opened_at timestamptz,
   constraint treasure_chests_unique_per_question unique (participant_id, position),
@@ -126,35 +128,43 @@ as $$
       'op', p_chest.effect,
       'operand', p_chest.operand,
       'before', p_chest.score_before,
-      'after', p_chest.score_after
+      'after', p_chest.score_after,
+      'auto', p_chest.auto_opened
     )
   end;
 $$;
 
 -- Mở một rương đang chờ: chọn hiệu ứng, áp lên điểm của chủ rương, ghi lại. Trả null nếu rương không còn chờ
--- (đã mở bởi lời gọi khác). Khoá hàng rương rồi hàng người chơi nên hai lời gọi cùng lúc chỉ mở một lần.
-create function private.open_chest_row(p_chest uuid)
+-- (đã mở bởi lời gọi khác). THỨ TỰ KHOÁ: người chơi trước, rồi rương. open_chest (học sinh) khoá người chơi từ đầu, còn
+-- settle_chests (giáo viên chuyển pha) đi qua hàm này, nên cả hai đường cùng thứ tự và không thể deadlock với nhau.
+-- p_auto: true khi máy chủ tự mở (không phải học sinh bấm).
+create function private.open_chest_row(p_chest uuid, p_auto boolean default false)
 returns jsonb
 language plpgsql
 set search_path = ''
 as $$
 declare
+  v_owner uuid;
   v_chest public.treasure_chests;
   v_before integer;
   v_after integer;
   v_effect record;
 begin
+  select participant_id into v_owner from public.treasure_chests where id = p_chest;
+  if not found then
+    return null;
+  end if;
+  select score into v_before from public.participants where id = v_owner for update;
   select * into v_chest from public.treasure_chests where id = p_chest and status = 'pending' for update;
   if not found then
     return null;
   end if;
-  select score into v_before from public.participants where id = v_chest.participant_id for update;
   select * into v_effect from private.pick_effect(v_chest.kind);
   v_after := private.apply_effect(v_before, v_effect.op, v_effect.operand);
-  update public.participants set score = v_after where id = v_chest.participant_id;
+  update public.participants set score = v_after where id = v_owner;
   update public.treasure_chests
   set status = 'opened', effect = v_effect.op, operand = v_effect.operand, label = v_effect.label,
-      score_before = v_before, score_after = v_after, opened_at = clock_timestamp()
+      score_before = v_before, score_after = v_after, auto_opened = p_auto, opened_at = clock_timestamp()
   where id = v_chest.id
   returning * into v_chest;
   return private.chest_json(v_chest);
@@ -173,7 +183,7 @@ begin
   for v_id in
     select id from public.treasure_chests where session_id = p_session and status = 'pending' order by created_at, id
   loop
-    perform private.open_chest_row(v_id);
+    perform private.open_chest_row(v_id, true);
   end loop;
 end;
 $$;
@@ -671,16 +681,36 @@ begin
       'player_total', (select count(*) from public.participants where session_id = v_session.id and not removed)
     );
   end if;
-  -- Kho báu: chuỗi đang chạy, và rương của câu vừa đóng (chưa mở chỉ cho biết loại, không lộ hiệu ứng).
-  if v_session.treasure_mode and v_status in ('question', 'reveal') then
-    v_result := v_result || jsonb_build_object(
-      'streak', jsonb_build_object('win', v_player.win_streak, 'lose', v_player.lose_streak)
-    );
+  -- Kho báu: chuỗi đang chạy; ở pha hiện đáp án là rương của câu vừa đóng (chưa mở chỉ cho biết loại, không lộ hiệu ứng);
+  -- ở pha hỏi là rương câu liền trước NẾU máy chủ tự mở nó (để học sinh biết điểm vì sao đổi); ở pha kết thúc là tổng kết.
+  if v_session.treasure_mode then
+    if v_status in ('question', 'reveal') then
+      v_result := v_result || jsonb_build_object(
+        'streak', jsonb_build_object('win', v_player.win_streak, 'lose', v_player.lose_streak)
+      );
+    end if;
     if v_status = 'reveal' then
       select * into v_chest from public.treasure_chests c
       where c.participant_id = v_player.id and c.position = v_position;
       if found then
         v_result := v_result || jsonb_build_object('chest', private.chest_json(v_chest));
+      end if;
+    elsif v_status = 'question' and v_position >= 1 then
+      select * into v_chest from public.treasure_chests c
+      where c.participant_id = v_player.id and c.position = v_position - 1 and c.status = 'opened' and c.auto_opened;
+      if found then
+        v_result := v_result || jsonb_build_object('last_chest', private.chest_json(v_chest));
+      end if;
+    elsif v_status = 'ended' then
+      v_result := v_result || jsonb_build_object('treasure', (
+        select jsonb_build_object('opened', count(*), 'delta', coalesce(sum(c.score_after - c.score_before), 0))
+        from public.treasure_chests c where c.participant_id = v_player.id and c.status = 'opened'
+      ));
+      select * into v_chest from public.treasure_chests c
+      where c.participant_id = v_player.id and c.status = 'opened' and c.auto_opened
+      order by c.position desc limit 1;
+      if found then
+        v_result := v_result || jsonb_build_object('last_chest', private.chest_json(v_chest));
       end if;
     end if;
   end if;
@@ -813,7 +843,7 @@ revoke execute on function
   private.apply_effect(integer, text, numeric),
   private.pick_effect(text),
   private.chest_json(public.treasure_chests),
-  private.open_chest_row(uuid),
+  private.open_chest_row(uuid, boolean),
   private.settle_chests(uuid),
   private.update_streaks(public.live_sessions)
   from public, anon, authenticated;
