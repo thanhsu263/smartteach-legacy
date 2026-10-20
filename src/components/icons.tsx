@@ -116,6 +116,32 @@ export function CheckIcon(props: IconProps) {
   );
 }
 
+export function TreasureIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 11V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v4" />
+      <rect x="3" y="11" width="18" height="9" rx="2" />
+      <path d="M3 15h18M12 13v4" />
+    </Icon>
+  );
+}
+
+export function ArrowUpIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 19V5M6 11l6-6 6 6" />
+    </Icon>
+  );
+}
+
+export function ArrowDownIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 5v14M6 13l6 6 6-6" />
+    </Icon>
+  );
+}
+
 export function LogoMark({ size = 32, ...props }: IconProps) {
   return (
     <svg

@@ -8,7 +8,9 @@ import type { LiveResult } from "@/lib/live/rpc";
 import type { AnswerValue, PlayerState } from "@/lib/live/types";
 import { useNow } from "@/lib/live/use-now";
 import { AnswerTiles } from "./answer-tiles";
+import { ChestResult } from "./chest";
 import { Countdown } from "./countdown";
+import { StreakChip } from "./streak-chip";
 import styles from "./player.module.css";
 
 type QuestionProps = {
@@ -81,6 +83,14 @@ export function Question({ state, clock, submit }: QuestionProps) {
       </div>
 
       <Countdown remainingMs={remaining} totalMs={totalMs} />
+
+      <StreakChip streak={state.streak} />
+      {/* Rương của câu trước mà máy chủ tự mở (học sinh chưa kịp mở): báo để biết vì sao điểm đổi. */}
+      {state.last_chest?.status === "opened" ? (
+        <div role="status" className={styles.chestNotice}>
+          <ChestResult chest={state.last_chest} note="Rương câu trước đã tự mở cho bạn." />
+        </div>
+      ) : null}
 
       <h1 className={styles.title}>{question.prompt}</h1>
       {question.kind === "multi" ? <p className={styles.hint}>Chọn tất cả đáp án đúng rồi bấm Gửi đáp án.</p> : null}

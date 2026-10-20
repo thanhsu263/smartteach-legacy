@@ -17,6 +17,7 @@ import {
 } from "@/lib/live/results";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { answerStyle } from "@/components/live/player/answer-styles";
+import { formatDelta } from "@/lib/live/treasure";
 import styles from "./results.module.css";
 
 type Loaded = { key: string; result: LiveResult<{ results: HostResults }> };
@@ -123,6 +124,7 @@ export function ResultsScreen({ sessionId }: { sessionId: string }) {
                   <th scope="col">Điểm</th>
                   <th scope="col">Đúng / đã trả lời</th>
                   <th scope="col">Thời gian trả lời trung bình</th>
+                  {results.treasure_mode ? <th scope="col">Kho báu</th> : null}
                 </tr>
               </thead>
               <tbody>
@@ -140,6 +142,11 @@ export function ResultsScreen({ sessionId }: { sessionId: string }) {
                       {player.correct} / {player.answered}
                     </td>
                     <td className={styles.num}>{formatSeconds(player.avg_response_ms)}</td>
+                    {results.treasure_mode ? (
+                      <td className={styles.num}>
+                        {formatDelta(player.treasure_delta)} ({player.treasure_chests} rương)
+                      </td>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>
@@ -147,6 +154,13 @@ export function ResultsScreen({ sessionId }: { sessionId: string }) {
           </div>
         )}
       </section>
+
+      {results.treasure_mode ? (
+        <p className={styles.hint}>
+          Phiên này bật chế độ kho báu: điểm cuối của mỗi bạn gồm cả thay đổi do rương, nên tổng điểm theo từng câu ở bảng “Theo từng bạn”
+          có thể khác điểm cuối.
+        </p>
+      ) : null}
 
       <section className={styles.section} aria-labelledby={`${baseId}-questions`}>
         <h2 id={`${baseId}-questions`} className={styles.heading}>

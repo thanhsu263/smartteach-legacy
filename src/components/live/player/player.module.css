@@ -376,3 +376,92 @@
     transition: none;
   }
 }
+
+/* Kho báu: chip chuỗi, thẻ rương và thông báo rương tự mở. */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-self: start;
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-tint);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.chestBox {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-primary-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.chestButtons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.chestButton {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  min-height: 88px;
+  padding: var(--space-3) var(--space-2);
+}
+
+.chestNotice {
+  padding: var(--space-3);
+  background: var(--color-primary-tint);
+  border-radius: var(--radius-md);
+}
+
+.chestResult {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.chestResult p {
+  margin: 0;
+}
+
+.chestLabel {
+  font-size: var(--text-xl);
+  font-weight: 800;
+}
+
+.chestChange {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.chestTone {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+/* Hoạt hình ngắn khi lật kết quả; người đã chọn giảm chuyển động thì không có. */
+/* Chỉ đổi kích thước, không đổi độ mờ: chữ luôn đủ tương phản trong cả lúc đang chạy hoạt hình. */
+@keyframes chestPop {
+  from {
+    transform: scale(0.94);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .chestResult {
+    animation: chestPop 260ms ease-out;
+  }
+}

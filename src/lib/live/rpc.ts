@@ -48,6 +48,8 @@ export type SessionOptions = {
   autoAdvance?: boolean;
   /** Số giây hiện đáp án khi tự động: 5, 8 hoặc 12 (máy chủ từ chối giá trị khác). */
   revealSeconds?: number;
+  /** Chế độ giải trí kho báu (chuỗi 3 đúng/3 sai đổi lấy rương làm đổi điểm của chính mình). */
+  treasureMode?: boolean;
 };
 
 /** Hàm của giáo viên. */
@@ -64,6 +66,7 @@ export const host = {
       // Chỉ gửi những gì giáo viên bật: khoá vắng mặt thì máy chủ dùng mặc định (tắt tự động, 8 giây).
       p_options: {
         ...(options.autoAdvance ? { auto_advance: true, reveal_seconds: options.revealSeconds ?? 8 } : {}),
+        ...(options.treasureMode ? { treasure_mode: true } : {}),
       },
     });
     const row = Array.isArray(data) ? (data[0] as { session_id?: string; pin?: string } | undefined) : undefined;

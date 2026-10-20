@@ -5,7 +5,9 @@ import { parseServerTime, type ServerClock } from "@/lib/live/clock";
 import type { LeaderboardView, PlayerState } from "@/lib/live/types";
 import { useLeaderboard } from "@/lib/live/use-leaderboard";
 import { useNow } from "@/lib/live/use-now";
+import { Chest } from "./chest";
 import { ReviewTiles } from "./answer-tiles";
+import { StreakChip } from "./streak-chip";
 import { answerStyle } from "./answer-styles";
 import styles from "./player.module.css";
 
@@ -36,8 +38,9 @@ function Board({ top, myRank, nickname }: { top: LeaderboardView["top"]; myRank:
 }
 
 /** Kết quả một câu sau khi đóng: đúng hay sai bằng chữ và biểu tượng, điểm, đáp án đúng và bảng xếp hạng. */
-export function Result({ state, token, clock }: { state: PlayerState; token: string; clock: ServerClock }) {
-  const board = useLeaderboard(token, `${state.seq}`);
+export function Result({ state, token, clock, onChestOpened }: { state: PlayerState; token: string; clock: ServerClock; onChestOpened: () => void }) {
+  // Khoá theo cả điểm: mở rương đổi điểm mà không đổi seq, bảng xếp hạng phải tải lại để khớp tổng điểm.
+  const board = useLeaderboard(token, `${state.seq}-${state.score}`);
   const auto = state.auto_advance === true;
   const nextAt = state.next_at ? parseServerTime(state.next_at) : Number.NaN;
   const counting = auto && state.paused !== true && Number.isFinite(nextAt);
@@ -68,6 +71,8 @@ export function Result({ state, token, clock }: { state: PlayerState; token: str
 
       <p className={styles.points}>{(state.points ?? 0) > 0 ? `+${state.points} điểm` : "Câu này bạn được 0 điểm"}</p>
 
+      <StreakChip streak={state.streak} />
+
       <dl className={styles.stats}>
         <div className={styles.stat}>
           <dt>Tổng điểm</dt>
@@ -78,6 +83,8 @@ export function Result({ state, token, clock }: { state: PlayerState; token: str
           <dd>{state.rank ?? "-"}</dd>
         </div>
       </dl>
+
+      {state.chest ? <Chest chest={state.chest} token={token} onOpened={onChestOpened} /> : null}
 
       <section className={styles.review} aria-label="Đáp án đúng">
         <h2 className={styles.reviewTitle}>{question.prompt}</h2>

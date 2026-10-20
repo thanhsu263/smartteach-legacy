@@ -103,7 +103,7 @@ export function PlayScreen({ initialPin }: { initialPin: string }) {
   } else if (state.phase === "question") {
     body = <Question key={state.question_index} state={state} clock={live.clock} submit={submit} />;
   } else if (state.phase === "reveal") {
-    body = <Result state={state} token={token} clock={live.clock} />;
+    body = <Result state={state} token={token} clock={live.clock} onChestOpened={() => void live.refresh()} />;
   } else if (state.phase === "ended") {
     body = <Final state={state} token={token} onLeave={stored.forget} />;
   } else {

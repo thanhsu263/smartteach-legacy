@@ -15,6 +15,9 @@ import styles from "./host.module.css";
 /** Số giây hiện đáp án khi tự động qua câu (máy chủ chỉ nhận đúng ba giá trị này). */
 const REVEAL_CHOICES = [5, 8, 12] as const;
 
+/** Khớp với `create_session`: bật kho báu cùng tự động thì hiện đáp án tối thiểu bấy nhiêu giây. */
+const MIN_TREASURE_REVEAL = 8;
+
 type ActiveSession = { id: string; pin: string } | null;
 
 type Loaded = { quizId: string; active: ActiveSession; problems: QuizProblem[] | null; error: string | null };
@@ -31,6 +34,7 @@ export function StartSession({ quizId, problems: knownProblems = null }: { quizI
   const [reloadKey, setReloadKey] = useState(0);
   const [speedBonus, setSpeedBonus] = useState(true);
   const [autoAdvance, setAutoAdvance] = useState(false);
+  const [treasureMode, setTreasureMode] = useState(false);
   const [revealSeconds, setRevealSeconds] = useState<(typeof REVEAL_CHOICES)[number]>(8);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +75,7 @@ export function StartSession({ quizId, problems: knownProblems = null }: { quizI
     if (!supabase || busy) return;
     setBusy(true);
     setError(null);
-    const result = await host.create(supabase, quizId, { speedBonus, autoAdvance, revealSeconds });
+    const result = await host.create(supabase, quizId, { speedBonus, autoAdvance, revealSeconds, treasureMode });
     if (result.ok) {
       router.push(`/host/${result.sessionId}`);
       return;
@@ -168,20 +172,39 @@ export function StartSession({ quizId, problems: knownProblems = null }: { quizI
                 <input type="checkbox" checked={autoAdvance} onChange={(event) => setAutoAdvance(event.target.checked)} />
                 <span>Tự động qua câu (hết giờ thì hiện đáp án rồi tự sang câu kế; giữ màn hình điều khiển luôn hiển thị, không thu nhỏ hay che)</span>
               </label>
+              <label className={styles.check}>
+                <input
+                  type="checkbox"
+                  checked={treasureMode}
+                  onChange={(event) => {
+                    setTreasureMode(event.target.checked);
+                    if (event.target.checked && revealSeconds < MIN_TREASURE_REVEAL) setRevealSeconds(MIN_TREASURE_REVEAL);
+                  }}
+                />
+                <span>
+                  Chế độ giải trí: kho báu (sau 3 câu đúng, hoặc 3 câu sai hay bỏ trống liên tiếp, học sinh nhận một rương làm cộng, nhân, chia
+                  hoặc trừ điểm của chính mình; không ảnh hưởng điểm bạn khác)
+                </span>
+              </label>
               {autoAdvance ? (
                 <fieldset className={styles.choices}>
                   <legend className={styles.choicesLegend}>Thời gian hiện đáp án trước khi sang câu kế</legend>
-                  {REVEAL_CHOICES.map((seconds) => (
-                    <label key={seconds} className={styles.check}>
-                      <input
-                        type="radio"
-                        name={`${baseId}-reveal`}
-                        checked={revealSeconds === seconds}
-                        onChange={() => setRevealSeconds(seconds)}
-                      />
-                      <span>{seconds} giây</span>
-                    </label>
-                  ))}
+                  {REVEAL_CHOICES.map((seconds) => {
+                    // Kho báu cần đủ thời gian để học sinh mở rương: máy chủ ép tối thiểu 8 giây, nên không cho chọn 5.
+                    const tooShort = treasureMode && seconds < MIN_TREASURE_REVEAL;
+                    return (
+                      <label key={seconds} className={styles.check} aria-disabled={tooShort}>
+                        <input
+                          type="radio"
+                          name={`${baseId}-reveal`}
+                          checked={revealSeconds === seconds}
+                          disabled={tooShort}
+                          onChange={() => setRevealSeconds(seconds)}
+                        />
+                        <span>{tooShort ? `${seconds} giây (kho báu cần tối thiểu ${MIN_TREASURE_REVEAL} giây)` : `${seconds} giây`}</span>
+                      </label>
+                    );
+                  })}
                 </fieldset>
               ) : null}
               <div className={styles.buttons}>

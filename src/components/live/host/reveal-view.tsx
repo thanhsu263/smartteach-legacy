@@ -61,6 +61,26 @@ export function RevealView({ state, busy, onNext }: RevealViewProps) {
         <Leaderboard rows={state.leaderboard ?? []} />
       </section>
 
+      {state.treasure_mode ? (
+        <section aria-label="Kho báu">
+          <h2 className={styles.reviewTitle}>Kho báu</h2>
+          {/* Cập nhật bằng polling của màn hình giáo viên; đọc lịch sự, không chặn thao tác. */}
+          <div aria-live="polite">
+            {(state.treasure_feed ?? []).length === 0 ? (
+              <p className={styles.hint}>Chưa bạn nào mở rương.</p>
+            ) : (
+              <ul className={styles.feed}>
+                {(state.treasure_feed ?? []).map((item, index) => (
+                  <li key={`${item.nickname}-${index}`}>
+                    <strong>{item.nickname}</strong> mở rương {item.kind === "comfort" ? "an ủi" : "thắng"}: {item.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      ) : null}
+
       <div className={styles.controls}>
         <Button variant="primary" className={styles.primary} onClick={onNext} disabled={busy}>
           {isLast ? "Xem kết quả" : "Câu tiếp theo"}

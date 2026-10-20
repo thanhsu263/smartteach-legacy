@@ -330,6 +330,14 @@ describe("rpc", () => {
       p_speed_bonus: false,
       p_options: { auto_advance: true, reveal_seconds: 12 },
     });
+    await host.create(c, UUID, { speedBonus: true, treasureMode: true });
+    expect(rpc).toHaveBeenLastCalledWith("create_session", { p_quiz_id: UUID, p_speed_bonus: true, p_options: { treasure_mode: true } });
+    await host.create(c, UUID, { speedBonus: true, autoAdvance: true, revealSeconds: 12, treasureMode: true });
+    expect(rpc).toHaveBeenLastCalledWith("create_session", {
+      p_quiz_id: UUID,
+      p_speed_bonus: true,
+      p_options: { auto_advance: true, reveal_seconds: 12, treasure_mode: true },
+    });
     // Tắt tự động thì giây hiện đáp án không được gửi dù có chọn.
     await host.create(c, UUID, { speedBonus: true, autoAdvance: false, revealSeconds: 5 });
     expect(rpc).toHaveBeenLastCalledWith("create_session", { p_quiz_id: UUID, p_speed_bonus: true, p_options: {} });
