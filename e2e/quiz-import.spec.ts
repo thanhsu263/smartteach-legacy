@@ -111,6 +111,45 @@ test.describe("nhập quiz từ tệp", () => {
     expect(await quizCount(teacher)).toBe(0);
   });
 
+  test("sửa lỗi rồi chọn lại đúng tệp đó vẫn đọc lại; tệp chọn sau thắng tệp chọn trước; tên quiz theo tệp mới trừ khi tự sửa", async ({ page }) => {
+    const teacher = await newTeacher("import-reselect");
+    await openImport(page, teacher);
+    const fileInput = page.getByLabel(/^Chọn tệp Excel/);
+    const title = page.getByRole("textbox", { name: "Tên quiz" });
+    const badCsv = ["Câu hỏi,Lựa chọn A,Lựa chọn B,Đáp án đúng", "Câu thiếu đáp án,a,b,"].join("\n");
+    const fixedCsv = ["Câu hỏi,Lựa chọn A,Lựa chọn B,Đáp án đúng", "Câu đã sửa,a,b,A"].join("\n");
+    const csv = (name: string, body: string) => ({ name, mimeType: "text/csv", buffer: Buffer.from(body) });
+
+    // Ô chọn tệp được đặt lại sau khi đọc (cách để trình duyệt kích hoạt lại khi chọn đúng tệp cũ), tên tệp vẫn hiện.
+    await fileInput.setInputFiles(csv("bai-1.csv", badCsv));
+    await expect(page.getByRole("status").filter({ hasText: "0 câu đọc được · 1 lỗi" })).toBeVisible();
+    await expect(fileInput).toHaveJSProperty("value", "");
+    await expect(page.getByText("Đang dùng tệp: bai-1.csv")).toBeVisible();
+    await expect(title).toHaveValue("bai 1");
+
+    // Cùng tên tệp, nội dung đã sửa.
+    await fileInput.setInputFiles(csv("bai-1.csv", fixedCsv));
+    await expect(page.getByRole("status").filter({ hasText: "1 câu đọc được · 0 lỗi" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Tạo quiz (1 câu)" })).toBeEnabled();
+
+    // Tên chưa tự sửa thì theo tệp mới; đã tự sửa thì giữ nguyên.
+    await fileInput.setInputFiles(csv("bai-2.csv", fixedCsv));
+    await expect(title).toHaveValue("bai 2");
+    await title.fill("Tên tự đặt");
+    await fileInput.setInputFiles(csv("bai-3.csv", fixedCsv));
+    await expect(page.getByText("Đang dùng tệp: bai-3.csv")).toBeVisible();
+    await expect(title).toHaveValue("Tên tự đặt");
+
+    // Chọn nhanh hai tệp liên tiếp: .xlsx (nạp thư viện, chậm) rồi CSV 1 câu. Kết quả cuối phải là của CSV.
+    await fileInput.setInputFiles(join(fixtures, "quiz-mau.xlsx"));
+    await fileInput.setInputFiles(csv("nhanh.csv", fixedCsv));
+    await expect(page.getByRole("status").filter({ hasText: "1 câu đọc được" })).toBeVisible();
+    await page.waitForTimeout(1500); // chờ lần đọc .xlsx cũ (nếu còn chạy) kịp ghi đè
+    await expect(page.getByRole("status").filter({ hasText: "1 câu đọc được" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Tạo quiz (1 câu)" })).toBeEnabled();
+    await expect(page.getByText("Đang dùng tệp: nhanh.csv")).toBeVisible();
+  });
+
   test("tệp không đọc được hoặc không được nhận: báo rõ bước tiếp theo", async ({ page }) => {
     const teacher = await newTeacher("import-bad");
     await openImport(page, teacher);

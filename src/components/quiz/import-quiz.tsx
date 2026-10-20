@@ -30,9 +30,13 @@ const SEVERITY_LABEL = { error: "Lỗi", warning: "Cảnh báo" } as const;
 export function ImportQuiz() {
   const router = useRouter();
   const baseId = useId();
-  const fileRef = useRef<HTMLInputElement>(null);
+  // Số thứ tự lần đọc tệp gần nhất: kết quả của lần đọc cũ (chậm hơn, ví dụ .xlsx) không được ghi đè lần mới.
+  const readSeq = useRef(0);
+  // Tên quiz do thầy cô tự gõ thì không bị tên tệp mới ghi đè.
+  const titleEdited = useRef(false);
   const [mode, setMode] = useState<Mode>("file");
   const [title, setTitle] = useState("");
+  const [fileName, setFileName] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [parse, setParse] = useState<ImportParse | null>(null);
   const [reading, setReading] = useState(false);
@@ -45,20 +49,29 @@ export function ImportQuiz() {
   const titleProblem = validateTitle(title);
 
   function switchMode(next: Mode) {
+    readSeq.current += 1; // bỏ kết quả của lần đọc tệp đang dở
+    setReading(false);
     setMode(next);
     setParse(null);
     setError(null);
   }
 
   async function onFile(file: File | undefined) {
+    const seq = (readSeq.current += 1);
     setParse(null);
     setError(null);
-    if (!file) return;
+    if (!file) {
+      setReading(false);
+      setFileName(null);
+      return;
+    }
+    setFileName(file.name);
     setReading(true);
     const result = await parseImportFile(file);
+    if (seq !== readSeq.current) return;
     setReading(false);
     setParse(result);
-    if (title.trim() === "") setTitle(titleFromFileName(file.name).slice(0, 100));
+    if (!titleEdited.current) setTitle(titleFromFileName(file.name).slice(0, 100));
   }
 
   function onReadText() {
@@ -130,12 +143,18 @@ export function ImportQuiz() {
             <div className={styles.field}>
               <label htmlFor={`${baseId}-file`}>Chọn tệp Excel (.xlsx) hoặc CSV (.csv)</label>
               <input
-                ref={fileRef}
                 id={`${baseId}-file`}
                 type="file"
                 accept=".csv,.xlsx"
-                onChange={(event) => void onFile(event.target.files?.[0])}
+                onChange={(event) => {
+                  const input = event.target;
+                  const file = input.files?.[0];
+                  // Đặt lại để chọn lại đúng tệp cũ (sau khi đã sửa lỗi trong tệp) vẫn kích hoạt đọc lại.
+                  input.value = "";
+                  void onFile(file);
+                }}
               />
+              {fileName ? <p className={styles.hint}>Đang dùng tệp: {fileName}</p> : null}
               <p className={styles.hint}>Tệp chỉ được đọc trên máy của thầy cô, không tải lên đâu cả. Tối đa {Math.round(IMPORT_MAX_BYTES / 1_000_000)} MB.</p>
             </div>
             <div className={styles.actions}>
@@ -247,7 +266,10 @@ export function ImportQuiz() {
                 value={title}
                 maxLength={100}
                 placeholder="Ví dụ: Ôn tập chương 1"
-                onChange={(event) => setTitle(event.target.value)}
+                onChange={(event) => {
+                  titleEdited.current = event.target.value.trim() !== "";
+                  setTitle(event.target.value);
+                }}
               />
             </div>
             <Button variant="primary" onClick={() => void create()} disabled={busy || blocking || titleProblem !== null}>

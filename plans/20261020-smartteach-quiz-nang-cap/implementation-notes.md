@@ -131,3 +131,15 @@ Thêm `parseImportFile` được kiểm bằng `File` thật (tệp mẫu CSV v�
 - **Thay đổi so với kế hoạch:** nhãn "Tải tệp" (không phải "Tải file"); tab chuyển bằng mũi tên trái/phải; mô tả cột và cú pháp nằm trong `<details>`. Focus sau khi tạo do trang soạn quiz tự xử lý (chuyển tới `/my-quizzes/<id>`).
 - **Kiểm chứng:** 8 test DB (`quiz-import.test.ts`), 3 test `importQuiz`, 11 e2e (`quiz-import.spec.ts`: CSV và xlsx mẫu → xem trước 4 dạng → tạo → chơi được; dán văn bản và bàn phím; tệp lỗi dòng 3; .xls/.docx/mã hoá/giả xlsx/quá lớn; đủ 50 quiz; tệp mẫu BOM + `sep=,`; cô lập giữa giáo viên; axe WCAG A/AA ở 1280px và 375px kèm kiểm tràn ngang). **4 phá thử phía máy chủ** (nuốt lỗi từng câu, bỏ btrim, bỏ kiểm tra rỗng, đổi sang security definer) và **7 phá thử phía giao diện** (cho tạo khi còn lỗi, chỉ gửi câu đầu, không chuyển trang, nuốt lỗi máy chủ, bỏ gợi ý tên, bỏ kiểm tra tên) đều bị bắt; ban đầu bỏ kiểm tra tên lọt nên đã thêm khẳng định "chưa có tên thì nút tạo bị vô hiệu".
 - Kết quả: typecheck, lint, 279 unit, 173 test DB, 203 e2e (hai lần liên tiếp), `build`, `scan:bundle` sạch.
+
+### Sửa sau review phase 6
+
+Review (`ab9561c`) không có Critical hay High; một mục Medium và hai Low, cùng ở `import-quiz.tsx`, đã sửa.
+
+| Mục | Cách sửa | Kiểm chứng |
+|---|---|---|
+| Medium: sửa lỗi trong tệp rồi chọn lại đúng tệp đó có thể không kích hoạt đọc lại (Chrome không bắn `change` khi chọn cùng tệp), thầy cô kẹt với kết quả lỗi cũ | Đặt `input.value = ""` ngay sau khi lấy `File`; hiện dòng "Đang dùng tệp: tên" để thầy cô vẫn biết đang dùng tệp nào (bỏ `fileRef` không dùng) | e2e: ô chọn tệp có `value` rỗng sau khi đọc, chọn lại tệp cùng tên với nội dung đã sửa đọc lại đúng; phá thử bỏ đặt lại bị bắt. Hạn chế: Playwright luôn bắn `change`, nên chính hành vi Chrome không tái hiện được trong e2e, chỉ kiểm cơ chế (ô được đặt lại); cần thử trên Chrome thật ở nghiệm thu |
+| Low: chọn hai tệp liên tiếp, lần đọc `.xlsx` chậm kết thúc sau có thể ghi đè kết quả của tệp chọn sau | `readSeq`: mỗi lần chọn tệp (hoặc đổi tab) tăng số thứ tự, kết quả của lần đọc cũ bị bỏ | e2e chọn `.xlsx` rồi CSV ngay lập tức, kết quả cuối là của CSV sau 1,5 giây; phá thử bỏ kiểm tra bị bắt |
+| Low: tên quiz giữ tên của tệp đầu dù đã chọn tệp khác | `titleEdited`: tên theo tệp mới cho đến khi thầy cô tự gõ (xoá hết thì lại theo tệp) | e2e: bai-1 → bai-2 theo tệp, gõ tay rồi chọn bai-3 thì giữ tên tự đặt; 2 phá thử bị bắt |
+
+Kết quả: typecheck, lint, `scan:bundle` sạch, 204 e2e (hai lần liên tiếp; thêm 1 test).
