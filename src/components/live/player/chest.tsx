@@ -87,12 +87,12 @@ export function Chest({ chest, token, target, onOpened }: { chest: ChestView; to
         ))}
       </div>
       {pending ? (
-        <p role="status" className={styles.hint}>
+        <p role="status" className={`${styles.hint} animate-fade-up`}>
           Đang mở rương…
         </p>
       ) : null}
       {error ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           {error} Bạn bấm mở lại nhé.
         </p>
       ) : null}

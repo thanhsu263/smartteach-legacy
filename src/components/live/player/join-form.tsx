@@ -72,7 +72,7 @@ export function JoinForm({ initialPin, notice, onJoined }: JoinFormProps) {
       </header>
 
       {notice ? (
-        <p role="status" className={styles.notice}>
+        <p role="status" className={`${styles.notice} animate-fade-up`}>
           {notice}
         </p>
       ) : null}
@@ -128,7 +128,7 @@ export function JoinForm({ initialPin, notice, onJoined }: JoinFormProps) {
         </div>
 
         {errors.general ? (
-          <p role="alert" className={styles.error}>
+          <p role="alert" className={`${styles.error} animate-fade-up`}>
             {errors.general}
           </p>
         ) : null}

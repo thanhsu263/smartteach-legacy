@@ -236,12 +236,12 @@ export function HostScreen({ sessionId }: { sessionId: string }) {
         ) : null}
 
         {offline ? (
-          <p role="status" className={styles.banner}>
+          <p role="status" className={`${styles.banner} animate-fade-up`}>
             Mất kết nối. Đang thử lại…
           </p>
         ) : null}
         {message ? (
-          <p role="alert" className={styles.error}>
+          <p role="alert" className={`${styles.error} animate-fade-up`}>
             {message}
           </p>
         ) : null}

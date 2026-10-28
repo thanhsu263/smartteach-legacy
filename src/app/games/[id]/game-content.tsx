@@ -21,12 +21,14 @@ export async function GameContent({ params }: Pick<PageProps<"/games/[id]">, "pa
         <span aria-current="page">{game.title}</span>
       </nav>
 
-      <header>
+      <header className="page-head" data-surface="panel">
         <h1 className={styles.title}>{game.title}</h1>
         <p className={styles.description}>{game.description}</p>
         <ul className={styles.tags} aria-label="Môn và lớp phù hợp">
           {tags.map((tag) => (
-            <li key={tag}>{tag}</li>
+            <li key={tag} className="glass-pill">
+              {tag}
+            </li>
           ))}
         </ul>
       </header>

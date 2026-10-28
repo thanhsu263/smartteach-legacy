@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Nhập quiz từ tệp" };
 export default function ImportQuizPage() {
   return (
     <div className={`container ${styles.page}`}>
-      <header>
+      <header className="page-head" data-surface="panel">
         <h1 className={styles.title}>Nhập quiz từ tệp</h1>
         <p className={styles.lead}>
           Đưa câu hỏi có sẵn vào quiz mới: tệp Excel (.xlsx), tệp CSV hoặc văn bản dán. Thầy cô xem trước và sửa lỗi trước khi tạo; chưa tạo

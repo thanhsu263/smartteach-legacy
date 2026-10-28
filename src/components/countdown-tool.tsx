@@ -97,7 +97,7 @@ export function CountdownTool() {
           <div className={styles.progress} aria-hidden="true">
             <span style={{ width: `${progress * 100}%` }} />
           </div>
-          <p role="status" className={styles.finished}>
+          <p role="status" className={`${styles.finished} animate-fade-up`}>
             {finished ? "Hết giờ!" : ""}
           </p>
         </div>
@@ -164,7 +164,7 @@ export function CountdownTool() {
             </div>
           </div>
           {state.durationMs === 0 ? (
-            <p role="alert" className={styles.error}>
+            <p role="alert" className={`${styles.error} animate-fade-up`}>
               Nhập số phút từ 0 đến {MAX_MINUTES} và số giây từ 0 đến 59, tổng lớn hơn 0.
             </p>
           ) : null}
@@ -174,6 +174,7 @@ export function CountdownTool() {
           <input
             id={soundId}
             type="checkbox"
+            data-switch
             checked={soundOn}
             onChange={(event) => setSoundOn(event.target.checked)}
           />

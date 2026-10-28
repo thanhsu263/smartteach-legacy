@@ -15,8 +15,17 @@ type ButtonLinkProps = CommonProps &
 type ButtonProps = CommonProps &
   Omit<ComponentPropsWithoutRef<"button">, "children">;
 
-function classes(variant: ButtonVariant, extra?: string) {
-  return [styles.button, styles[variant], extra].filter(Boolean).join(" ");
+function classes(extra?: string) {
+  return [styles.button, extra].filter(Boolean).join(" ");
+}
+
+/** Bề mặt kính của nút (xem styles/glass.css); nút chính nhích nhẹ theo chuột. */
+function glass(variant: ButtonVariant) {
+  return {
+    "data-glass": "btn",
+    "data-variant": variant,
+    ...(variant === "primary" ? { "data-magnetic": "" } : null),
+  };
 }
 
 export function ButtonLink({
@@ -26,7 +35,7 @@ export function ButtonLink({
   ...props
 }: ButtonLinkProps) {
   return (
-    <Link className={classes(variant, className)} {...props}>
+    <Link className={classes(className)} {...glass(variant)} {...props}>
       {children}
     </Link>
   );
@@ -40,7 +49,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   return (
-    <button type={type} className={classes(variant, className)} {...props}>
+    <button type={type} className={classes(className)} {...glass(variant)} {...props}>
       {children}
     </button>
   );

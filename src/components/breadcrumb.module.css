@@ -17,5 +17,8 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+  padding-inline: var(--space-2);
+  border-radius: var(--r-sm);
   font-weight: 600;
+  text-decoration: none;
 }

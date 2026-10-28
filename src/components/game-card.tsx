@@ -14,9 +14,9 @@ export function GameCard({ game, headingLevel }: GameCardProps) {
   const tags = [...subjectLabels(game), ...gradeLabels(game)];
   const Heading = `h${headingLevel}` as const;
   return (
-    <article className={styles.card}>
+    <article className={styles.card} data-glass="card" data-tilt>
       <div className={styles.top}>
-        <span className={styles.icon}>
+        <span className={`${styles.icon} glass-tile`}>
           <GamepadIcon size={28} />
         </span>
         <FavoriteButton gameId={game.id} title={game.title} />
@@ -29,7 +29,9 @@ export function GameCard({ game, headingLevel }: GameCardProps) {
       <p className={styles.description}>{game.description}</p>
       <ul className={styles.tags} aria-label="Môn và lớp phù hợp">
         {tags.map((tag) => (
-          <li key={tag}>{tag}</li>
+          <li key={tag} className="glass-pill">
+            {tag}
+          </li>
         ))}
       </ul>
     </article>

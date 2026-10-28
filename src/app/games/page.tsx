@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function GamesPage() {
   return (
     <div className={`container ${styles.page}`}>
-      <header className={styles.header}>
+      <header className="page-head" data-surface="panel">
         <h1 className={styles.title}>Kho game</h1>
         <p className={styles.lead}>
           Chọn trò chơi theo môn và lớp, mở ngay trên trình duyệt, không cần cài đặt.

@@ -83,11 +83,11 @@ export function SessionHistory({ quizId }: { quizId?: string }) {
         Các buổi đã chơi
       </h2>
       {current === null ? (
-        <p role="status" className={styles.hint}>
+        <p role="status" className={`${styles.hint} animate-fade-up`}>
           Đang tải…
         </p>
       ) : current.error ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           {current.error}
         </p>
       ) : current.rows.length === 0 ? (
@@ -155,7 +155,7 @@ export function SessionHistory({ quizId }: { quizId?: string }) {
         </>
       )}
       {error ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           {error}
         </p>
       ) : null}

@@ -249,22 +249,27 @@ test.describe("kho báu", () => {
     expect(await score(an)).toBe(Number(after));
   });
 
-  test("hoạt hình lật rương tắt khi người dùng chọn giảm chuyển động", async ({ browser }) => {
-    test.setTimeout(150_000);
-    const ctx = await setup(browser, 4);
-    const { teacherPage, an } = ctx;
-    await playQuestion(ctx, 1, "A", "B");
-    await next(teacherPage);
-    await playQuestion(ctx, 2, "A", "B");
-    await next(teacherPage);
-    await playQuestion(ctx, 3, "A", "B");
+  // Cấu hình Playwright mặc định chạy với giảm chuyển động; test này tự bật lại để thấy hoạt hình rồi mới tắt.
+  test.describe("hoạt hình lật rương", () => {
+    test.use({ reducedMotion: "no-preference" });
 
-    const animationOf = () => an.locator('[class*="chestResult"]').first().evaluate((el) => getComputedStyle(el).animationName);
-    await an.getByRole("button", { name: "Rương 3" }).click();
-    await expect(an.locator('[class*="chestResult"]').first()).toBeVisible();
-    expect(await animationOf()).toContain("chestPop");
-    await an.emulateMedia({ reducedMotion: "reduce" });
-    expect(await animationOf()).toBe("none");
+    test("hoạt hình lật rương tắt khi người dùng chọn giảm chuyển động", async ({ browser }) => {
+      test.setTimeout(150_000);
+      const ctx = await setup(browser, 4);
+      const { teacherPage, an } = ctx;
+      await playQuestion(ctx, 1, "A", "B");
+      await next(teacherPage);
+      await playQuestion(ctx, 2, "A", "B");
+      await next(teacherPage);
+      await playQuestion(ctx, 3, "A", "B");
+
+      const animationOf = () => an.locator('[class*="chestResult"]').first().evaluate((el) => getComputedStyle(el).animationName);
+      await an.getByRole("button", { name: "Rương 3" }).click();
+      await expect(an.locator('[class*="chestResult"]').first()).toBeVisible();
+      expect(await animationOf()).toContain("chestPop");
+      await an.emulateMedia({ reducedMotion: "reduce" });
+      expect(await animationOf()).toBe("none");
+    });
   });
 });
 

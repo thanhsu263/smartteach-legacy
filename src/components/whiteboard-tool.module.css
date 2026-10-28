@@ -19,12 +19,6 @@
   align-items: center;
 }
 
-.group button[aria-pressed="true"]:not(.swatch) {
-  background: var(--color-primary);
-  color: #fff;
-  border-color: var(--color-primary);
-}
-
 .swatch {
   width: 44px;
   height: 44px;
@@ -33,6 +27,20 @@
   border-radius: var(--radius-pill);
   box-shadow: 0 0 0 1px var(--color-border-strong);
   cursor: pointer;
+  transition:
+    transform 0.45s var(--ease-spring),
+    box-shadow 0.3s var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .swatch:hover:not(:disabled) {
+    transform: scale(1.12);
+  }
+}
+
+.swatch:active:not(:disabled) {
+  transform: scale(0.92);
+  transition-duration: 0.12s;
 }
 
 .swatch[aria-pressed="true"] {
@@ -52,8 +60,8 @@
   min-height: 22rem;
   height: clamp(22rem, 60dvh, 50rem);
   background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
+  box-shadow: var(--panel-shadow);
+  border-radius: var(--r-card);
   overflow: hidden;
 }
 

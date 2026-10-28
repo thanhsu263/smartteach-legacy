@@ -110,12 +110,12 @@ export function StartSession({ quizId, problems: knownProblems = null }: { quizI
       {open ? (
         <div id={`${baseId}-panel`} className={styles.startPanel} role="group" aria-label="Bắt đầu phiên chơi">
           {!current && !knownProblems ? (
-            <p role="status" className={styles.hint}>
+            <p role="status" className={`${styles.hint} animate-fade-up`}>
               Đang kiểm tra quiz…
             </p>
           ) : current?.error ? (
             <>
-              <p role="alert" className={styles.error}>
+              <p role="alert" className={`${styles.error} animate-fade-up`}>
                 {current.error}
               </p>
               <Button variant="secondary" onClick={() => setReloadKey((n) => n + 1)}>
@@ -165,16 +165,17 @@ export function StartSession({ quizId, problems: knownProblems = null }: { quizI
           ) : (
             <>
               <label className={styles.check}>
-                <input type="checkbox" checked={speedBonus} onChange={(event) => setSpeedBonus(event.target.checked)} />
+                <input type="checkbox" data-switch checked={speedBonus} onChange={(event) => setSpeedBonus(event.target.checked)} />
                 <span>Tính thêm điểm theo tốc độ (trả lời nhanh được điểm cao hơn, 500 đến 1000 mỗi câu)</span>
               </label>
               <label className={styles.check}>
-                <input type="checkbox" checked={autoAdvance} onChange={(event) => setAutoAdvance(event.target.checked)} />
+                <input type="checkbox" data-switch checked={autoAdvance} onChange={(event) => setAutoAdvance(event.target.checked)} />
                 <span>Tự động qua câu (hết giờ thì hiện đáp án rồi tự sang câu kế; giữ màn hình điều khiển luôn hiển thị, không thu nhỏ hay che)</span>
               </label>
               <label className={styles.check}>
                 <input
                   type="checkbox"
+                  data-switch
                   checked={treasureMode}
                   onChange={(event) => {
                     setTreasureMode(event.target.checked);
@@ -215,7 +216,7 @@ export function StartSession({ quizId, problems: knownProblems = null }: { quizI
             </>
           )}
           {error ? (
-            <p role="alert" className={styles.error}>
+            <p role="alert" className={`${styles.error} animate-fade-up`}>
               {error}
             </p>
           ) : null}

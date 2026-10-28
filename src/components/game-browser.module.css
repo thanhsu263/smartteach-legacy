@@ -7,9 +7,11 @@
   display: grid;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  background: var(--panel-bg);
+  -webkit-backdrop-filter: var(--glass-blur-card);
+  backdrop-filter: var(--glass-blur-card);
+  box-shadow: var(--panel-shadow);
+  border-radius: var(--r-sheet);
 }
 
 .field {
@@ -27,10 +29,7 @@
   width: 100%;
   min-height: 44px;
   padding: var(--space-2) var(--space-3);
-  background: var(--color-surface);
   color: var(--color-ink);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
   font-family: inherit;
   font-size: var(--text-base);
 }
@@ -72,9 +71,11 @@
   gap: var(--space-2);
   justify-items: start;
   padding: var(--space-5);
-  background: var(--color-surface);
+  background: var(--panel-bg);
+  -webkit-backdrop-filter: var(--glass-blur-card);
+  backdrop-filter: var(--glass-blur-card);
   border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-sheet);
 }
 
 .emptyTitle {

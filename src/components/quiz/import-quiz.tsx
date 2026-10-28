@@ -213,7 +213,7 @@ export function ImportQuiz() {
 
       {parse ? (
         <section className={styles.result} aria-label="Kết quả đọc">
-          <p role="status" className={styles.summary}>
+          <p role="status" className={`${styles.summary} animate-fade-up`}>
             {parse.questions.length} câu đọc được · {errorCount} lỗi · {warningCount} cảnh báo.{" "}
             {blocking ? "Cần sửa lỗi trong tệp hoặc văn bản rồi chọn lại." : "Có thể tạo quiz."}
           </p>
@@ -281,7 +281,7 @@ export function ImportQuiz() {
       ) : null}
 
       {error ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           {error}
         </p>
       ) : null}

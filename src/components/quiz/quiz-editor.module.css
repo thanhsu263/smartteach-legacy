@@ -32,8 +32,9 @@
 
 .notice {
   padding: var(--space-3);
-  background: var(--color-primary-tint);
-  border-radius: var(--radius-md);
+  background: var(--tint-bg);
+  box-shadow: var(--tint-shadow);
+  border-radius: var(--r-card);
   font-size: var(--text-sm);
 }
 
@@ -53,9 +54,11 @@
   display: grid;
   gap: var(--space-3);
   padding: var(--space-5);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  background: var(--panel-bg);
+  -webkit-backdrop-filter: var(--glass-blur-card);
+  backdrop-filter: var(--glass-blur-card);
+  box-shadow: var(--panel-shadow);
+  border-radius: var(--r-sheet);
   min-width: 0;
 }
 
@@ -74,8 +77,9 @@
   display: grid;
   gap: var(--space-2);
   padding: var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--panel-bg);
+  box-shadow: var(--item-shadow);
+  border-radius: var(--r-card);
 }
 
 .question[data-selected] {
@@ -138,10 +142,7 @@
   min-width: 12rem;
   min-height: 44px;
   padding: var(--space-2) var(--space-3);
-  background: var(--color-surface);
   color: var(--color-ink);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
   font-family: inherit;
   font-size: var(--text-base);
 }
@@ -152,7 +153,7 @@
   justify-items: start;
   padding: var(--space-5);
   border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-sheet);
 }
 
 .skeleton {
@@ -163,15 +164,14 @@
 .skeleton span {
   display: block;
   height: 6rem;
-  background: var(--color-primary-tint);
-  border-radius: var(--radius-md);
 }
 
 .confirm {
   display: grid;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  background: var(--color-primary-tint);
-  border-radius: var(--radius-md);
+  background: var(--tint-bg);
+  box-shadow: var(--tint-shadow);
+  border-radius: var(--r-card);
   font-size: var(--text-sm);
 }

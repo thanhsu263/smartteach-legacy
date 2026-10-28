@@ -10,8 +10,9 @@
   width: 100%;
   min-height: 12rem;
   padding: var(--space-5);
-  background: var(--color-primary-tint);
-  border-radius: var(--radius-lg);
+  background: var(--tint-bg);
+  box-shadow: var(--tint-shadow);
+  border-radius: var(--r-sheet);
   text-align: center;
 }
 

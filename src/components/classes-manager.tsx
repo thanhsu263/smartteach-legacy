@@ -109,12 +109,12 @@ export function ClassesManager() {
             <p className={styles.hint}>{parseNames(namesText).length} tên</p>
           </div>
           {formError ? (
-            <p role="alert" className={styles.error}>
+            <p role="alert" className={`${styles.error} animate-fade-up`}>
               {formError}
             </p>
           ) : null}
           {created ? (
-            <p role="status" className={styles.notice}>
+            <p role="status" className={`${styles.notice} animate-fade-up`}>
               Đã tạo lớp “{created}”.
             </p>
           ) : null}
@@ -137,13 +137,13 @@ export function ClassesManager() {
             <p className="visually-hidden" role="status">
               Đang tải danh sách lớp…
             </p>
-            <span />
+            <span className="glass-skeleton" />
             <span />
             <span />
           </div>
         ) : !current.ok ? (
           <div className={styles.empty}>
-            <p role="alert" className={styles.error}>
+            <p role="alert" className={`${styles.error} animate-fade-up`}>
               {current.message}
             </p>
             <Button
@@ -169,7 +169,9 @@ export function ClassesManager() {
               <li key={item.id} className={styles.item}>
                 <div>
                   <h3 className={styles.className}>
-                    <Link href={`/my-classes/${item.id}`}>{item.name}</Link>
+                    <Link href={`/my-classes/${item.id}`} data-glass="row">
+                      {item.name}
+                    </Link>
                   </h3>
                   <p className={styles.hint}>{item.studentCount} học sinh</p>
                 </div>
@@ -202,7 +204,7 @@ export function ClassesManager() {
           </ul>
         )}
         {deleteError ? (
-          <p role="alert" className={styles.error}>
+          <p role="alert" className={`${styles.error} animate-fade-up`}>
             {deleteError}
           </p>
         ) : null}

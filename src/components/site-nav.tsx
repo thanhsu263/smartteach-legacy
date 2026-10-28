@@ -38,6 +38,7 @@ export function SiteNav() {
         ref={buttonRef}
         type="button"
         className={styles.toggle}
+        data-glass="btn"
         aria-expanded={open}
         aria-controls="site-menu"
         onClick={() => setOpen((value) => !value)}
@@ -51,6 +52,7 @@ export function SiteNav() {
             <Link
               href={item.href}
               className={styles.link}
+              data-glass="row"
               aria-current={isCurrent(pathname, item) ? "page" : undefined}
               onClick={() => setOpen(false)}
             >
@@ -63,6 +65,8 @@ export function SiteNav() {
             <button
               type="button"
               className={styles.link}
+              data-glass="btn"
+              data-variant="secondary"
               onClick={() => {
                 setOpen(false);
                 void signOut();
@@ -74,6 +78,8 @@ export function SiteNav() {
             <Link
               href={loginNav.href}
               className={styles.link}
+              data-glass="btn"
+              data-variant="secondary"
               aria-current={isCurrent(pathname, loginNav) ? "page" : undefined}
               onClick={() => setOpen(false)}
             >

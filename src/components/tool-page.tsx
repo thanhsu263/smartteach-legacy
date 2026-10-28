@@ -9,7 +9,7 @@ export function ToolPage({ id, children }: { id: ToolId; children: ReactNode }) 
   return (
     <div className={`container ${styles.page}`}>
       <Breadcrumb items={[{ label: "Tiện ích", href: "/tools" }, { label: tool.title }]} />
-      <header>
+      <header className="page-head" data-surface="panel">
         <h1 className={styles.title}>{tool.title}</h1>
         <p className={styles.description}>{tool.description}</p>
       </header>

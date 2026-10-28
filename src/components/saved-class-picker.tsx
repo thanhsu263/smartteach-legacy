@@ -67,7 +67,7 @@ export function SavedClassPicker({ onPick }: Props) {
       {current === null ? (
         <p className={styles.hint}>Đang tải danh sách lớp…</p>
       ) : current.classes === null ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           Không tải được các lớp đã lưu. Thầy cô vẫn có thể nhập tên tay ở bên dưới.
         </p>
       ) : current.classes.length === 0 ? (

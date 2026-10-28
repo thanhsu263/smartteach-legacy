@@ -9,38 +9,47 @@
   gap: var(--space-2);
   min-height: 44px;
   padding: var(--space-2) var(--space-3);
-  background: var(--color-surface);
-  color: var(--color-ink);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
+  border: 0;
+  border-radius: 12px;
   font-family: inherit;
   font-size: var(--text-sm);
   font-weight: 600;
-  cursor: pointer;
 }
 
-.toggle:hover {
-  background: var(--color-primary-tint);
-}
-
-/* Ngăn kéo dọc cho điện thoại. */
+/* Ngăn kéo dọc cho điện thoại: luôn có trong DOM, hiện bằng opacity/transform để vào và ra đều có chuyển động. */
 .list {
-  display: none;
   position: absolute;
-  top: var(--header-height);
-  left: 0;
-  right: 0;
+  top: calc(var(--header-height) + var(--space-2));
+  left: var(--gutter);
+  right: var(--gutter);
   z-index: var(--z-menu);
+  display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-3) var(--gutter) var(--space-4);
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  box-shadow: var(--shadow-raised);
+  padding: var(--space-3);
+  background: linear-gradient(var(--glass-menu-top), var(--glass-menu-bottom));
+  -webkit-backdrop-filter: var(--glass-blur-float);
+  backdrop-filter: var(--glass-blur-float);
+  border-radius: var(--r-sheet);
+  box-shadow:
+    inset 0 1px #fff,
+    0 0 0 1px var(--glass-ring),
+    0 28px 56px -14px rgb(var(--ink-rgb) / 0.4);
+  transform-origin: 100% 0;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.96);
+  transition:
+    opacity 0.2s var(--ease-out),
+    transform 0.34s var(--ease-pop),
+    visibility 0s linear 0.34s;
 }
 
 .list[data-open="true"] {
-  display: flex;
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition-delay: 0s;
 }
 
 .link {
@@ -49,29 +58,24 @@
   width: 100%;
   min-height: 44px;
   padding: var(--space-2) var(--space-3);
-  background: none;
   border: 0;
-  border-radius: var(--radius-md);
-  color: var(--color-ink);
+  border-radius: var(--r-card);
   font-family: inherit;
   font-size: var(--text-sm);
   font-weight: 600;
   text-align: left;
   text-decoration: none;
-  cursor: pointer;
-  transition: background-color var(--duration-fast) var(--ease-out);
-}
-
-.link:hover {
-  background: var(--color-primary-tint);
-  color: var(--color-primary-deep);
 }
 
 .link[aria-current="page"] {
-  color: var(--color-primary);
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 6px;
+}
+
+.login .link {
+  justify-content: center;
+  margin-top: var(--space-1);
 }
 
 /* Bản tĩnh chờ SiteNav: không có nút Menu nên trên điện thoại chỉ ẩn đi trong giây lát. */
@@ -92,8 +96,17 @@
     gap: var(--space-1);
     padding: 0;
     background: none;
-    border: 0;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-radius: 0;
     box-shadow: none;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+
+  .link {
+    width: auto;
   }
 
   .login {
@@ -101,8 +114,7 @@
   }
 
   .login .link {
+    margin-top: 0;
     padding-inline: var(--space-4);
-    border: 1px solid var(--color-border-strong);
-    color: var(--color-primary);
   }
 }

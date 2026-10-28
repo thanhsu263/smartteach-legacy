@@ -112,6 +112,7 @@ export function DrawTool() {
           <input
             id={noRepeatId}
             type="checkbox"
+            data-switch
             checked={noRepeat}
             onChange={(event) => setNoRepeat(event.target.checked)}
           />

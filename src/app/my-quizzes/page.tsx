@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Quiz của tôi" };
 export default function MyQuizzesPage() {
   return (
     <div className={`container ${styles.page}`}>
-      <header>
+      <header className="page-head" data-surface="panel">
         <h1 className={styles.title}>Quiz của tôi</h1>
         <p className={styles.lead}>
           Soạn quiz với câu hỏi trắc nghiệm, đúng sai, nhiều đáp án và điền từ. Quiz mặc định chỉ thầy cô thấy; có thể chia sẻ bằng link để đồng nghiệp sao chép.

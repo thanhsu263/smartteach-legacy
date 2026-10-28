@@ -62,12 +62,12 @@ export function HostLobby({ title, pin, locked, players, busy, onToggleLock, onR
           ) : null}
         </div>
         {copied ? (
-          <p role="status" className={styles.joinNote}>
+          <p role="status" className={`${styles.joinNote} animate-fade-up`}>
             {copied === "ok" ? "Đã sao chép link." : `Không sao chép được, thầy cô đọc địa chỉ ${shown}/play?pin=${pin} cho lớp nhé.`}
           </p>
         ) : null}
         {locked ? (
-          <p role="status" className={styles.joinNote}>
+          <p role="status" className={`${styles.joinNote} animate-fade-up`}>
             Phòng đang khoá nên bạn mới chưa vào được.
           </p>
         ) : null}

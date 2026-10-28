@@ -1,7 +1,8 @@
 .ready {
   padding: var(--space-3) var(--space-4);
-  background: var(--color-primary-tint);
-  border-radius: var(--radius-md);
+  background: var(--tint-bg);
+  box-shadow: var(--tint-shadow);
+  border-radius: var(--r-card);
   font-size: var(--text-sm);
   font-weight: 600;
 }
@@ -10,9 +11,11 @@
   display: grid;
   gap: var(--space-2);
   padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
+  background: var(--panel-bg);
+  -webkit-backdrop-filter: var(--glass-blur-card);
+  backdrop-filter: var(--glass-blur-card);
+  box-shadow: var(--panel-shadow);
+  border-radius: var(--r-card);
 }
 
 .title {

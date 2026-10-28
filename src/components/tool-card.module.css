@@ -1,18 +1,8 @@
 .card {
-  position: relative;
   display: flex;
   gap: var(--space-4);
   align-items: flex-start;
   padding: var(--space-4) var(--space-5);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-rest);
-  transition: box-shadow var(--duration-base) var(--ease-out);
-}
-
-.card:hover {
-  box-shadow: var(--shadow-raised);
 }
 
 .card:focus-within {
@@ -21,20 +11,15 @@
 }
 
 .icon {
-  display: grid;
-  place-items: center;
-  flex: none;
   width: 44px;
   height: 44px;
-  background: var(--color-primary-tint);
-  color: var(--color-primary);
-  border-radius: var(--radius-md);
 }
 
 .title {
   font-size: var(--text-xl);
   font-weight: 600;
   line-height: 1.35;
+  letter-spacing: -0.025em;
 }
 
 /* Cả thẻ là vùng bấm của tiêu đề. */
@@ -47,7 +32,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-card);
 }
 
 .link:hover {

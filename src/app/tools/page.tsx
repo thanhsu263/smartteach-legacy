@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function ToolsPage() {
   return (
     <div className={`container ${styles.page}`}>
-      <header>
+      <header className="page-head" data-surface="panel">
         <h1 className={styles.title}>Tiện ích lớp học</h1>
         <p className={styles.lead}>
           Bốn công cụ dùng ngay giữa giờ, không cần đăng nhập. Mỗi công cụ có chế độ toàn màn hình để chiếu lên màn hình lớp.

@@ -77,7 +77,7 @@ export function PlayScreen({ initialPin }: { initialPin: string }) {
   if (!state) {
     body = (
       <div className={styles.screen} aria-busy="true">
-        <p role="status" className={styles.waiting}>
+        <p role="status" className={`${styles.waiting} animate-fade-up`}>
           Đang vào phòng…
         </p>
       </div>

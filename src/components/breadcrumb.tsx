@@ -14,7 +14,9 @@ export function Breadcrumb({ items }: { items: readonly BreadcrumbItem[] }) {
         <span key={item.label} className={styles.item}>
           {index > 0 ? <span aria-hidden="true">/</span> : null}
           {item.href ? (
-            <Link href={item.href}>{item.label}</Link>
+            <Link href={item.href} data-glass="row">
+              {item.label}
+            </Link>
           ) : (
             <span aria-current="page">{item.label}</span>
           )}

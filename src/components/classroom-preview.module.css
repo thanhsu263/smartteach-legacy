@@ -8,10 +8,13 @@
 
 .panel {
   padding: var(--space-5);
-  background: var(--color-surface);
+  background: linear-gradient(var(--glass-over-top), var(--glass-over-bottom));
+  -webkit-backdrop-filter: var(--glass-blur-card);
+  backdrop-filter: var(--glass-blur-card);
+  box-shadow: var(--panel-shadow);
   color: var(--color-ink);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-raised);
+  border-radius: var(--r-sheet);
+
 }
 
 .panelTitle {

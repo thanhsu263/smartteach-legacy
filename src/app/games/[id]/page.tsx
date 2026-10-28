@@ -30,7 +30,7 @@ export default async function GamePage({ params }: PageProps<"/games/[id]">) {
     <div className={`container ${styles.page}`}>
       <Breadcrumb items={[{ label: "Kho game", href: "/games" }, { label: game.title }]} />
 
-      <header>
+      <header className="page-head" data-surface="panel">
         <div className={styles.titleRow}>
           <h1 className={styles.title}>{game.title}</h1>
           <FavoriteButton gameId={game.id} title={game.title} />
@@ -38,7 +38,9 @@ export default async function GamePage({ params }: PageProps<"/games/[id]">) {
         <p className={styles.description}>{game.description}</p>
         <ul className={styles.tags} aria-label="Môn và lớp phù hợp">
           {tags.map((tag) => (
-            <li key={tag}>{tag}</li>
+            <li key={tag} className="glass-pill">
+              {tag}
+            </li>
           ))}
         </ul>
       </header>

@@ -6,7 +6,7 @@ import styles from "./quiz-problems.module.css";
 export function QuizProblems({ problems }: { problems: readonly QuizProblem[] }) {
   if (problems.length === 0) {
     return (
-      <p role="status" className={styles.ready}>
+      <p role="status" className={`${styles.ready} animate-fade-up`}>
         Quiz đã đủ để chơi: mọi câu hỏi đều hợp lệ.
       </p>
     );

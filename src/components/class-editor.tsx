@@ -75,7 +75,7 @@ export function ClassEditor({ classId }: { classId: string }) {
         <p className="visually-hidden" role="status">
           Đang tải lớp…
         </p>
-        <span />
+        <span className="glass-skeleton" />
         <span />
       </div>
     );
@@ -84,7 +84,7 @@ export function ClassEditor({ classId }: { classId: string }) {
   if (!current.ok) {
     return (
       <div className={styles.empty}>
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           {current.message}
         </p>
         <Button variant="secondary" onClick={() => { setLoaded(null); reload(); }}>

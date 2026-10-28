@@ -28,7 +28,7 @@ export function LoginForm() {
 
   if (!getSupabaseConfig()) {
     return (
-      <p role="alert" className={styles.error}>
+      <p role="alert" className={`${styles.error} animate-fade-up`}>
         Đăng nhập chưa được cấu hình trên máy chủ này. Các trò chơi và tiện ích vẫn dùng được không cần đăng nhập.
       </p>
     );
@@ -86,7 +86,7 @@ export function LoginForm() {
   return (
     <div className={styles.form}>
       {callbackFailed ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           Không hoàn tất được đăng nhập (liên kết hết hạn hoặc đã dùng rồi). Thầy cô thử đăng nhập lại nhé.
         </p>
       ) : null}
@@ -131,12 +131,12 @@ export function LoginForm() {
         </div>
 
         {error ? (
-          <p role="alert" className={styles.error}>
+          <p role="alert" className={`${styles.error} animate-fade-up`}>
             {error}
           </p>
         ) : null}
         {notice ? (
-          <p role="status" className={styles.notice}>
+          <p role="status" className={`${styles.notice} animate-fade-up`}>
             {notice}
           </p>
         ) : null}

@@ -115,7 +115,7 @@ export function Result({ state, token, clock, onChestOpened }: { state: PlayerSt
         )}
       </section>
 
-      <p role="status" className={styles.waiting}>
+      <p role="status" className={`${styles.waiting} animate-fade-up`}>
         <ClockIcon aria-hidden="true" />
         {!auto ? (
           <span>Chờ thầy cô sang câu tiếp theo…</span>

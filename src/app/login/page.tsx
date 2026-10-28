@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <div className={`container ${styles.page}`}>
-      <header>
+      <header className="page-head" data-surface="panel">
         <h1 className={styles.title}>Đăng nhập</h1>
         <p className={styles.lead}>
           Thầy cô đăng nhập để lưu danh sách lớp và trò chơi yêu thích. Học sinh không cần tài khoản.{" "}

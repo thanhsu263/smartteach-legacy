@@ -61,7 +61,7 @@ export function SharedQuizView({ token }: { token: string }) {
         <p className="visually-hidden" role="status">
           Đang tải quiz…
         </p>
-        <span />
+        <span className="glass-skeleton" />
         <span />
       </div>
     );
@@ -71,7 +71,7 @@ export function SharedQuizView({ token }: { token: string }) {
     return (
       <div className={styles.empty}>
         <h1 className={styles.title}>Không mở được quiz này</h1>
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           {current.message}
         </p>
         <div className={styles.actions}>
@@ -110,7 +110,7 @@ export function SharedQuizView({ token }: { token: string }) {
       </header>
 
       {cloneError ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           {cloneError}
         </p>
       ) : null}

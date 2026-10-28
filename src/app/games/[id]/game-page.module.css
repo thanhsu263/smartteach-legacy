@@ -31,15 +31,6 @@
   margin-top: var(--space-3);
 }
 
-.tags li {
-  padding: var(--space-1) var(--space-3);
-  background: var(--color-primary-tint);
-  color: var(--color-ink);
-  border-radius: var(--radius-pill);
-  font-size: var(--text-xs);
-  font-weight: 600;
-}
-
 .credits {
   max-width: 80ch;
   color: var(--color-ink-muted);

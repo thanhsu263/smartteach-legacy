@@ -87,7 +87,7 @@ export function Question({ state, clock, submit }: QuestionProps) {
       <StreakChip streak={state.streak} />
       {/* Rương của câu trước mà máy chủ tự mở (học sinh chưa kịp mở): báo để biết vì sao điểm đổi. */}
       {state.last_chest?.status === "opened" ? (
-        <div role="status" className={styles.chestNotice}>
+        <div role="status" className={`${styles.chestNotice} animate-fade-up`}>
           <ChestResult chest={state.last_chest} note="Rương câu trước đã tự mở cho bạn." />
         </div>
       ) : null}
@@ -126,18 +126,18 @@ export function Question({ state, clock, submit }: QuestionProps) {
       )}
 
       {error ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           {error}
         </p>
       ) : null}
 
       {sent ? (
-        <p role="status" className={styles.waiting}>
+        <p role="status" className={`${styles.waiting} animate-fade-up`}>
           <ClockIcon aria-hidden="true" />
           <span>Đã gửi đáp án. Chờ cả lớp…</span>
         </p>
       ) : timeUp ? (
-        <p role="status" className={styles.waiting}>
+        <p role="status" className={`${styles.waiting} animate-fade-up`}>
           <ClockIcon aria-hidden="true" />
           <span>Hết giờ. Chờ kết quả…</span>
         </p>

@@ -1,6 +1,30 @@
 .hero {
-  background: var(--color-primary);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(165deg, var(--accent) 0%, var(--accent-2) 100%);
   color: #fff;
+}
+
+/* Quầng sáng kính trôi chậm sau ô xem trước; chỉ transform, tắt khi giảm chuyển động. */
+.hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -180px;
+  right: -140px;
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.16), transparent 65%);
+  animation: hero-glow 18s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes hero-glow {
+  50% {
+    transform: translate(-90px, 70px) scale(1.15);
+  }
 }
 
 .heroInner {
@@ -14,7 +38,7 @@
   font-size: var(--text-display);
   font-weight: 800;
   line-height: 1.15;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
 .heroLead {
@@ -85,9 +109,11 @@
   gap: var(--space-2);
   justify-items: start;
   padding: var(--space-5);
-  background: var(--color-surface);
+  background: var(--panel-bg);
+  -webkit-backdrop-filter: var(--glass-blur-card);
+  backdrop-filter: var(--glass-blur-card);
   border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-sheet);
 }
 
 .emptyTitle {
@@ -106,8 +132,9 @@
   gap: var(--space-4);
   justify-items: start;
   padding: var(--space-5);
-  background: var(--color-primary-tint);
-  border-radius: var(--radius-lg);
+  background: var(--tint-bg);
+  box-shadow: var(--tint-shadow);
+  border-radius: var(--r-sheet);
 }
 
 @media (min-width: 960px) {

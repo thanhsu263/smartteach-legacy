@@ -152,7 +152,19 @@ export function LogoMark({ size = 32, ...props }: IconProps) {
       focusable="false"
       {...props}
     >
-      <rect width="64" height="64" rx="14" fill="var(--color-primary)" />
+      <defs>
+        <linearGradient id="st-logo-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="var(--accent)" />
+          <stop offset="1" stopColor="var(--accent-2)" />
+        </linearGradient>
+        <linearGradient id="st-logo-gloss" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#fff" stopOpacity="0.4" />
+          <stop offset="0.48" stopColor="#fff" stopOpacity="0.06" />
+          <stop offset="0.52" stopColor="#fff" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <rect width="64" height="64" rx="14" fill="url(#st-logo-fill)" />
+      <rect width="64" height="64" rx="14" fill="url(#st-logo-gloss)" />
       <rect x="12" y="14" width="40" height="28" rx="5" fill="none" stroke="#fff" strokeWidth="4" />
       <path
         d="M22 28l7 7 13-14"

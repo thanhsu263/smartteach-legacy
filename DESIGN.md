@@ -100,8 +100,8 @@ Hệ thống từ chối: phần mềm hành chính hay cổng thông tin nhà t
 **Key Characteristics:**
 - Nền sáng, tương phản cao, đọc được từ cuối lớp khi chiếu lên màn lớn.
 - Một họ chữ (Be Vietnam Pro), thang cỡ chữ cố định theo rem, không co giãn theo viewport.
-- Phẳng khi nghỉ; chiều sâu chỉ xuất hiện khi hover hoặc nâng lớp.
-- Chuyển động 150-250ms, chỉ để báo trạng thái.
+- Bề mặt là kính mờ (xem mục 7): chiều sâu đến từ viền sáng, bóng nhiều lớp và nền động rất nhẹ phía sau.
+- Chuyển động đàn hồi 150-450ms, chỉ để báo trạng thái và phản hồi chuột; tắt hết khi `prefers-reduced-motion`.
 
 ## 2. Colors
 
@@ -148,14 +148,14 @@ Xanh dương làm màu chủ đạo, vàng chỉ cho nút kêu gọi hành độ
 
 ## 4. Elevation
 
-Phẳng khi nghỉ. Chiều sâu truyền bằng viền mảnh và khác biệt nền (Paper trên Daylight), không bằng bóng đổ nặng.
+Từ lớp Liquid Glass (mục 7), bề mặt là kính bán trong suốt có viền sáng và bóng mềm nhiều lớp. Các bóng cũ dưới đây vẫn dùng cho thành phần chưa chuyển sang kính.
 
 ### Shadow Vocabulary
 - **Nâng nhẹ** (`box-shadow: 0 1px 2px rgba(23, 32, 51, 0.06)`): thẻ ở trạng thái nghỉ nếu cần tách khỏi nền.
 - **Nâng lên** (`box-shadow: 0 6px 20px rgba(23, 32, 51, 0.1)`): thẻ khi hover hoặc nâng lớp, ngăn kéo menu.
 
 ### Named Rules
-**Quy tắc phẳng khi nghỉ.** Bóng đổ chỉ phản hồi trạng thái (hover, mở menu), không trang trí.
+**Quy tắc kính có việc.** Kính dùng để tách lớp nội dung khỏi nền động; hover chỉ làm sáng và nâng nhẹ, không đổi bố cục. Chữ luôn nằm trên khối kính gần đặc (>= 4.5:1), không để trần trên nền động.
 
 ## 5. Components
 
@@ -205,6 +205,21 @@ Phẳng khi nghỉ. Chiều sâu truyền bằng viền mảnh và khác biệt 
 - **Don't** dùng mascot và hiệu ứng rối mắt cản việc dạy.
 - **Don't** sao chép logo, hình ảnh hay câu chữ của ezthi.com.
 - **Don't** dùng `border-left` hay `border-right` dày hơn 1px làm vạch màu trên thẻ.
-- **Don't** dùng chữ gradient, glassmorphism trang trí, hay lưới thẻ giống hệt nhau lặp vô tận.
+- **Don't** dùng chữ gradient, kính mờ chỉ để trang trí (kính phải tách lớp nội dung), hay lưới thẻ giống hệt nhau lặp vô tận.
+- **Don't** để chữ trần trên nền động, hay phủ kính lên màn hình chiếu của quiz trực tiếp và khung game.
 - **Don't** dùng nhãn nhỏ viết hoa cách chữ (eyebrow) trên đầu mọi khu vực.
 - **Don't** dùng màu làm tín hiệu duy nhất cho trạng thái lỗi hoặc thành công.
+
+## 7. Liquid Glass
+
+Lớp giao diện kính, có animation và phản hồi theo chuột, đặt chồng lên hệ thống trên mà không đổi bố cục hay logic.
+
+**Tệp:** `src/styles/tokens.css` (vai trò màu, easing, bo góc, biến kính), `src/styles/glass.css` (keyframes, bề mặt kính, tiện ích chuyển động), `src/lib/liquid-glass.ts` (một bộ lắng nghe chuột cho cả ứng dụng, gắn bởi `components/liquid-glass.tsx`), `components/ambient-background.tsx` (nền động).
+
+**Đổi tông:** `--accent` / `--accent-2` (xanh: chọn, focus, glow, nền động; mặc định ánh xạ sang Xanh bảng và Xanh đậm) và `--cta` / `--cta-2` (nút chính vàng). Mọi màu còn lại đi qua `--color-*` trong `globals.css`.
+
+**Dùng trong markup:** thuộc tính `data-glass="btn|icon|chip|row|card|frame"` vừa vẽ kính vừa bật ánh sáng theo chuột; `data-variant="primary|secondary|on-primary"` cho nút; `data-tone="ok|bad|warn|accent"` cho thẻ; `data-magnetic` chỉ cho nút chính và thẻ nổi bật; `data-tilt` chỉ cho thẻ lớn dễ đọc; `data-surface="float|sheet|panel"` cho menu, hộp thoại và khối nội dung tĩnh; `data-reveal-on-scroll` cho khối dưới màn hình. Trong CSS Modules dùng `--panel-bg`, `--panel-shadow`, `--item-shadow`, `--tint-bg`, `--tint-shadow` thay vì chép giá trị bóng.
+
+**Hiệu năng:** chỉ animate `transform`, `opacity`, `background-position` và `box-shadow` nhẹ; khung chứa iframe game, canvas bảng trắng và danh sách dài không dùng `backdrop-filter`.
+
+**Ngoài phạm vi kính:** ô đáp án A-F giữ nguyên bộ màu và hình ở mục 5 để đảm bảo tương phản; các khối chữ quanh chúng (bảng, thẻ, bảng xếp hạng) đã dùng kính gần đặc.

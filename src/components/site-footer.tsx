@@ -22,7 +22,9 @@ export function SiteFooter() {
           <ul className={styles.links}>
             {links.map((item) => (
               <li key={item.href}>
-                <Link href={item.href}>{item.label}</Link>
+                <Link href={item.href} data-glass="row">
+                  {item.label}
+                </Link>
               </li>
             ))}
           </ul>

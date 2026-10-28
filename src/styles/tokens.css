@@ -1,0 +1,72 @@
+/*
+ * Token của lớp giao diện Liquid Glass.
+ * Màu gốc (--color-*) vẫn nằm trong globals.css và khớp DESIGN.md; ở đây chỉ ánh xạ sang vai trò kính.
+ * Đổi tông thương hiệu: sửa --accent / --accent-2 (xanh, cho chọn, focus, glow) và --cta / --cta-2 (nút chính).
+ * Đổi sang tối: ghi đè nhóm "Bề mặt kính" trong [data-theme="dark"] (chưa bật, xem DESIGN.md).
+ */
+:root {
+  /* Vai trò màu */
+  --accent: var(--color-primary);
+  --accent-2: var(--color-primary-deep);
+  --cta: var(--color-accent);
+  --cta-2: var(--color-accent-deep);
+  --paper: var(--color-bg);
+  --ink: var(--color-ink);
+  --mute: var(--color-ink-muted);
+  --line: var(--color-border);
+  --ok: var(--color-success);
+  --bad: var(--color-danger);
+  --warn: #8a5a00;
+  --ink-rgb: 23 32 51;
+
+  /* Chuyển động */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.5, 1);
+  --ease-spring-soft: cubic-bezier(0.34, 1.4, 0.5, 1);
+  --ease-sheen: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-pop: cubic-bezier(0.34, 1.5, 0.5, 1);
+  --ease-sheet: cubic-bezier(0.34, 1.45, 0.5, 1);
+
+  /* Bo góc theo tỷ lệ khung 20 / tấm 16 / thẻ 12 / nhỏ 9 */
+  --r-frame: 20px;
+  --r-sheet: 16px;
+  --r-card: 12px;
+  --r-sm: 9px;
+
+  /* Bề mặt kính */
+  --glass-top: rgb(255 255 255 / 0.85);
+  --glass-bottom: rgb(255 255 255 / 0.45);
+  --glass-card-top: rgb(255 255 255 / 0.82);
+  --glass-card-bottom: rgb(255 255 255 / 0.55);
+  --glass-menu-top: rgb(255 255 255 / 0.95);
+  --glass-menu-bottom: rgb(252 250 246 / 0.9);
+  --glass-hi: rgb(255 255 255 / 0.95);
+  --glass-rim: rgb(255 255 255 / 0.5);
+  --glass-lo: rgb(var(--ink-rgb) / 0.06);
+  --glass-ring: rgb(var(--ink-rgb) / 0.1);
+  --glass-drop: rgb(var(--ink-rgb) / 0.35);
+  --glass-drop-card: rgb(var(--ink-rgb) / 0.3);
+  --glass-solid: rgb(255 255 255 / 0.92);
+  --glass-over-top: rgb(255 255 255 / 0.94);
+  --glass-over-bottom: rgb(255 255 255 / 0.86);
+  --glass-blur: blur(14px) saturate(180%);
+  --glass-blur-card: blur(18px) saturate(180%);
+  --glass-blur-float: blur(24px) saturate(190%);
+  --glass-field: rgb(255 255 255 / 0.78);
+  --glass-trough: rgb(var(--ink-rgb) / 0.055);
+  --scrim: rgb(var(--ink-rgb) / 0.28);
+
+  /* Khối kính dùng trong CSS Modules: background + box-shadow + backdrop-filter từ các biến này */
+  --panel-bg: linear-gradient(var(--glass-card-top), var(--glass-card-bottom));
+  --panel-shadow:
+    inset 0 1px var(--glass-hi), inset 0 -1px var(--glass-lo), inset 0 0 0 1px var(--glass-rim),
+    0 0 0 1px var(--glass-ring), 0 12px 26px -16px var(--glass-drop-card);
+  --item-shadow: inset 0 1px var(--glass-hi), inset 0 0 0 1px var(--glass-rim), 0 0 0 1px var(--glass-ring);
+  --tint-bg: linear-gradient(color-mix(in srgb, var(--accent) 14%, #fff), color-mix(in srgb, var(--accent) 7%, #fff));
+  --tint-shadow: inset 0 1px rgb(255 255 255 / 0.9), 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+  --tone-bg-ok: linear-gradient(color-mix(in srgb, var(--ok) 16%, #fff), color-mix(in srgb, var(--ok) 8%, #fff));
+  --tone-bg-bad: linear-gradient(color-mix(in srgb, var(--bad) 14%, #fff), color-mix(in srgb, var(--bad) 7%, #fff));
+
+  /* Nền động */
+  /* Tối đa của các đốm màu; styles/glass.test.ts giữ cho chữ phụ trần trên đỉnh đốm vẫn đạt 4.5:1. */
+  --blob-opacity: 0.22;
+}

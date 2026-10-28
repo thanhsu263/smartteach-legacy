@@ -13,7 +13,7 @@ export default function HomePage() {
     <>
       <section className={`${styles.hero} on-primary`} aria-labelledby="hero-title">
         <div className={`container ${styles.heroInner}`}>
-          <div className={styles.heroText}>
+          <div className={`${styles.heroText} stagger`}>
             <h1 id="hero-title" className={styles.heroTitle}>
               Thầy cô mở lên là có ngay giờ học sôi nổi
             </h1>
@@ -45,7 +45,7 @@ export default function HomePage() {
             Xem tất cả tiện ích
           </ButtonLink>
         </div>
-        <ul className={styles.toolList}>
+        <ul className={`${styles.toolList} stagger`}>
           {tools.map((tool) => (
             <li key={tool.id}>
               <ToolCard tool={tool} headingLevel={3} />
@@ -54,13 +54,13 @@ export default function HomePage() {
         </ul>
       </section>
 
-      <section className={`container ${styles.section}`} aria-labelledby="games-title">
+      <section className={`container ${styles.section}`} aria-labelledby="games-title" data-reveal-on-scroll suppressHydrationWarning>
         <h2 id="games-title" className={styles.sectionTitle}>
           Trò chơi nổi bật
         </h2>
         {featuredGames.length > 0 ? (
           <>
-            <ul className={styles.gameGrid}>
+            <ul className={`${styles.gameGrid} stagger`}>
               {featuredGames.map((game) => (
                 <li key={game.id}>
                   <GameCard game={game} headingLevel={3} />
@@ -72,7 +72,7 @@ export default function HomePage() {
             </ButtonLink>
           </>
         ) : (
-          <div className={styles.empty}>
+          <div className={styles.empty} data-surface="panel">
             <p className={styles.emptyTitle}>Trò chơi đầu tiên đang được chuẩn bị</p>
             <p className={styles.emptyText}>
               Khi kho game sẵn sàng, các trò chơi được chọn lọc sẽ hiện ở đây để thầy cô mở ngay.
@@ -84,8 +84,8 @@ export default function HomePage() {
         )}
       </section>
 
-      <section className={`container ${styles.section}`} aria-labelledby="account-title">
-        <div className={styles.account}>
+      <section className={`container ${styles.section}`} aria-labelledby="account-title" data-reveal-on-scroll suppressHydrationWarning>
+        <div className={styles.account} data-surface="panel" data-tone="accent">
           <div>
             <h2 id="account-title" className={styles.sectionTitle}>
               Lưu lớp một lần, dùng cho mọi tiện ích

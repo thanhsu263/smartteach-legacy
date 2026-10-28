@@ -48,21 +48,24 @@ export function FavoriteButton({ gameId, title }: FavoriteButtonProps) {
       <button
         type="button"
         className={styles.button}
+        data-glass="icon"
         aria-pressed={active}
         aria-label={`Yêu thích ${title}`}
         aria-describedby={promptOpen || error ? messageId : undefined}
         aria-busy={saving || (signedIn && !ready)}
         onClick={onClick}
       >
-        <HeartIcon size={22} filled={active} />
+        <span className={active ? "bump" : undefined}>
+          <HeartIcon size={22} filled={active} />
+        </span>
       </button>
       {!signedIn && promptOpen ? (
-        <p id={messageId} role="status" className={styles.message}>
+        <p id={messageId} role="status" className={`${styles.message} menu-pop`} data-surface="float">
           <Link href={loginHref}>Đăng nhập</Link> để lưu game yêu thích.
         </p>
       ) : null}
       {error ? (
-        <p id={messageId} role="alert" className={`${styles.message} ${styles.error}`}>
+        <p id={messageId} role="alert" className={`${styles.message} ${styles.error} menu-pop`} data-surface="float">
           {error}
         </p>
       ) : null}

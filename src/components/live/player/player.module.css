@@ -1,3 +1,4 @@
+/* Màn hình trực tiếp (học sinh và chiếu): kính không blur để tiết kiệm máy cũ và không giật khi đổi câu. */
 /* Màn hình học sinh: một cột, tối ưu cho điện thoại 375px dùng một tay. */
 
 .screen {
@@ -37,9 +38,9 @@
   display: grid;
   gap: var(--space-4);
   padding: var(--space-5);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  background: var(--panel-bg);
+  box-shadow: var(--panel-shadow);
+  border-radius: var(--r-sheet);
 }
 
 .fields {
@@ -61,10 +62,7 @@
   width: 100%;
   min-height: 52px;
   padding: var(--space-2) var(--space-3);
-  background: var(--color-surface);
   color: var(--color-ink);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
   font-family: inherit;
   font-size: var(--text-lg);
 }
@@ -96,17 +94,19 @@
 
 .notice {
   padding: var(--space-3) var(--space-4);
-  background: var(--color-primary-tint);
-  border-radius: var(--radius-md);
+  background: var(--tint-bg);
+  box-shadow: var(--tint-shadow);
+  border-radius: var(--r-card);
   font-size: var(--text-sm);
 }
 
 .banner {
   padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
+  background: var(--panel-bg);
+  box-shadow: var(--panel-shadow);
   color: var(--color-danger);
   border: 1px solid var(--color-danger);
-  border-radius: var(--radius-md);
+  border-radius: var(--r-card);
   font-size: var(--text-sm);
   font-weight: 600;
 }
@@ -130,8 +130,9 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: var(--color-primary-tint);
-  border-radius: var(--radius-md);
+  background: var(--tint-bg);
+  box-shadow: var(--tint-shadow);
+  border-radius: var(--r-card);
   font-weight: 600;
 }
 
@@ -303,9 +304,9 @@
   display: grid;
   gap: var(--space-1);
   padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--panel-bg);
+  box-shadow: var(--item-shadow);
+  border-radius: var(--r-card);
 }
 
 .stat dt {
@@ -344,9 +345,9 @@
   justify-content: space-between;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--panel-bg);
+  box-shadow: var(--item-shadow);
+  border-radius: var(--r-card);
 }
 
 .row[data-me="true"] {
@@ -396,9 +397,10 @@
   display: grid;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: var(--color-primary-tint);
+  background: var(--tint-bg);
+  box-shadow: var(--tint-shadow);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--r-sheet);
 }
 
 .chestButtons {
@@ -417,8 +419,9 @@
 
 .chestNotice {
   padding: var(--space-3);
-  background: var(--color-primary-tint);
-  border-radius: var(--radius-md);
+  background: var(--tint-bg);
+  box-shadow: var(--tint-shadow);
+  border-radius: var(--r-card);
 }
 
 .chestResult {

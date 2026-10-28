@@ -287,7 +287,7 @@ export function ResultsScreen({ sessionId }: { sessionId: string }) {
         </div>
       )}
       {error ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           {error}
         </p>
       ) : null}

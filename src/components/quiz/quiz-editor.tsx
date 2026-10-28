@@ -97,7 +97,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
         <p className="visually-hidden" role="status">
           Đang tải quiz…
         </p>
-        <span />
+        <span className="glass-skeleton" />
         <span />
       </div>
     );
@@ -106,7 +106,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
   if (!current.ok) {
     return (
       <div className={styles.empty}>
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           {current.message}
         </p>
         <Button

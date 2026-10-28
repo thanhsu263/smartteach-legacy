@@ -365,7 +365,8 @@ test.describe("học sinh: không lộ đáp án, không chứa khoá bí mật"
     }
     await session.close();
     await expect(heading(page, "Chưa đúng").or(heading(page, "Bạn chưa trả lời"))).toBeVisible();
-    expect(bodies.some((b) => b.phase === "reveal" && b.body.includes('"correct"'))).toBe(true);
+    // Phản hồi được đọc bất đồng bộ (response.text()), có thể xong sau khi giao diện đã vẽ: chờ thay vì kiểm ngay.
+    await expect.poll(() => bodies.some((b) => b.phase === "reveal" && b.body.includes('"correct"'))).toBe(true);
   });
 
   test("gói JavaScript của trang chơi không chứa khoá service_role", async ({ request }) => {

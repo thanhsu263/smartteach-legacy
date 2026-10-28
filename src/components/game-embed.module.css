@@ -13,9 +13,10 @@
   position: relative;
   width: 100%;
   height: clamp(480px, 78dvh, 900px);
+  /* Khung chứa iframe trò chơi: nền đặc, không blur, để không tốn thêm khi game vẽ liên tục. */
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  box-shadow: var(--panel-shadow);
+  border-radius: var(--r-sheet);
   overflow: hidden;
 }
 
@@ -35,7 +36,7 @@
   justify-items: center;
   gap: var(--space-2);
   padding: var(--space-5);
-  background: var(--color-primary-tint);
+  background: var(--tint-bg);
   text-align: center;
   pointer-events: none;
 }

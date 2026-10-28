@@ -126,12 +126,12 @@ export function SharePanel({ quizId, token, onChange }: SharePanelProps) {
       )}
 
       {notice ? (
-        <p role="status" className={styles.notice}>
+        <p role="status" className={`${styles.notice} animate-fade-up`}>
           {notice}
         </p>
       ) : null}
       {error ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           {error}
         </p>
       ) : null}

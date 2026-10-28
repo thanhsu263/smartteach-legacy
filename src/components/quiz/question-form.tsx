@@ -280,7 +280,7 @@ export function QuestionForm({ initial, isNew, onSave, onCancel, onDirtyChange }
       )}
 
       {showErrors && issues.general ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           {issues.general}
         </p>
       ) : null}
@@ -294,7 +294,7 @@ export function QuestionForm({ initial, isNew, onSave, onCancel, onDirtyChange }
       ) : null}
 
       {saveError ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           {saveError}
         </p>
       ) : null}

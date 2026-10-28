@@ -116,7 +116,7 @@ export function QuizzesManager() {
             />
           </div>
           {formError ? (
-            <p role="alert" className={styles.error}>
+            <p role="alert" className={`${styles.error} animate-fade-up`}>
               {formError}
             </p>
           ) : null}
@@ -144,12 +144,12 @@ export function QuizzesManager() {
         </h2>
 
         {notice ? (
-          <p role="status" className={styles.notice}>
+          <p role="status" className={`${styles.notice} animate-fade-up`}>
             {notice}
           </p>
         ) : null}
         {actionError ? (
-          <p role="alert" className={styles.error}>
+          <p role="alert" className={`${styles.error} animate-fade-up`}>
             {actionError}
           </p>
         ) : null}
@@ -159,13 +159,13 @@ export function QuizzesManager() {
             <p className="visually-hidden" role="status">
               Đang tải danh sách quiz…
             </p>
-            <span />
+            <span className="glass-skeleton" />
             <span />
             <span />
           </div>
         ) : !current.ok ? (
           <div className={styles.empty}>
-            <p role="alert" className={styles.error}>
+            <p role="alert" className={`${styles.error} animate-fade-up`}>
               {current.message}
             </p>
             <Button
@@ -191,7 +191,9 @@ export function QuizzesManager() {
               <li key={quiz.id} className={styles.item}>
                 <div>
                   <h3 className={styles.quizTitle}>
-                    <Link href={`/my-quizzes/${quiz.id}`}>{quiz.title}</Link>
+                    <Link href={`/my-quizzes/${quiz.id}`} data-glass="row">
+                      {quiz.title}
+                    </Link>
                   </h3>
                   <p className={styles.hint}>
                     {quiz.questionCount} câu hỏi

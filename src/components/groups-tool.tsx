@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, type CSSProperties } from "react";
 import { Button } from "@/components/button";
 import { NameListInput } from "@/components/name-list-input";
 import { SavedClassPicker } from "@/components/saved-class-picker";
@@ -46,6 +46,7 @@ export function GroupsTool() {
 
           <fieldset className={styles.mode}>
             <legend>Cách chia</legend>
+            <div className="segmented" style={{ "--n": 2 } as CSSProperties}>
             <label>
               <input
                 type="radio"
@@ -64,6 +65,7 @@ export function GroupsTool() {
               />
               Theo số người mỗi nhóm
             </label>
+            </div>
           </fieldset>
 
           <div className={styles.number}>
@@ -82,7 +84,7 @@ export function GroupsTool() {
           </div>
 
           {error ? (
-            <p id={errorId} role="alert" className={styles.error}>
+            <p id={errorId} role="alert" className={`${styles.error} animate-fade-up`}>
               {ERROR_TEXT[error]}
             </p>
           ) : null}
@@ -94,7 +96,7 @@ export function GroupsTool() {
 
         {groups ? (
           <div className={styles.results}>
-            <p role="status" className={styles.summary}>
+            <p role="status" className={`${styles.summary} animate-fade-up`}>
               Đã chia {total} bạn thành {groups.length} nhóm
             </p>
             <ul className={styles.grid}>

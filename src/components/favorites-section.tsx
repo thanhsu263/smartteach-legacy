@@ -20,10 +20,10 @@ export function FavoritesSection() {
           <p className="visually-hidden" role="status">
             Đang tải game yêu thích…
           </p>
-          <span />
+          <span className="glass-skeleton" />
         </div>
       ) : favorites.status === "error" ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={`${styles.error} animate-fade-up`}>
           Không tải được danh sách yêu thích. Thầy cô tải lại trang để thử lại nhé.
         </p>
       ) : favoriteGames.length === 0 ? (

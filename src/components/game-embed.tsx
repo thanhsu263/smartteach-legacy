@@ -74,6 +74,7 @@ export function GameEmbed({ title, src }: GameEmbedProps) {
         ) : null}
         {loaded ? null : (
           <div className={styles.loading} role="status">
+            <span className="glass-spinner" aria-hidden="true" />
             <p className={styles.loadingTitle}>Đang tải trò chơi…</p>
             {slow ? (
               <p className={styles.loadingText}>
