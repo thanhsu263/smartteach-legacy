@@ -100,8 +100,8 @@ Hệ thống từ chối: phần mềm hành chính hay cổng thông tin nhà t
 **Key Characteristics:**
 - Nền sáng, tương phản cao, đọc được từ cuối lớp khi chiếu lên màn lớn.
 - Một họ chữ (Be Vietnam Pro), thang cỡ chữ cố định theo rem, không co giãn theo viewport.
-- Bề mặt là kính mờ (xem mục 7): chiều sâu đến từ viền sáng, bóng nhiều lớp và nền động rất nhẹ phía sau.
-- Chuyển động đàn hồi 150-450ms, chỉ để báo trạng thái và phản hồi chuột; tắt hết khi `prefers-reduced-motion`.
+- Vùng làm việc dùng bề mặt gần đặc; vật liệu trong chỉ xuất hiện ở chrome nổi có nội dung thật sự đi bên dưới (header, menu, popover, sheet).
+- Chuyển động 100-260ms, tăng tốc và hãm tự nhiên, chỉ báo press, đổi trạng thái hoặc quan hệ không gian; không overshoot nếu không có động lượng.
 
 ## 2. Colors
 
@@ -148,14 +148,14 @@ Xanh dương làm màu chủ đạo, vàng chỉ cho nút kêu gọi hành độ
 
 ## 4. Elevation
 
-Từ lớp Liquid Glass (mục 7), bề mặt là kính bán trong suốt có viền sáng và bóng mềm nhiều lớp. Các bóng cũ dưới đây vẫn dùng cho thành phần chưa chuyển sang kính.
+Chiều sâu đến từ phân cấp vật liệu, không phải trang trí. Card nội dung dùng Paper gần đặc và viền Hairline; chỉ lớp nổi có thể trong mờ để người dùng còn thấy ngữ cảnh phía sau.
 
 ### Shadow Vocabulary
 - **Nâng nhẹ** (`box-shadow: 0 1px 2px rgba(23, 32, 51, 0.06)`): thẻ ở trạng thái nghỉ nếu cần tách khỏi nền.
-- **Nâng lên** (`box-shadow: 0 6px 20px rgba(23, 32, 51, 0.1)`): thẻ khi hover hoặc nâng lớp, ngăn kéo menu.
+- **Nâng lên** (`box-shadow: 0 6px 20px rgba(23, 32, 51, 0.1)`): thẻ khi hover hoặc lớp nổi chức năng.
 
 ### Named Rules
-**Quy tắc kính có việc.** Kính dùng để tách lớp nội dung khỏi nền động; hover chỉ làm sáng và nâng nhẹ, không đổi bố cục. Chữ luôn nằm trên khối kính gần đặc (>= 4.5:1), không để trần trên nền động.
+**Quy tắc vật liệu có việc.** Chỉ dùng translucency khi nó giải thích một lớp nổi và bảo toàn ngữ cảnh. Không chồng nhiều lớp kính sáng. Hover chỉ nâng tối đa 1px; press thu nhỏ tức thời rồi trở về trạng thái nghỉ.
 
 ## 5. Components
 
@@ -187,9 +187,9 @@ Từ lớp Liquid Glass (mục 7), bề mặt là kính bán trong suốt có vi
 - **Error / Disabled:** viền và chữ lỗi Đỏ (#B3261E) kèm biểu tượng và lời nhắn; disabled dùng nền Hairline.
 
 ### Navigation
-- **Style:** thanh trên cố định, nền Bề mặt, viền dưới 1px; logo bên trái, liên kết giữa, một nút Đăng nhập bên phải. Chữ Label.
-- **States:** liên kết hiện tại có gạch dưới dày 2px màu Xanh bảng; hover đổi nền sang Xanh nhạt.
-- **Mobile:** dưới 720px, các liên kết gộp vào một nút Menu mở ngăn kéo dọc, có `aria-expanded`, đóng khi chọn liên kết hoặc nhấn Esc.
+- **Style:** thanh trên cố định là một lớp nổi trong nhẹ vì nội dung cuộn bên dưới; logo bên trái, liên kết giữa, một nút Đăng nhập bên phải. Mép cuộn là hairline gradient rất nhẹ thay vì khung cứng.
+- **States:** liên kết hiện tại có nền tint xanh và chỉ báo cạnh; hover đổi nền sang Xanh nhạt. Trạng thái hiện tại không chỉ dựa vào màu.
+- **Mobile:** dưới 720px, các liên kết gộp vào nút Menu mở từ chính gốc nút, đóng về cùng vị trí khi chọn liên kết hoặc nhấn Esc, có `aria-expanded` và trả focus về nút.
 
 ## 6. Do's and Don'ts
 
@@ -198,6 +198,7 @@ Từ lớp Liquid Glass (mục 7), bề mặt là kính bán trong suốt có vi
 - **Do** đưa giọng văn gọi "Thầy cô" vào tiêu đề và lời nhắn trạng thái.
 - **Do** giữ vùng chạm tối thiểu 44px và focus-visible luôn thấy rõ.
 - **Do** tôn trọng `prefers-reduced-motion`: thay hiệu ứng bằng chuyển mờ hoặc tức thì.
+- **Do** tôn trọng `prefers-reduced-transparency` và `prefers-contrast`; vùng an toàn dùng `env(safe-area-inset-*)` khi cần.
 
 ### Don't:
 - **Don't** để giao diện giống phần mềm hành chính hoặc cổng thông tin nhà trường.
@@ -205,21 +206,22 @@ Từ lớp Liquid Glass (mục 7), bề mặt là kính bán trong suốt có vi
 - **Don't** dùng mascot và hiệu ứng rối mắt cản việc dạy.
 - **Don't** sao chép logo, hình ảnh hay câu chữ của ezthi.com.
 - **Don't** dùng `border-left` hay `border-right` dày hơn 1px làm vạch màu trên thẻ.
-- **Don't** dùng chữ gradient, kính mờ chỉ để trang trí (kính phải tách lớp nội dung), hay lưới thẻ giống hệt nhau lặp vô tận.
-- **Don't** để chữ trần trên nền động, hay phủ kính lên màn hình chiếu của quiz trực tiếp và khung game.
+- **Don't** dùng chữ gradient, kính mờ chỉ để trang trí, hay lưới thẻ giống hệt nhau lặp vô tận.
+- **Don't** dùng nền chuyển động toàn màn hình, animation khi vào trang/scroll chỉ để trình diễn, tilt hoặc magnetic làm lệch mục tiêu bấm.
+- **Don't** phủ kính lên màn hình chiếu của quiz trực tiếp, canvas bảng trắng hoặc khung game.
 - **Don't** dùng nhãn nhỏ viết hoa cách chữ (eyebrow) trên đầu mọi khu vực.
 - **Don't** dùng màu làm tín hiệu duy nhất cho trạng thái lỗi hoặc thành công.
 
-## 7. Liquid Glass
+## 7. Functional materials & motion
 
-Lớp giao diện kính, có animation và phản hồi theo chuột, đặt chồng lên hệ thống trên mà không đổi bố cục hay logic.
+Hệ vật liệu theo tinh thần Apple: phản hồi trực tiếp, chuyển động liên tục về không gian và dùng translucency có mục đích. Không mô phỏng giao diện hệ điều hành; vẫn giữ màu, chữ và mô hình thao tác riêng của SmartTeach.
 
-**Tệp:** `src/styles/tokens.css` (vai trò màu, easing, bo góc, biến kính), `src/styles/glass.css` (keyframes, bề mặt kính, tiện ích chuyển động), `src/lib/liquid-glass.ts` (một bộ lắng nghe chuột cho cả ứng dụng, gắn bởi `components/liquid-glass.tsx`), `components/ambient-background.tsx` (nền động).
+**Tệp:** `src/styles/tokens.css` chứa vai trò màu, thời lượng, easing, bo góc và vật liệu; `src/styles/glass.css` chứa thành phần dùng chung và các trạng thái; `components/ambient-background.tsx` chỉ tạo wash màu tĩnh. Không có listener con trỏ toàn trang hoặc state React cập nhật theo frame.
 
-**Đổi tông:** `--accent` / `--accent-2` (xanh: chọn, focus, glow, nền động; mặc định ánh xạ sang Xanh bảng và Xanh đậm) và `--cta` / `--cta-2` (nút chính vàng). Mọi màu còn lại đi qua `--color-*` trong `globals.css`.
+**Đổi tông:** `--accent` / `--accent-2` ánh xạ sang Xanh bảng và Xanh đậm; `--cta` / `--cta-2` dành riêng cho nút chính vàng. Mọi màu còn lại đi qua `--color-*` trong `globals.css`.
 
-**Dùng trong markup:** thuộc tính `data-glass="btn|icon|chip|row|card|frame"` vừa vẽ kính vừa bật ánh sáng theo chuột; `data-variant="primary|secondary|on-primary"` cho nút; `data-tone="ok|bad|warn|accent"` cho thẻ; `data-magnetic` chỉ cho nút chính và thẻ nổi bật; `data-tilt` chỉ cho thẻ lớn dễ đọc; `data-surface="float|sheet|panel"` cho menu, hộp thoại và khối nội dung tĩnh; `data-reveal-on-scroll` cho khối dưới màn hình. Trong CSS Modules dùng `--panel-bg`, `--panel-shadow`, `--item-shadow`, `--tint-bg`, `--tint-shadow` thay vì chép giá trị bóng.
+**Dùng trong markup:** `data-glass="btn|icon|chip|row|card|frame"` xác định vai trò tương tác; `data-variant="primary|secondary|on-primary"` xác định cấp hành động; `data-tone="ok|bad|warn|accent"` tạo tint trạng thái; `data-surface="float|sheet|panel"` phân biệt lớp nổi trong, sheet gần đặc và panel nội dung đặc. Trong CSS Modules dùng `--panel-bg`, `--panel-shadow`, `--item-shadow`, `--tint-bg`, `--tint-shadow` thay vì chép giá trị.
 
-**Hiệu năng:** chỉ animate `transform`, `opacity`, `background-position` và `box-shadow` nhẹ; khung chứa iframe game, canvas bảng trắng và danh sách dài không dùng `backdrop-filter`.
+**Motion grammar:** press 100ms, đổi trạng thái 180ms, menu/sheet 260ms. Menu và sheet xuất hiện từ gốc kích hoạt và đóng về cùng gốc. Loading có thể lặp; nội dung trang không tự choreography theo scroll hoặc route. `prefers-reduced-motion` rút mọi chuyển động về gần như tức thời.
 
-**Ngoài phạm vi kính:** ô đáp án A-F giữ nguyên bộ màu và hình ở mục 5 để đảm bảo tương phản; các khối chữ quanh chúng (bảng, thẻ, bảng xếp hạng) đã dùng kính gần đặc.
+**Khả năng thích ứng:** `prefers-reduced-transparency` đổi lớp nổi sang nền đặc; `prefers-contrast` tăng viền; fallback không có `backdrop-filter` vẫn đọc và dùng được. Khung game, màn hình quiz và canvas bảng trắng luôn tránh blur.

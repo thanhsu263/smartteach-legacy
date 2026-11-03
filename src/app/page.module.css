@@ -6,7 +6,7 @@
   color: #fff;
 }
 
-/* Quầng sáng kính trôi chậm sau ô xem trước; chỉ transform, tắt khi giảm chuyển động. */
+/* Quầng sáng tĩnh tạo chiều sâu mà không cạnh tranh với nội dung chính. */
 .hero::before {
   content: "";
   position: absolute;
@@ -17,14 +17,7 @@
   height: 560px;
   border-radius: 50%;
   background: radial-gradient(circle, rgb(255 255 255 / 0.16), transparent 65%);
-  animation: hero-glow 18s ease-in-out infinite;
   pointer-events: none;
-}
-
-@keyframes hero-glow {
-  50% {
-    transform: translate(-90px, 70px) scale(1.15);
-  }
 }
 
 .heroInner {

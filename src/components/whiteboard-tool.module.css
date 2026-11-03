@@ -28,19 +28,19 @@
   box-shadow: 0 0 0 1px var(--color-border-strong);
   cursor: pointer;
   transition:
-    transform 0.45s var(--ease-spring),
-    box-shadow 0.3s var(--ease-out);
+    transform var(--motion-state) var(--ease-fluid),
+    box-shadow var(--motion-state) var(--ease-fluid);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .swatch:hover:not(:disabled) {
-    transform: scale(1.12);
+    transform: scale(1.06);
   }
 }
 
 .swatch:active:not(:disabled) {
-  transform: scale(0.92);
-  transition-duration: 0.12s;
+  transform: scale(0.96);
+  transition-duration: var(--motion-press);
 }
 
 .swatch[aria-pressed="true"] {

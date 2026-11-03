@@ -12,7 +12,7 @@ type ToolCardProps = {
 export function ToolCard({ tool, headingLevel }: ToolCardProps) {
   const Heading = `h${headingLevel}` as const;
   return (
-    <article className={styles.card} data-glass="card" data-magnetic>
+    <article className={styles.card} data-glass="card">
       <span className={`${styles.icon} glass-tile`}>
         <ToolIcon id={tool.id} />
       </span>

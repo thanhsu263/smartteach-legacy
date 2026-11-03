@@ -148,7 +148,7 @@ export function LoginForm() {
 
       <p className={styles.switch}>
         {signingUp ? "Đã có tài khoản?" : "Chưa có tài khoản?"}{" "}
-        <button type="button" onClick={() => switchMode(signingUp ? "sign-in" : "sign-up")}>
+        <button type="button" data-glass="row" onClick={() => switchMode(signingUp ? "sign-in" : "sign-up")}>
           {signingUp ? "Đăng nhập" : "Đăng ký"}
         </button>
       </p>

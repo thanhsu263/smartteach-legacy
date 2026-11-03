@@ -17,9 +17,8 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${port}`,
     ...devices["Desktop Chrome"],
-    // Lớp Liquid Glass có animation vào trang và hiệu ứng theo chuột; test chạy với giảm chuyển động
-    // để axe không đo tương phản giữa chừng khi một khối còn đang mờ dần và các nút đứng yên khi bấm.
-    // Đường có chuyển động được kiểm riêng trong e2e/liquid-glass.spec.ts.
+    // Mặc định kiểm đường hỗ trợ giảm chuyển động; phản hồi press và menu có chuyển động
+    // được kiểm riêng trong e2e/apple-interface.spec.ts.
     reducedMotion: "reduce",
   },
   webServer: {

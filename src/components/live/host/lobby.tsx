@@ -87,6 +87,7 @@ export function HostLobby({ title, pin, locked, players, busy, onToggleLock, onR
                     <button
                       type="button"
                       className={styles.linkButton}
+                      data-glass="row"
                       onClick={() => {
                         setRemovingId(null);
                         onRemove(player);
@@ -94,7 +95,7 @@ export function HostLobby({ title, pin, locked, players, busy, onToggleLock, onR
                     >
                       Loại {player.nickname}?
                     </button>
-                    <button type="button" className={styles.linkButton} autoFocus onClick={() => setRemovingId(null)}>
+                    <button type="button" className={styles.linkButton} data-glass="row" autoFocus onClick={() => setRemovingId(null)}>
                       Giữ
                     </button>
                   </>
@@ -102,6 +103,7 @@ export function HostLobby({ title, pin, locked, players, busy, onToggleLock, onR
                   <button
                     type="button"
                     className={styles.linkButton}
+                    data-glass="row"
                     aria-label={`Loại ${player.nickname} khỏi phòng`}
                     onClick={() => setRemovingId(player.id)}
                   >

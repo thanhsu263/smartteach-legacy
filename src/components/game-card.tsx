@@ -14,7 +14,7 @@ export function GameCard({ game, headingLevel }: GameCardProps) {
   const tags = [...subjectLabels(game), ...gradeLabels(game)];
   const Heading = `h${headingLevel}` as const;
   return (
-    <article className={styles.card} data-glass="card" data-tilt>
+    <article className={styles.card} data-glass="card">
       <div className={styles.top}>
         <span className={`${styles.icon} glass-tile`}>
           <GamepadIcon size={28} />

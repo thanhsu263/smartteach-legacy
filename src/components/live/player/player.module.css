@@ -210,7 +210,12 @@
   cursor: pointer;
   transition:
     opacity var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out);
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--motion-press) var(--ease-instant);
+}
+
+.tile:active:not(:disabled) {
+  transform: scale(0.985);
 }
 
 .tile:focus-visible {
@@ -465,6 +470,6 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .chestResult {
-    animation: chestPop 260ms ease-out;
+    animation: chestPop var(--motion-layer) var(--ease-fluid);
   }
 }

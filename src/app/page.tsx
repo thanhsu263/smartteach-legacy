@@ -13,7 +13,7 @@ export default function HomePage() {
     <>
       <section className={`${styles.hero} on-primary`} aria-labelledby="hero-title">
         <div className={`container ${styles.heroInner}`}>
-          <div className={`${styles.heroText} stagger`}>
+          <div className={styles.heroText}>
             <h1 id="hero-title" className={styles.heroTitle}>
               Thầy cô mở lên là có ngay giờ học sôi nổi
             </h1>
@@ -45,7 +45,7 @@ export default function HomePage() {
             Xem tất cả tiện ích
           </ButtonLink>
         </div>
-        <ul className={`${styles.toolList} stagger`}>
+        <ul className={styles.toolList}>
           {tools.map((tool) => (
             <li key={tool.id}>
               <ToolCard tool={tool} headingLevel={3} />
@@ -54,13 +54,13 @@ export default function HomePage() {
         </ul>
       </section>
 
-      <section className={`container ${styles.section}`} aria-labelledby="games-title" data-reveal-on-scroll suppressHydrationWarning>
+      <section className={`container ${styles.section}`} aria-labelledby="games-title">
         <h2 id="games-title" className={styles.sectionTitle}>
           Trò chơi nổi bật
         </h2>
         {featuredGames.length > 0 ? (
           <>
-            <ul className={`${styles.gameGrid} stagger`}>
+            <ul className={styles.gameGrid}>
               {featuredGames.map((game) => (
                 <li key={game.id}>
                   <GameCard game={game} headingLevel={3} />
@@ -84,7 +84,7 @@ export default function HomePage() {
         )}
       </section>
 
-      <section className={`container ${styles.section}`} aria-labelledby="account-title" data-reveal-on-scroll suppressHydrationWarning>
+      <section className={`container ${styles.section}`} aria-labelledby="account-title">
         <div className={styles.account} data-surface="panel" data-tone="accent">
           <div>
             <h2 id="account-title" className={styles.sectionTitle}>

@@ -1,10 +1,7 @@
 .footer {
   margin-top: var(--space-8);
-  background: linear-gradient(var(--glass-menu-bottom), var(--glass-menu-top));
-  -webkit-backdrop-filter: var(--glass-blur-float);
-  backdrop-filter: var(--glass-blur-float);
+  background: var(--color-surface);
   border-top: 1px solid var(--glass-ring);
-  box-shadow: inset 0 1px #fff;
 }
 
 .inner {
@@ -51,7 +48,7 @@
 }
 
 .legal {
-  padding-block: var(--space-4);
+  padding-block: var(--space-4) max(var(--space-4), env(safe-area-inset-bottom));
   color: var(--color-ink-muted);
   font-size: var(--text-xs);
 }

@@ -296,6 +296,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
                     <button
                       type="button"
                       className={styles.select}
+                      data-glass="row"
                       aria-current={selected ? "true" : undefined}
                       onClick={() => select(question)}
                     >

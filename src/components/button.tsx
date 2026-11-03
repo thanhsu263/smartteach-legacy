@@ -19,12 +19,11 @@ function classes(extra?: string) {
   return [styles.button, extra].filter(Boolean).join(" ");
 }
 
-/** Bề mặt kính của nút (xem styles/glass.css); nút chính nhích nhẹ theo chuột. */
+/** Vai trò thị giác của nút được định nghĩa tập trung trong styles/glass.css. */
 function glass(variant: ButtonVariant) {
   return {
     "data-glass": "btn",
     "data-variant": variant,
-    ...(variant === "primary" ? { "data-magnetic": "" } : null),
   };
 }
 
