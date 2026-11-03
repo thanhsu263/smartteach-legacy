@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useId, useState, type FormEvent } from "react";
-import { Button } from "@/components/button";
+import { Button, IconButton } from "@/components/button";
+import { TrashIcon } from "@/components/icons";
 import { useFocusRequest } from "@/components/use-focus-request";
 import { problemText } from "@/lib/quiz/errors";
 import {
@@ -191,17 +192,18 @@ export function QuestionForm({ initial, isNew, onSave, onCancel, onDirtyChange }
                         />
                         <span>Đúng</span>
                       </label>
-                      <Button
-                        variant="secondary"
+                      <IconButton
                         aria-label={`Xoá lựa chọn ${letter(index)}`}
+                        tooltip="Xoá lựa chọn"
+                        tone="danger"
                         disabled={draft.options.length <= MIN_OPTIONS_PER_QUESTION}
                         onClick={() => {
                           update({ options: draft.options.filter((_, i) => i !== index) });
                           requestFocus(`${baseId}-opt-input-${Math.max(0, index - 1)}`);
                         }}
                       >
-                        Xoá
-                      </Button>
+                        <TrashIcon size={20} />
+                      </IconButton>
                     </li>
                   );
                 })}
@@ -246,17 +248,18 @@ export function QuestionForm({ initial, isNew, onSave, onCancel, onDirtyChange }
                       </p>
                     ) : null}
                   </div>
-                  <Button
-                    variant="secondary"
+                  <IconButton
                     aria-label={`Xoá đáp án chấp nhận ${index + 1}`}
+                    tooltip="Xoá đáp án"
+                    tone="danger"
                     disabled={draft.accepted_answers.length <= 1}
                     onClick={() => {
                       update({ accepted_answers: draft.accepted_answers.filter((_, i) => i !== index) });
                       requestFocus(`${baseId}-ans-input-${Math.max(0, index - 1)}`);
                     }}
                   >
-                    Xoá
-                  </Button>
+                    <TrashIcon size={20} />
+                  </IconButton>
                 </li>
               );
             })}

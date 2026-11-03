@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { useAuth } from "@/components/auth-provider";
-import { Button } from "@/components/button";
+import { Button, IconButton } from "@/components/button";
+import { TrashIcon } from "@/components/icons";
 import { createClass, deleteClass, listClasses, MAX_CLASSES, type ClassSummary, type Result } from "@/lib/classes/api";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { parseNames } from "@/lib/utilities/draw";
@@ -188,16 +189,17 @@ export function ClassesManager() {
                     </div>
                   </div>
                 ) : (
-                  <Button
-                    variant="secondary"
+                  <IconButton
                     aria-label={`Xoá lớp ${item.name}`}
+                    tooltip="Xoá lớp"
+                    tone="danger"
                     onClick={() => {
                       setDeleteError(null);
                       setConfirmingId(item.id);
                     }}
                   >
-                    Xoá
-                  </Button>
+                    <TrashIcon size={20} />
+                  </IconButton>
                 )}
               </li>
             ))}

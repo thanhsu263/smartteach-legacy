@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { useAuth } from "@/components/auth-provider";
-import { Button, ButtonLink } from "@/components/button";
+import { Button, ButtonLink, IconButton } from "@/components/button";
+import { CopyIcon, TrashIcon } from "@/components/icons";
 import { StartSession } from "@/components/live/host/start-session";
 import { useFocusRequest } from "@/components/use-focus-request";
 import type { Result } from "@/lib/classes/api";
@@ -222,26 +223,27 @@ export function QuizzesManager() {
                 ) : (
                   <div className={styles.actions}>
                     <StartSession quizId={quiz.id} />
-                    <Button
-                      variant="secondary"
+                    <IconButton
                       aria-label={`Nhân đôi quiz ${quiz.title}`}
+                      tooltip="Nhân đôi quiz"
                       disabled={atLimit}
                       onClick={() => duplicate(quiz.id, quiz.title)}
                     >
-                      Nhân đôi
-                    </Button>
-                    <Button
-                      variant="secondary"
+                      <CopyIcon size={20} />
+                    </IconButton>
+                    <IconButton
                       id={`${titleId}-del-${quiz.id}`}
                       aria-label={`Xoá quiz ${quiz.title}`}
+                      tooltip="Xoá quiz"
+                      tone="danger"
                       onClick={() => {
                         setActionError(null);
                         setNotice(null);
                         setConfirmingId(quiz.id);
                       }}
                     >
-                      Xoá
-                    </Button>
+                      <TrashIcon size={20} />
+                    </IconButton>
                   </div>
                 )}
               </li>

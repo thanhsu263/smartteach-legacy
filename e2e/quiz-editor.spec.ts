@@ -149,7 +149,10 @@ test.describe("soạn quiz", () => {
     await expect(page.getByRole("button", { name: /Câu 4.*Thủ đô nước Pháp/ })).toBeVisible();
 
     // Đổi thứ tự: câu 4 lên đầu.
-    await page.getByRole("button", { name: "Chuyển câu 4 lên trên" }).click();
+    const moveFourthUp = page.getByRole("button", { name: "Chuyển câu 4 lên trên" });
+    await expect(moveFourthUp).toHaveAttribute("data-icon-only", "true");
+    await expect(moveFourthUp).toHaveAttribute("data-tooltip", "Đưa lên");
+    await moveFourthUp.click();
     await expect(page.getByRole("button", { name: /Câu 3.*Thủ đô nước Pháp/ })).toBeVisible();
     await page.getByRole("button", { name: "Chuyển câu 3 lên trên" }).click();
     await expect(page.getByRole("button", { name: /Câu 2.*Thủ đô nước Pháp/ })).toBeVisible();
@@ -162,7 +165,10 @@ test.describe("soạn quiz", () => {
     await expect(page.getByRole("button", { name: /Câu 1.*Thủ đô nước Pháp/ })).toBeVisible();
 
     // Xoá cần xác nhận; "Giữ lại" thì không xoá.
-    await page.getByRole("button", { name: "Xoá câu 1", exact: true }).click();
+    const deleteFirstQuestion = page.getByRole("button", { name: "Xoá câu 1", exact: true });
+    await expect(deleteFirstQuestion).toHaveAttribute("data-icon-only", "true");
+    await expect(deleteFirstQuestion).toHaveAttribute("data-tooltip", "Xoá câu");
+    await deleteFirstQuestion.click();
     await page.getByRole("button", { name: "Giữ lại" }).click();
     await expect(page.getByRole("heading", { name: "Câu hỏi (4 / 50)" })).toBeVisible();
     await page.getByRole("button", { name: "Xoá câu 1", exact: true }).click();

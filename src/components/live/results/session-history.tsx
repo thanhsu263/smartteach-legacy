@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
-import { Button } from "@/components/button";
+import { Button, IconButton } from "@/components/button";
+import { TrashIcon } from "@/components/icons";
 import { useAuth } from "@/components/auth-provider";
 import { useFocusRequest } from "@/components/use-focus-request";
 import { host } from "@/lib/live/rpc";
@@ -132,14 +133,15 @@ export function SessionHistory({ quizId }: { quizId?: string }) {
                 ) : (
                   <div className={styles.actions}>
                     <Link href={`/host/${row.session_id}/results`}>Xem kết quả</Link>
-                    <Button
-                      variant="secondary"
+                    <IconButton
                       id={`${baseId}-del-${row.session_id}`}
                       aria-label={`Xoá buổi ${formatDateTime(row.created_at)}`}
+                      tooltip="Xoá buổi"
+                      tone="danger"
                       onClick={() => setConfirmingId(row.session_id)}
                     >
-                      Xoá
-                    </Button>
+                      <TrashIcon size={20} />
+                    </IconButton>
                   </div>
                 )}
               </li>

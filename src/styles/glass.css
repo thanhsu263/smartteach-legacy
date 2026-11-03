@@ -227,6 +227,12 @@
   backdrop-filter: var(--glass-blur);
 }
 
+[data-glass="icon"][data-tone="danger"] {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 5%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-danger) 34%, var(--color-border-strong));
+}
+
 @media (hover: hover) and (pointer: fine) {
   [data-glass="btn"]:hover:not(:disabled):not([aria-disabled="true"]),
   [data-glass="icon"]:hover:not(:disabled):not([aria-disabled="true"]),
@@ -250,6 +256,12 @@
     color: #fff;
     background: rgb(255 255 255 / 0.17);
     border-color: #fff;
+  }
+
+  [data-glass="icon"][data-tone="danger"]:hover:not(:disabled):not([aria-disabled="true"]) {
+    color: var(--color-danger);
+    background: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface));
+    border-color: color-mix(in srgb, var(--color-danger) 62%, var(--color-border-strong));
   }
 
   [data-glass="card"]:hover,

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Breadcrumb } from "@/components/breadcrumb";
-import { Button, ButtonLink } from "@/components/button";
+import { Button, ButtonLink, IconButton } from "@/components/button";
+import { PencilIcon, TrashIcon } from "@/components/icons";
 import {
   addStudents,
   deleteStudent,
@@ -214,23 +215,24 @@ export function ClassEditor({ classId }: { classId: string }) {
                   <>
                     <span className={styles.studentName}>{student.name}</span>
                     <span className={styles.studentActions}>
-                      <Button
-                        variant="secondary"
+                      <IconButton
                         aria-label={`Sửa tên ${student.name}`}
+                        tooltip="Sửa tên"
                         onClick={() => {
                           setStudentDraft(student.name);
                           setEditingId(student.id);
                         }}
                       >
-                        Sửa
-                      </Button>
-                      <Button
-                        variant="secondary"
+                        <PencilIcon size={20} />
+                      </IconButton>
+                      <IconButton
                         aria-label={`Xoá ${student.name}`}
+                        tooltip="Xoá học sinh"
+                        tone="danger"
                         onClick={() => run((supabase) => deleteStudent(supabase, student.id), `Đã xoá ${student.name}.`)}
                       >
-                        Xoá
-                      </Button>
+                        <TrashIcon size={20} />
+                      </IconButton>
                     </span>
                   </>
                 )}

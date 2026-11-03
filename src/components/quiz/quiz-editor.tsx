@@ -3,7 +3,8 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Breadcrumb } from "@/components/breadcrumb";
-import { Button, ButtonLink } from "@/components/button";
+import { Button, ButtonLink, IconButton } from "@/components/button";
+import { ArrowDownIcon, ArrowUpIcon, TrashIcon } from "@/components/icons";
 import { StartSession } from "@/components/live/host/start-session";
 import { SessionHistory } from "@/components/live/results/session-history";
 import { useFocusRequest } from "@/components/use-focus-request";
@@ -304,23 +305,23 @@ export function QuizEditor({ quizId }: { quizId: string }) {
                       <span className={styles.prompt}>{question.prompt}</span>
                       <span className={styles.kind}>{KIND_LABELS[question.kind]}</span>
                     </button>
-                    <div className={styles.rowActions}>
-                      <Button
-                        variant="secondary"
+                    <div className={`${styles.rowActions} ${styles.questionActions}`} role="group" aria-label={`Thao tác câu ${index + 1}`}>
+                      <IconButton
                         aria-label={`Chuyển câu ${index + 1} lên trên`}
+                        tooltip="Đưa lên"
                         disabled={index === 0 || moving}
                         onClick={() => move(index, -1)}
                       >
-                        Lên
-                      </Button>
-                      <Button
-                        variant="secondary"
+                        <ArrowUpIcon size={20} />
+                      </IconButton>
+                      <IconButton
                         aria-label={`Chuyển câu ${index + 1} xuống dưới`}
+                        tooltip="Đưa xuống"
                         disabled={index === questions.length - 1 || moving}
                         onClick={() => move(index, 1)}
                       >
-                        Xuống
-                      </Button>
+                        <ArrowDownIcon size={20} />
+                      </IconButton>
                       {confirmingId === question.id ? (
                         <>
                           <Button variant="secondary" aria-label={`Xoá câu này, câu ${index + 1}`} onClick={() => remove(question.id, index + 1)}>
@@ -338,14 +339,15 @@ export function QuizEditor({ quizId }: { quizId: string }) {
                           </Button>
                         </>
                       ) : (
-                        <Button
-                          variant="secondary"
+                        <IconButton
                           id={`${baseId}-del-${question.id}`}
                           aria-label={`Xoá câu ${index + 1}`}
+                          tooltip="Xoá câu"
+                          tone="danger"
                           onClick={() => setConfirmingId(question.id)}
                         >
-                          Xoá
-                        </Button>
+                          <TrashIcon size={20} />
+                        </IconButton>
                       )}
                     </div>
                   </li>
