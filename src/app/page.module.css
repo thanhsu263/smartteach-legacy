@@ -1,9 +1,17 @@
+.page {
+  display: grid;
+  gap: var(--space-7);
+  padding-block: var(--space-5) var(--space-8);
+}
+
 .hero {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   background: linear-gradient(165deg, var(--accent) 0%, var(--accent-2) 100%);
   color: #fff;
+  border-radius: var(--r-sheet);
+  box-shadow: var(--shadow-raised);
 }
 
 /* Quầng sáng tĩnh tạo chiều sâu mà không cạnh tranh với nội dung chính. */
@@ -23,7 +31,21 @@
 .heroInner {
   display: grid;
   gap: var(--space-7);
-  padding-block: var(--space-7);
+  padding: var(--space-6);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 28px;
+  padding-inline: var(--space-3);
+  background: rgb(255 255 255 / 0.12);
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: var(--radius-pill);
+  color: var(--color-on-primary-muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
 }
 
 .heroTitle {
@@ -51,7 +73,6 @@
 .section {
   display: grid;
   gap: var(--space-5);
-  padding-block: var(--space-7) 0;
 }
 
 .sectionTitle {
@@ -67,16 +88,88 @@
   color: var(--color-ink-muted);
 }
 
-.toolsIntro {
+.sectionHeading {
   display: grid;
+  gap: var(--space-2);
+}
+
+.quickGrid,
+.continueGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.quickCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3) var(--space-4);
+  align-items: start;
+  height: 100%;
+  padding: var(--space-5);
+}
+
+.quickIcon,
+.toolIcon {
+  width: 44px;
+  height: 44px;
+}
+
+.quickTitle,
+.toolTitle,
+.accountTitle {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.quickDetail,
+.toolText {
+  margin-top: var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.quickAction {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.toolsPanel {
+  padding: var(--space-5);
+}
+
+.toolsHeader {
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
-  align-content: start;
-  justify-items: start;
+  align-items: end;
+  justify-content: space-between;
 }
 
 .toolList {
   display: grid;
-  gap: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.toolList > li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.toolRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3) var(--space-4);
+  align-items: start;
+  padding-block: var(--space-4);
+}
+
+.toolCopy {
+  min-width: 0;
+}
+
+.toolAction {
+  grid-column: 1 / -1;
+  justify-self: start;
 }
 
 .gameGrid {
@@ -134,17 +227,35 @@
   .heroInner {
     grid-template-columns: 1.1fr 0.9fr;
     align-items: center;
-    padding-block: var(--space-8);
+    min-height: 31rem;
+    padding: var(--space-8);
   }
 
-  .section:has(.toolsIntro) {
-    grid-template-columns: 1fr 1.4fr;
-    gap: var(--space-7);
+  .quickGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .quickCard {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .toolRow {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .toolAction {
+    grid-column: auto;
+    justify-self: end;
+  }
+
+  .continueGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .account {
-    grid-template-columns: 1fr auto;
-    align-items: center;
+    align-content: start;
+    min-height: 100%;
     padding: var(--space-6);
   }
 }

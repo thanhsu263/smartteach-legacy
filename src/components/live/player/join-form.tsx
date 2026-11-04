@@ -65,8 +65,9 @@ export function JoinForm({ initialPin, notice, onJoined }: JoinFormProps) {
   }
 
   return (
-    <div className={styles.screen}>
-      <header>
+    <div className={`${styles.screen} ${styles.joinScreen}`}>
+      <header className={styles.joinHeader}>
+        <p className={styles.joinKicker}>Trắc nghiệm trực tiếp</p>
         <h1 className={styles.title}>Vào phòng chơi</h1>
         <p className={styles.lead}>Nhập PIN trên màn hình của thầy cô và chọn một biệt danh. Bạn không cần tài khoản.</p>
       </header>
@@ -77,7 +78,7 @@ export function JoinForm({ initialPin, notice, onJoined }: JoinFormProps) {
         </p>
       ) : null}
 
-      <form onSubmit={submit} className={styles.card} noValidate>
+      <form onSubmit={submit} className={`${styles.card} ${styles.joinCard}`} noValidate>
         <div className={styles.fields}>
           <div className={styles.field}>
             <label htmlFor={`${baseId}-pin`}>PIN của phòng</label>

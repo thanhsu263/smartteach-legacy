@@ -50,3 +50,20 @@
   color: var(--color-ink-muted);
   font-size: var(--text-sm);
 }
+
+.action {
+  display: inline-flex;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+  color: var(--color-primary-deep);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.action span {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.card:hover .action span {
+  transform: translateX(3px);
+}

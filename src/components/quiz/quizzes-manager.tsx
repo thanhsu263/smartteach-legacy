@@ -99,7 +99,7 @@ export function QuizzesManager() {
 
   return (
     <div className={styles.manager}>
-      <section aria-labelledby={`${titleId}-new`} className={styles.panel}>
+      <section aria-labelledby={`${titleId}-new`} className={`${styles.panel} ${styles.createPanel}`}>
         <h2 id={`${titleId}-new`} className={styles.heading}>
           Tạo quiz mới
         </h2>
@@ -134,7 +134,7 @@ export function QuizzesManager() {
         </div>
       </section>
 
-      <section aria-labelledby={`${titleId}-list`} className={styles.panel}>
+      <section aria-labelledby={`${titleId}-list`} className={`${styles.panel} ${styles.listPanel}`}>
         <h2 id={`${titleId}-list`} className={styles.heading} tabIndex={-1}>
           Quiz đã lưu{" "}
           {current?.ok ? (

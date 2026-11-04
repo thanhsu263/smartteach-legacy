@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SessionHistory } from "@/components/live/results/session-history";
+import styles from "./host.module.css";
 
 export const metadata: Metadata = { title: "Các buổi đã chơi" };
 
@@ -10,15 +11,19 @@ export const metadata: Metadata = { title: "Các buổi đã chơi" };
  */
 export default function SessionsPage() {
   return (
-    <div className="container" style={{ display: "grid", gap: "var(--space-5)", paddingBlock: "var(--space-6) 0" }}>
-      <header className="page-head" data-surface="panel">
-        <h1 style={{ fontSize: "var(--text-2xl)", fontWeight: 700, lineHeight: 1.25 }}>Các buổi đã chơi</h1>
-        <p style={{ marginTop: "var(--space-2)", color: "var(--color-ink-muted)", maxWidth: "60ch" }}>
+    <div className={`container ${styles.page}`}>
+      <header className={`${styles.hero} on-primary`}>
+        <div>
+          <p className={styles.eyebrow}>Theo dõi sau giờ học</p>
+          <h1 className={styles.title}>Các buổi đã chơi</h1>
+          <p className={styles.heroMessage}>Xem lại kết quả, giữ quyền kiểm soát dữ liệu</p>
+        </div>
+        <p className={styles.lead}>
           Kết quả mọi buổi chơi trực tiếp của thầy cô. Dữ liệu người chơi tự xoá sau khoảng 90 ngày; thầy cô xoá ngay được từng buổi.
         </p>
       </header>
       <SessionHistory />
-      <p>
+      <p className={styles.back}>
         <Link href="/my-quizzes">Về Quiz của tôi</Link>
       </p>
     </div>

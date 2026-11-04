@@ -11,11 +11,16 @@ export const metadata: Metadata = {
 export default function GamesPage() {
   return (
     <div className={`container ${styles.page}`}>
-      <header className="page-head" data-surface="panel">
-        <h1 className={styles.title}>Kho game</h1>
-        <p className={styles.lead}>
-          Chọn trò chơi theo môn và lớp, mở ngay trên trình duyệt, không cần cài đặt.
-        </p>
+      <header className={`${styles.hero} on-primary`}>
+        <div>
+          <p className={styles.eyebrow}>Hoạt động cho tiết học</p>
+          <h1 className={styles.title}>Kho game</h1>
+          <p className={styles.heroMessage}>Chọn một trò chơi, mở lớp ngay</p>
+          <p className={styles.lead}>
+            Lọc theo môn hoặc khối lớp, rồi chạy hoạt động trực tiếp trên trình duyệt.
+          </p>
+        </div>
+        <p className={styles.heroNote}>Không cần cài đặt</p>
       </header>
       <GameBrowser games={games} />
     </div>

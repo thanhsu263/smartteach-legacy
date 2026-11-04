@@ -12,8 +12,12 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <div className={`container ${styles.page}`}>
-      <header className="page-head" data-surface="panel">
-        <h1 className={styles.title}>Đăng nhập</h1>
+      <header className={`${styles.hero} on-primary`}>
+        <div>
+          <p className={styles.eyebrow}>Không gian của giáo viên</p>
+          <h1 className={styles.title}>Đăng nhập</h1>
+          <p className={styles.heroMessage}>Lưu những gì thầy cô sẽ dùng lại</p>
+        </div>
         <p className={styles.lead}>
           Thầy cô đăng nhập để lưu danh sách lớp và trò chơi yêu thích. Học sinh không cần tài khoản.{" "}
           <Link href="/privacy">Xem cách ứng dụng dùng dữ liệu</Link>.

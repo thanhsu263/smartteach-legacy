@@ -31,12 +31,12 @@ vào production. Không sửa tests/fixtures/quiz-thu-nghiem.csv hoặc .xlsx.
 
 | Phase | Tên | Trạng thái |
 | --- | --- | --- |
-| 01 | [Handoff thiết kế và nền tảng chrome](./phase-01-design-foundation.md) | In progress — 01.1 là external write vào Stitch, chưa thực hiện |
-| 02 | [Khám phá công cụ và game](./phase-02-discovery-tools-games.md) | Completed |
-| 03 | [Xác thực và không gian lớp học](./phase-03-auth-classes.md) | Completed |
-| 04 | [Kho và trình soạn quiz](./phase-04-quiz-authoring.md) | Completed |
-| 05 | [Quiz trực tiếp: host, học sinh và kết quả](./phase-05-live-quiz.md) | Completed |
-| 06 | [Kiểm chứng, responsive và hoàn thiện](./phase-06-verification-polish.md) | Completed |
+| 01 | [Handoff thiết kế và nền tảng chrome](./phase-01-design-foundation.md) | Completed locally — dùng screen Stitch đã duyệt làm contract; không ghi ngược vào Stitch |
+| 02 | [Khám phá công cụ và game](./phase-02-discovery-tools-games.md) | Completed — hero quyết định, lọc/danh mục phân cấp và action card rõ ràng |
+| 03 | [Xác thực và không gian lớp học](./phase-03-auth-classes.md) | Completed — entry auth và khu tạo/quản lý lớp nhất quán |
+| 04 | [Kho và trình soạn quiz](./phase-04-quiz-authoring.md) | Completed — library, editor workspace và icon action được áp dụng/kiểm chứng |
+| 05 | [Quiz trực tiếp: host, học sinh và kết quả](./phase-05-live-quiz.md) | Completed — entry học sinh, history host và các canvas live chuyên dụng được giữ nhẹ/đọc rõ |
+| 06 | [Kiểm chứng, responsive và hoàn thiện](./phase-06-verification-polish.md) | Completed — full suite lặp lại hai lần và bundle scan sạch |
 
 ## Quy ước xuyên suốt
 

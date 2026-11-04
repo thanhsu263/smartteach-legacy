@@ -80,7 +80,7 @@ export function ClassesManager() {
 
   return (
     <div className={styles.manager}>
-      <section aria-labelledby={`${nameId}-title`} className={styles.panel}>
+      <section aria-labelledby={`${nameId}-title`} className={`${styles.panel} ${styles.createPanel}`}>
         <h2 id={`${nameId}-title`} className={styles.heading}>
           Tạo lớp mới
         </h2>
@@ -128,7 +128,7 @@ export function ClassesManager() {
         </form>
       </section>
 
-      <section aria-labelledby="saved-classes-title" className={styles.panel}>
+      <section aria-labelledby="saved-classes-title" className={`${styles.panel} ${styles.listPanel}`}>
         <h2 id="saved-classes-title" className={styles.heading}>
           Các lớp đã lưu {current?.ok ? <span>({classes.length} / {MAX_CLASSES})</span> : null}
         </h2>

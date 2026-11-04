@@ -38,6 +38,13 @@ export function GameBrowser({ games }: { games: readonly Game[] }) {
 
   return (
     <div className={styles.browser}>
+      <div className={styles.sectionHead}>
+        <div>
+          <p className={styles.eyebrow}>Tìm hoạt động phù hợp</p>
+          <h2 className={styles.title}>Khám phá kho game</h2>
+        </div>
+        <p className={styles.helper}>Lọc nhanh để chọn game cho tiết học này.</p>
+      </div>
       <form
         className={styles.filters}
         role="search"

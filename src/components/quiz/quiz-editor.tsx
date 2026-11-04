@@ -235,7 +235,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
     <div className={styles.editor}>
       <Breadcrumb items={[{ label: "Quiz của tôi", href: "/my-quizzes" }, { label: quiz.title }]} />
 
-      <header className={styles.header}>
+      <header className={`${styles.header} on-primary`}>
         {renaming ? (
           <form onSubmit={submitRename} className={styles.inline}>
             <label htmlFor={`${baseId}-title`} className="visually-hidden">
@@ -259,7 +259,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
           <>
             <h1 className={styles.title}>{quiz.title}</h1>
             <Button
-              variant="secondary"
+              variant="on-primary"
               onClick={() => {
                 setTitleDraft(quiz.title);
                 setRenaming(true);
@@ -282,7 +282,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
       ) : null}
 
       <div className={styles.workspace}>
-        <section aria-labelledby={`${baseId}-questions`} className={styles.panel}>
+        <section aria-labelledby={`${baseId}-questions`} className={`${styles.panel} ${styles.questionsPanel}`}>
           <h2 id={`${baseId}-questions`} className={styles.heading} tabIndex={-1}>
             Câu hỏi ({questions.length} / {MAX_QUESTIONS_PER_QUIZ})
           </h2>
@@ -371,7 +371,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
           {atLimit ? <p className={styles.hint}>Quiz đã đủ {MAX_QUESTIONS_PER_QUIZ} câu, thầy cô xoá bớt câu cũ để thêm câu mới.</p> : null}
         </section>
 
-        <section aria-labelledby={formHeadingId} className={styles.panel}>
+        <section aria-labelledby={formHeadingId} className={`${styles.panel} ${styles.formPanel}`}>
           <h2 id={formHeadingId} className={styles.heading} tabIndex={-1}>
             {mode === null ? "Soạn câu hỏi" : mode.id === undefined ? "Câu hỏi mới" : editingIndex >= 0 ? `Sửa câu ${editingIndex + 1}` : "Sửa câu hỏi"}
           </h2>

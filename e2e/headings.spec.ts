@@ -44,7 +44,8 @@ test.describe("cấp tiêu đề", () => {
   test("trang chủ: thẻ trong từng khu vực nằm dưới h2 của khu vực đó", async ({ page }) => {
     await page.goto("/");
     const levels = await headingLevels(page);
-    // h1, h2 (công cụ), 4 x h3 (thẻ tiện ích), h2 (game nổi bật), h3 (thẻ game), h2 (tài khoản)
-    expect(levels).toEqual([1, 2, 3, 3, 3, 3, 2, 3, 2]);
+    // h1, h2 (bắt đầu nhanh) + 3 h3, h2 (công cụ) + 4 h3,
+    // h2 (tiếp tục chuẩn bị) + h3 lớp học và h3 trò chơi.
+    expect(levels).toEqual([1, 2, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3, 3]);
   });
 });

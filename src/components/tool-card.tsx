@@ -23,6 +23,9 @@ export function ToolCard({ tool, headingLevel }: ToolCardProps) {
           </Link>
         </Heading>
         <p className={styles.text}>{tool.description}</p>
+        <span className={styles.action} aria-hidden="true">
+          Mở công cụ <span>→</span>
+        </span>
       </div>
     </article>
   );
