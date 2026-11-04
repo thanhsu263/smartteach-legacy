@@ -17,11 +17,13 @@ type ToolStageProps = {
   label: string;
   /** Nút thêm đặt cạnh nút toàn màn hình. */
   actions?: ReactNode;
+  /** Dock điều khiển của màn live luôn ở gần giáo viên khi nội dung cuộn. */
+  live?: boolean;
   children: ReactNode;
 };
 
 /** Khung bao một tiện ích, có nút chiếu toàn màn hình cho màn chiếu lớp học. */
-export function ToolStage({ label, actions, children }: ToolStageProps) {
+export function ToolStage({ label, actions, live = false, children }: ToolStageProps) {
   const stageRef = useRef<HTMLElement>(null);
   const canFullscreen = useSyncExternalStore(
     subscribeNothing,
@@ -43,7 +45,7 @@ export function ToolStage({ label, actions, children }: ToolStageProps) {
   }
 
   return (
-    <section ref={stageRef} aria-label={label} className={styles.stage}>
+    <section ref={stageRef} aria-label={label} className={styles.stage} data-live-stage={live || undefined}>
       <div className={styles.bar}>
         {actions}
         {canFullscreen ? (

@@ -83,6 +83,19 @@ test.describe("điều hướng", () => {
   });
 });
 
+test.describe("canvas quiz trực tiếp", () => {
+  test.use({ viewport: { width: 375, height: 812 } });
+
+  test("trang người chơi dành toàn bộ không gian cho phiên quiz", async ({ page }) => {
+    await page.goto("/play");
+
+    await expect(page.locator("main#main")).toBeVisible();
+    await expect(page.getByRole("banner")).toHaveCount(0);
+    await expect(page.getByRole("contentinfo")).toHaveCount(0);
+    expect(await hasHorizontalScroll(page)).toBe(false);
+  });
+});
+
 test.describe("menu trên điện thoại", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 

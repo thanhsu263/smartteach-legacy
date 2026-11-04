@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartTeach - Bảng đen sáng</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#1D4FD7",
+            "primary-container": "#E9EFFD",
+            "on-primary-container": "#172033",
+            "on-surface": "#172033",
+            "on-surface-variant": "#4A5568",
+            surface: "#FFFFFF",
+            "surface-container": "#F6F8FC",
+            outline: "#D5DDEB",
+            accent: "#FFC72C",
+            error: "#B3261E",
+            success: "#14703F"
+          },
+          borderRadius: {
+            DEFAULT: "0.5rem",
+            lg: "1rem",
+            xl: "1.5rem",
+            full: "9999px"
+          },
+          fontFamily: {
+            headline: ["Be Vietnam Pro"],
+            display: ["Be Vietnam Pro"],
+            body: ["Be Vietnam Pro"],
+            label: ["Be Vietnam Pro"]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="h-full bg-surface-container text-on-surface font-body antialiased selection:bg-primary-container selection:text-primary">
+<!-- TopNavBar -->
+<header class="docked full-width top-0 sticky z-40 bg-white dark:bg-white border-b border-outline dark:border-outline shadow-sm">
+<div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+<div class="flex items-center gap-8">
+<a class="font-headline text-xl font-bold tracking-tight text-primary dark:text-primary flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">waves</span>
+          SmartTeach
+        </a>
+<nav class="hidden md:flex items-center gap-1">
+<a class="px-3 py-2 rounded-lg text-primary dark:text-primary font-semibold border-b-2 border-primary dark:border-primary pb-1 font-headline text-base font-medium leading-relaxed hover:bg-surface-container transition-colors duration-180" href="#">Trang chủ</a>
+<a class="px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant font-medium hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container transition-colors duration-180 font-headline text-base font-medium leading-relaxed" href="#">Trò chơi</a>
+<a class="px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant font-medium hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container transition-colors duration-180 font-headline text-base font-medium leading-relaxed" href="#">Công cụ</a>
+<a class="px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant font-medium hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container transition-colors duration-180 font-headline text-base font-medium leading-relaxed" href="#">Lớp của tôi</a>
+<a class="px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant font-medium hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container transition-colors duration-180 font-headline text-base font-medium leading-relaxed" href="#">Quiz của tôi</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<div class="hidden lg:flex items-center relative">
+<span class="absolute left-3 text-on-surface-variant material-symbols-outlined text-lg">search</span>
+<input class="pl-9 pr-4 py-2 bg-surface-container border border-outline rounded-lg text-sm focus:outline-none focus:border-primary w-52 transition-all" placeholder="Tìm kiếm nhanh..." type="text"/>
+</div>
+<button class="hidden sm:inline-flex items-center justify-center px-4 py-2 bg-surface text-primary border border-outline rounded-[10px] text-sm font-medium hover:bg-primary-container transition-colors active:scale-[0.99]">
+          Nhập mã PIN
+        </button>
+<button class="inline-flex items-center justify-center px-4 py-2 bg-accent text-on-surface rounded-[10px] text-sm font-bold shadow-sm hover:opacity-95 transition-all active:scale-[0.99]">
+          Tạo quiz ngay
+        </button>
+<div class="flex items-center pl-2 border-l border-outline">
+<img class="w-9 h-9 rounded-full object-cover border border-outline" data-alt="A professional Vietnamese female teacher with warm smiling expression, wearing neat professional attire, standing in a brightly lit modern classroom with digital whiteboard background, high contrast lighting, clean professional photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfjgMf2oi_wm8hy48YsrfzutiJduX8js8pbSmIC7ChaFvAWOr-6SlXpBf6bkbsfMFQSIhdrDJaPwdcImSrPUepF4oicY-odoZYbkk6Y1zj-x3SccZF7NzZSm90VOS6xMRXnvwuENq7uWNqrTZa18RbHv1vgsW5z-NiZhgc3mAvUavgMTi5SJyz9NG8Kl3DQUUh-ayDTMDkTZML1J6UQRdSDZT2EaKWHz4e9Vy8BKpxdeBNxwQ5zKVQsZnHXH6n0N6JbiViDgDo_-E"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+<!-- Hero Section -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-primary text-white rounded-xl p-8 sm:p-12 relative overflow-hidden shadow-lg">
+<div class="absolute -right-24 -bottom-24 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="lg:col-span-7 space-y-6 z-10">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-medium tracking-wide">
+<span class="material-symbols-outlined text-accent text-sm" style="font-variation-settings: 'FILL' 1;">bolt</span>
+          Dành riêng cho giáo viên Việt Nam
+        </div>
+<h1 class="font-headline text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+          Mở hoạt động cho lớp trong vài giây
+        </h1>
+<p class="text-white/90 text-lg font-body max-w-xl leading-relaxed">
+          Thầy cô thân mến, bảng đen sáng SmartTeach sẵn sàng giúp bạn tổ chức các hoạt động tương tác, điểm danh nhanh và kiểm tra kiến thức không cần tài khoản học sinh.
+        </p>
+<div class="flex flex-wrap gap-4 pt-2">
+<button class="px-6 py-3.5 bg-accent text-on-surface rounded-[10px] font-bold text-base shadow-md hover:bg-amber-400 transition-all active:scale-[0.99] flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+            Tạo quiz ngay
+          </button>
+<button class="px-6 py-3.5 bg-white/10 text-white border border-white/30 rounded-[10px] font-medium text-base hover:bg-white/20 transition-all active:scale-[0.99] flex items-center gap-2">
+<span class="material-symbols-outlined">play_lesson</span>
+            Xem hướng dẫn
+          </button>
+</div>
+</div>
+<div class="lg:col-span-5 z-10 flex justify-center">
+<div class="w-full max-w-md bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 text-white shadow-xl">
+<div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+<span class="text-sm font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-accent">desktop_windows</span>
+              Màn hình chiếu lớp học
+            </span>
+<span class="px-2 py-0.5 bg-success/20 text-success text-xs font-bold rounded-full">Sẵn sàng</span>
+</div>
+<div class="space-y-3">
+<div class="bg-white/10 p-3 rounded-lg flex items-center justify-between">
+<span class="text-sm">Mã PIN tham gia</span>
+<span class="font-mono font-bold text-accent tracking-widest text-lg">849 201</span>
+</div>
+<div class="bg-white/5 p-3 rounded-lg text-xs text-white/80 space-y-1">
+<p>• Học sinh truy cập qua điện thoại</p>
+<p>• Không cần đăng ký tài khoản</p>
+<p>• Đồng bộ kết quả theo thời gian thực</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Start an activity (Three differentiated task shortcuts) -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="font-headline text-2xl font-bold text-on-surface">Bắt đầu nhanh hoạt động</h2>
+<p class="text-on-surface-variant text-sm">Chọn hình thức phù hợp với tiết học hôm nay của bạn</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Shortcut 1 -->
+<div class="bg-surface border border-outline rounded-xl p-6 shadow-sm hover:border-primary transition-all group flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-xl bg-primary-container text-primary flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">quiz</span>
+</div>
+<h3 class="font-headline text-lg font-bold text-on-surface mb-2">Tạo quiz trực tiếp</h3>
+<p class="text-on-surface-variant text-sm leading-normal">
+              Thiết kế câu hỏi trắc nghiệm, thăm dò ý kiến hoặc thảo luận nhóm. Chiếu câu hỏi lên bảng để cả lớp cùng tham gia trả lời ngay lập tức.
+            </p>
+</div>
+<div class="mt-6 pt-4 border-t border-outline flex items-center justify-between">
+<span class="text-xs font-medium text-success flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">check_circle</span> Kết quả tức thì
+            </span>
+<button class="text-primary font-semibold text-sm inline-flex items-center gap-1 hover:underline">
+              Bắt đầu <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Shortcut 2 -->
+<div class="bg-surface border border-outline rounded-xl p-6 shadow-sm hover:border-primary transition-all group flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-xl bg-primary-container text-primary flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">widgets</span>
+</div>
+<h3 class="font-headline text-lg font-bold text-on-surface mb-2">Mở công cụ lớp học</h3>
+<p class="text-on-surface-variant text-sm leading-normal">
+              Sử dụng các tiện ích hỗ trợ giảng dạy như đồng hồ đếm ngược, bộ chia nhóm ngẫu nhiên, vòng quay may mắn và bảng trắng thông minh.
+            </p>
+</div>
+<div class="mt-6 pt-4 border-t border-outline flex items-center justify-between">
+<span class="text-xs font-medium text-success flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">check_circle</span> Không cần chuẩn bị
+            </span>
+<button class="text-primary font-semibold text-sm inline-flex items-center gap-1 hover:underline">
+              Mở ngay <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Shortcut 3 -->
+<div class="bg-surface border border-outline rounded-xl p-6 shadow-sm hover:border-primary transition-all group flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-xl bg-primary-container text-primary flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">sports_esports</span>
+</div>
+<h3 class="font-headline text-lg font-bold text-on-surface mb-2">Khám phá trò chơi</h3>
+<p class="text-on-surface-variant text-sm leading-normal">
+              Duyệt qua kho trò chơi ôn tập kiến thức được thiết kế sẵn cho các môn Toán, Văn, Anh, Khoa học theo chuẩn chương trình giáo dục.
+            </p>
+</div>
+<div class="mt-6 pt-4 border-t border-outline flex items-center justify-between">
+<span class="text-xs font-medium text-success flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">check_circle</span> Sẵn sàng sử dụng
+            </span>
+<button class="text-primary font-semibold text-sm inline-flex items-center gap-1 hover:underline">
+              Khám phá <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured tools: Searchable list of four practical tool rows -->
+<section class="space-y-6 bg-surface border border-outline rounded-xl p-6 sm:p-8 shadow-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h2 class="font-headline text-2xl font-bold text-on-surface">Công cụ giáo viên nổi bật</h2>
+<p class="text-on-surface-variant text-sm">Các tiện ích thường dùng nhất trong giờ lên lớp</p>
+</div>
+<div class="relative w-full sm:w-72">
+<span class="absolute left-3 top-2.5 text-on-surface-variant material-symbols-outlined text-lg">search</span>
+<input class="w-full pl-9 pr-4 py-2 bg-surface-container border border-outline rounded-lg text-sm focus:outline-none focus:border-primary" placeholder="Lọc công cụ giảng dạy..." type="text"/>
+</div>
+</div>
+<div class="divide-y divide-outline">
+<!-- Tool Row 1 -->
+<div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-container/50 px-2 rounded-lg transition-colors">
+<div class="flex items-start sm:items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">live_tv</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-on-surface">Quiz trực tiếp</h3>
+<p class="text-on-surface-variant text-sm">Tạo phòng thi đấu trực quan chiếu lên bảng lớn, học sinh dùng điện thoại chọn đáp án.</p>
+</div>
+</div>
+<button class="px-4 py-2 bg-surface text-primary border border-outline rounded-[10px] text-sm font-medium hover:bg-primary-container transition-colors shrink-0 self-start sm:self-center">
+            Sử dụng ngay
+          </button>
+</div>
+<!-- Tool Row 2 -->
+<div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-container/50 px-2 rounded-lg transition-colors">
+<div class="flex items-start sm:items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">timer</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-on-surface">Đếm ngược</h3>
+<p class="text-on-surface-variant text-sm">Đồng hồ đếm ngược trực quan cho các bài tập nhóm, thời gian thảo luận hoặc làm bài kiểm tra.</p>
+</div>
+</div>
+<button class="px-4 py-2 bg-surface text-primary border border-outline rounded-[10px] text-sm font-medium hover:bg-primary-container transition-colors shrink-0 self-start sm:self-center">
+            Sử dụng ngay
+          </button>
+</div>
+<!-- Tool Row 3 -->
+<div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-container/50 px-2 rounded-lg transition-colors">
+<div class="flex items-start sm:items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group_work</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-on-surface">Chia nhóm</h3>
+<p class="text-on-surface-variant text-sm">Tự động xáo trộn danh sách học sinh thành các nhóm ngẫu nhiên cân bằng số lượng thành viên.</p>
+</div>
+</div>
+<button class="px-4 py-2 bg-surface text-primary border border-outline rounded-[10px] text-sm font-medium hover:bg-primary-container transition-colors shrink-0 self-start sm:self-center">
+            Sử dụng ngay
+          </button>
+</div>
+<!-- Tool Row 4 -->
+<div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-container/50 px-2 rounded-lg transition-colors">
+<div class="flex items-start sm:items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">draw</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-on-surface">Bảng trắng</h3>
+<p class="text-on-surface-variant text-sm">Bảng viết kỹ thuật số tương tác với bút dạ nhiều màu, thước kẻ và ghi chú nhanh trên lớp.</p>
+</div>
+</div>
+<button class="px-4 py-2 bg-surface text-primary border border-outline rounded-[10px] text-sm font-medium hover:bg-primary-container transition-colors shrink-0 self-start sm:self-center">
+            Sử dụng ngay
+          </button>
+</div>
+</div>
+</section>
+<!-- Return to work: One recent quiz and one saved class -->
+<section class="space-y-6">
+<div>
+<h2 class="font-headline text-2xl font-bold text-on-surface">Tiếp tục công việc</h2>
+<p class="text-on-surface-variant text-sm">Quiz gần đây và lớp học đã lưu của bạn</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Recent Quiz Card -->
+<div class="bg-surface border border-outline rounded-xl p-6 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-4">
+<span class="px-3 py-1 bg-primary-container text-primary text-xs font-semibold rounded-full">Quiz gần đây</span>
+<span class="text-xs text-on-surface-variant">Chỉnh sửa 2 giờ trước</span>
+</div>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Kiểm tra 15 phút - Đại số 9 (Chương 2)</h3>
+<p class="text-on-surface-variant text-sm mb-4">12 câu hỏi trắc nghiệm • Đã sử dụng cho lớp 9A1</p>
+<div class="flex items-center gap-2 text-xs text-on-surface-variant bg-surface-container p-3 rounded-lg">
+<span class="material-symbols-outlined text-primary text-base">info</span>
+<span>Tỷ lệ hoàn thành trung bình đợt trước: 94%</span>
+</div>
+</div>
+<div class="mt-6 pt-4 border-t border-outline flex items-center justify-end gap-3">
+<button class="px-4 py-2 bg-surface text-primary border border-outline rounded-[10px] text-sm font-medium hover:bg-primary-container transition-colors">
+              Chỉnh sửa
+            </button>
+<button class="px-4 py-2 bg-primary text-white rounded-[10px] text-sm font-bold shadow-sm hover:opacity-95 transition-all">
+              Mở phòng chiếu
+            </button>
+</div>
+</div>
+<!-- Saved Class Card -->
+<div class="bg-surface border border-outline rounded-xl p-6 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-4">
+<span class="px-3 py-1 bg-primary-container text-primary text-xs font-semibold rounded-full">Lớp học đã lưu</span>
+<span class="text-xs text-on-surface-variant">42 học sinh</span>
+</div>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Lớp 10A2 - Năm học 2024-2025</h3>
+<p class="text-on-surface-variant text-sm mb-4">Môn Toán • Trường THPT chuyên</p>
+<div class="flex items-center gap-2 text-xs text-on-surface-variant bg-surface-container p-3 rounded-lg">
+<span class="material-symbols-outlined text-success text-base">group</span>
+<span>Danh sách điểm danh và lịch sử hoạt động đã lưu</span>
+</div>
+</div>
+<div class="mt-6 pt-4 border-t border-outline flex items-center justify-end gap-3">
+<button class="px-4 py-2 bg-surface text-primary border border-outline rounded-[10px] text-sm font-medium hover:bg-primary-container transition-colors">
+              Quản lý danh sách
+            </button>
+<button class="px-4 py-2 bg-primary text-white rounded-[10px] text-sm font-bold shadow-sm hover:opacity-95 transition-all">
+              Điểm danh nhanh
+            </button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="docked full-width bottom-0 bg-surface-container dark:bg-surface-container border-t border-outline dark:border-outline mt-16">
+<div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="font-headline text-lg font-bold text-primary dark:text-primary flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">waves</span>
+          SmartTeach
+        </span>
+<span class="text-on-surface-variant dark:text-on-surface-variant font-body text-sm leading-normal">© 2025 SmartTeach. Bảng đen sáng cho giáo viên Việt Nam.</span>
+</div>
+<div class="flex flex-wrap items-center gap-6">
+<a class="font-body text-sm leading-normal text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors duration-180" href="#">Điều khoản sử dụng</a>
+<a class="font-body text-sm leading-normal text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors duration-180" href="#">Chính sách bảo mật</a>
+<a class="font-body text-sm leading-normal text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors duration-180" href="#">Hướng dẫn cho giáo viên</a>
+<a class="font-body text-sm leading-normal text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors duration-180" href="#">Hỗ trợ kỹ thuật</a>
+</div>
+</div>
+</footer>
+</body></html>

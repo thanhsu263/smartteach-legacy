@@ -26,6 +26,17 @@
   min-height: 0;
 }
 
+/* Host quiz là bề mặt điều khiển trong tiết học: thanh kết thúc/toàn màn hình
+   đi cùng màn chiếu khi cuộn, không áp dụng cho các tiện ích thông thường. */
+.stage[data-live-stage] .bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding-block: var(--space-2);
+  background: var(--panel-bg);
+  box-shadow: 0 8px 12px -14px rgb(var(--ink-rgb) / 0.52);
+}
+
 /* Toàn màn hình: phủ kín, nền sáng, nội dung trải rộng cho màn chiếu. */
 .stage:fullscreen {
   padding: var(--space-5);
@@ -34,6 +45,10 @@
   border: 0;
   border-radius: 0;
   overflow: auto;
+}
+
+.stage[data-live-stage]:fullscreen .bar {
+  background: var(--color-bg);
 }
 
 @media (min-width: 720px) {

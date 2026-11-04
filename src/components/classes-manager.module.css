@@ -163,3 +163,16 @@
   flex-wrap: wrap;
   gap: var(--space-2);
 }
+
+/* Trên màn hình rộng, tạo và quản lý là hai vùng làm việc song song. Ở điện
+   thoại vẫn giữ thứ tự thao tác: nhập lớp trước, xem danh sách sau. */
+@media (min-width: 960px) {
+  .manager {
+    grid-template-columns: minmax(20rem, 0.9fr) minmax(0, 1.1fr);
+    align-items: start;
+  }
+
+  .panel {
+    min-width: 0;
+  }
+}

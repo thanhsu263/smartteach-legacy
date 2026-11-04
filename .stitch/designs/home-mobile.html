@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartTeach - Trang chủ</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#1D4FD7",
+            "primary-container": "#E9EFFD",
+            "on-primary-container": "#1D4FD7",
+            surface: "#FFFFFF",
+            "surface-dim": "#F6F8FC",
+            "ink": "#172033",
+            "chalk-yellow": "#FFC72C",
+            "border-color": "#D5DDEB",
+          },
+          borderRadius: {
+            DEFAULT: "0.5rem",
+            lg: "1rem",
+            xl: "1.5rem",
+            full: "9999px"
+          },
+          fontFamily: {
+            headline: ["Be Vietnam Pro", "sans-serif"],
+            display: ["Be Vietnam Pro", "sans-serif"],
+            body: ["Be Vietnam Pro", "sans-serif"],
+            label: ["Be Vietnam Pro", "sans-serif"]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#F6F8FC] text-[#172033] font-body min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-white dark:bg-slate-900 text-[#1D4FD7] font-headline text-base font-bold docked full-width top sticky top-0 z-40">
+<div class="flex justify-between items-center w-full px-4 h-14">
+<div class="flex items-center gap-3">
+<button aria-label="menu" class="p-2 rounded-xl text-[#172033] hover:bg-[#E9EFFD] transition-all duration-180">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<span class="text-lg font-bold font-headline text-[#1D4FD7]">SmartTeach</span>
+</div>
+<div>
+<button class="px-3 py-1.5 rounded-lg border border-[#D5DDEB] text-[#1D4FD7] text-xs font-semibold hover:bg-[#E9EFFD] transition-all duration-180 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm">key</span>
+<span>PIN</span>
+</button>
+</div>
+</div>
+</header>
+<main class="max-w-md mx-auto px-4 pt-4 space-y-6">
+<!-- Hero Section -->
+<section class="bg-[#1D4FD7] text-white rounded-xl p-6 shadow-sm relative overflow-hidden">
+<div class="relative z-10 space-y-4">
+<div class="inline-flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full text-xs font-medium">
+<span class="material-symbols-outlined text-sm text-[#FFC72C]">bolt</span>
+<span>Nền tảng giảng dạy thông minh</span>
+</div>
+<h1 class="text-2xl font-extrabold tracking-tight font-headline leading-snug">
+          Dạy học sinh động, tương tác liền mạch mỗi ngày
+        </h1>
+<p class="text-white/80 text-sm leading-relaxed">
+          Tạo quiz nhanh chóng, quản lý lớp học và kết nối học sinh mà không cần tài khoản phức tạp.
+        </p>
+<div class="pt-2">
+<button class="w-full bg-[#FFC72C] text-[#172033] font-bold py-3 px-4 rounded-[10px] shadow-sm hover:opacity-95 transition-all duration-180 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">add_circle</span>
+<span>Tạo quiz ngay</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Search and Tools Section -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="font-headline font-bold text-lg text-[#172033]">Công cụ nổi bật</h2>
+<span class="text-xs text-[#1D4FD7] font-semibold">Tất cả (8)</span>
+</div>
+<!-- Search Field -->
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+<span class="material-symbols-outlined">search</span>
+</span>
+<input class="w-full pl-10 pr-4 py-3 bg-white border border-[#D5DDEB] rounded-[10px] text-sm text-[#172033] placeholder-slate-400 focus:outline-none focus:border-[#1D4FD7] transition-all duration-180" placeholder="Tìm kiếm công cụ, trò chơi, lớp học..." type="text"/>
+</div>
+<!-- Compact Vertical Tool Rows -->
+<div class="bg-white border border-[#D5DDEB] rounded-xl overflow-hidden divide-y divide-[#D5DDEB]">
+<a class="flex items-center justify-between p-3.5 hover:bg-[#E9EFFD] transition-all duration-180 group" href="#">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-[10px] bg-[#E9EFFD] text-[#1D4FD7] flex items-center justify-center">
+<span class="material-symbols-outlined">quiz</span>
+</div>
+<div>
+<h3 class="text-sm font-bold text-[#172033]">Trắc nghiệm trực tiếp</h3>
+<p class="text-xs text-slate-500">Tạo câu hỏi trắc nghiệm chiếu màn hình</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400 group-hover:text-[#1D4FD7] transition-colors">chevron_right</span>
+</a>
+<a class="flex items-center justify-between p-3.5 hover:bg-[#E9EFFD] transition-all duration-180 group" href="#">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-[10px] bg-[#E9EFFD] text-[#1D4FD7] flex items-center justify-center">
+<span class="material-symbols-outlined">sports_esports</span>
+</div>
+<div>
+<h3 class="text-sm font-bold text-[#172033]">Vòng quay may mắn</h3>
+<p class="text-xs text-slate-500">Chọn học sinh trả lời bài ngẫu nhiên</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400 group-hover:text-[#1D4FD7] transition-colors">chevron_right</span>
+</a>
+<a class="flex items-center justify-between p-3.5 hover:bg-[#E9EFFD] transition-all duration-180 group" href="#">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-[10px] bg-[#E9EFFD] text-[#1D4FD7] flex items-center justify-center">
+<span class="material-symbols-outlined">timer</span>
+</div>
+<div>
+<h3 class="text-sm font-bold text-[#172033]">Đồng hồ đếm ngược</h3>
+<p class="text-xs text-slate-500">Quản lý thời gian làm bài, thảo luận</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400 group-hover:text-[#1D4FD7] transition-colors">chevron_right</span>
+</a>
+<a class="flex items-center justify-between p-3.5 hover:bg-[#E9EFFD] transition-all duration-180 group" href="#">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-[10px] bg-[#E9EFFD] text-[#1D4FD7] flex items-center justify-center">
+<span class="material-symbols-outlined">group_work</span>
+</div>
+<div>
+<h3 class="text-sm font-bold text-[#172033]">Chia nhóm ngẫu nhiên</h3>
+<p class="text-xs text-slate-500">Phân chia nhóm học tập nhanh chóng</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400 group-hover:text-[#1D4FD7] transition-colors">chevron_right</span>
+</a>
+</div>
+</section>
+<!-- Recent Quizzes & Classes Section -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="font-headline font-bold text-lg text-[#172033]">Hoạt động gần đây</h2>
+<span class="text-xs text-[#1D4FD7] font-semibold">Xem tất cả</span>
+</div>
+<div class="space-y-3">
+<div class="bg-white border border-[#D5DDEB] rounded-xl p-4 flex items-center justify-between shadow-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E9EFFD] text-[#1D4FD7]">Lớp 10A1</span>
+<span class="text-xs text-slate-400">Hôm nay, 08:30</span>
+</div>
+<h3 class="text-sm font-bold text-[#172033]">Ôn tập Vật Lý kỳ thi giữa học kỳ</h3>
+<p class="text-xs text-slate-500">15 câu hỏi • 34 học sinh tham gia</p>
+</div>
+<button aria-label="Bắt đầu lại" class="p-2.5 rounded-[10px] bg-[#1D4FD7] text-white hover:opacity-90 transition-all duration-180">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+</button>
+</div>
+<div class="bg-white border border-[#D5DDEB] rounded-xl p-4 flex items-center justify-between shadow-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E9EFFD] text-[#1D4FD7]">Lớp 12C2</span>
+<span class="text-xs text-slate-400">Hôm qua, 14:15</span>
+</div>
+<h3 class="text-sm font-bold text-[#172033]">Kiểm tra từ vựng Tiếng Anh Unit 4</h3>
+<p class="text-xs text-slate-500">20 câu hỏi • 42 học sinh tham gia</p>
+</div>
+<button aria-label="Bắt đầu lại" class="p-2.5 rounded-[10px] bg-[#1D4FD7] text-white hover:opacity-90 transition-all duration-180">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-1 bg-white dark:bg-slate-900 border-t border-[#D5DDEB]">
+<a class="flex flex-col items-center justify-center bg-[#E9EFFD] text-[#1D4FD7] rounded-xl p-2 transition-all duration-180 min-w-[64px]" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label text-xs font-medium mt-1">Trang chủ</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#172033] p-2 hover:bg-[#E9EFFD] rounded-xl transition-all duration-180 min-w-[64px]" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label text-xs font-medium mt-1">Bộ công cụ</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#172033] p-2 hover:bg-[#E9EFFD] rounded-xl transition-all duration-180 min-w-[64px]" href="#">
+<span class="material-symbols-outlined">sports_esports</span>
+<span class="font-label text-xs font-medium mt-1">Trò chơi</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#172033] p-2 hover:bg-[#E9EFFD] rounded-xl transition-all duration-180 min-w-[64px]" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label text-xs font-medium mt-1">Lớp học</span>
+</a>
+</nav>
+</body></html>

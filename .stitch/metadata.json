@@ -1,0 +1,50 @@
+{
+  "name": "projects/9086062582109234976",
+  "projectId": "9086062582109234976",
+  "title": "SmartTeach — Screen Flow 2026",
+  "visibility": "PRIVATE",
+  "projectType": "PROJECT_DESIGN",
+  "designSystem": "assets/16981918885563006664",
+  "screens": {
+    "home-desktop": {
+      "id": "dd43869266854c8280c1266bace5454a",
+      "sourceScreen": "projects/9086062582109234976/screens/dd43869266854c8280c1266bace5454a",
+      "width": 2560,
+      "height": 2048,
+      "screenshot": "projects/9086062582109234976/files/8919a898f24d4c0c99dbb67cdd096c31",
+      "htmlCode": "projects/9086062582109234976/files/16fabcb2a65d495592dbd4ecfe866f1c"
+    },
+    "home-mobile": {
+      "id": "7f129cc6cc1b49aba3942f4e141235fe",
+      "sourceScreen": "projects/9086062582109234976/screens/7f129cc6cc1b49aba3942f4e141235fe",
+      "width": 780,
+      "height": 2326,
+      "screenshot": "projects/9086062582109234976/files/ac48b25f33664bd793e18c5df24644cb",
+      "htmlCode": "projects/9086062582109234976/files/e3d6ecbeeabc485d9fad66a87775608c"
+    },
+    "classes-desktop": {
+      "id": "fcb764e611eb41009a2ac7cf48442028",
+      "sourceScreen": "projects/9086062582109234976/screens/fcb764e611eb41009a2ac7cf48442028",
+      "width": 2560,
+      "height": 2048,
+      "screenshot": "projects/9086062582109234976/files/820d6d4cc4fb4c72a12c63dc5a983279",
+      "htmlCode": "projects/9086062582109234976/files/c4d857951acb445fb253eff96a241f87"
+    },
+    "quiz-host-projector": {
+      "id": "9321a66fab2f4efba62432d03d1a96f1",
+      "sourceScreen": "projects/9086062582109234976/screens/9321a66fab2f4efba62432d03d1a96f1",
+      "width": 2560,
+      "height": 2048,
+      "screenshot": "projects/9086062582109234976/files/df77b810311c43d4bc00248fdec41995",
+      "htmlCode": "projects/9086062582109234976/files/d5720a2a3b794e90ad4e2673ccbc8167"
+    },
+    "quiz-join-mobile": {
+      "id": "940038ecdf3e439fb5e0a9551f1f17ce",
+      "sourceScreen": "projects/9086062582109234976/screens/940038ecdf3e439fb5e0a9551f1f17ce",
+      "width": 780,
+      "height": 1768,
+      "screenshot": "projects/9086062582109234976/files/61a343f4b08249c49fe2096c5bcce46e",
+      "htmlCode": "projects/9086062582109234976/files/94a2ce51eb5349b69f8fcce65623fafa"
+    }
+  }
+}

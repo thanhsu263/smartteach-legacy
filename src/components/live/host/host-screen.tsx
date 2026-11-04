@@ -208,7 +208,7 @@ export function HostScreen({ sessionId }: { sessionId: string }) {
   }
 
   return (
-    <ToolStage label="Màn hình chiếu của phiên chơi" actions={endButton}>
+    <ToolStage label="Màn hình chiếu của phiên chơi" actions={endButton} live>
       <div ref={focusRef} tabIndex={-1} className={styles.focusRoot}>
         <p className="visually-hidden" role="status" aria-live="polite">
           {announcement(state)}
