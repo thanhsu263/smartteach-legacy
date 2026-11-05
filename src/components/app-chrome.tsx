@@ -13,14 +13,18 @@ function isLiveCanvas(pathname: string) {
   return pathname === "/play" || /^\/host\/[^/]+(?:\/results)?$/.test(pathname);
 }
 
+function ownsChrome(pathname: string) {
+  return pathname === "/" || isLiveCanvas(pathname);
+}
+
 export function AppHeader() {
   const pathname = usePathname();
 
-  return isLiveCanvas(pathname) ? null : <SiteHeader />;
+  return ownsChrome(pathname) ? null : <SiteHeader />;
 }
 
 export function AppFooter() {
   const pathname = usePathname();
 
-  return isLiveCanvas(pathname) ? null : <SiteFooter />;
+  return ownsChrome(pathname) ? null : <SiteFooter />;
 }

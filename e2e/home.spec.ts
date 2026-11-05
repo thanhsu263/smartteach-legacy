@@ -96,26 +96,14 @@ test.describe("canvas quiz trực tiếp", () => {
   });
 });
 
-test.describe("menu trên điện thoại", () => {
+test.describe("landing trên điện thoại", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
-  test("mở, đóng bằng nút và bằng Esc, và điều hướng khi chọn liên kết", async ({ page }) => {
+  test("giữ CTA chính dễ chạm và ẩn navigation desktop", async ({ page }) => {
     await page.goto("/");
-    const toggle = page.getByRole("button", { name: "Menu" });
-    const list = page.locator("#site-menu");
-
-    await expect(list).toBeHidden();
-    await toggle.click();
-    await expect(toggle).toHaveAttribute("aria-expanded", "true");
-    await expect(list).toBeVisible();
-
-    await page.keyboard.press("Escape");
-    await expect(list).toBeHidden();
-    await expect(toggle).toBeFocused();
-
-    await toggle.click();
-    await list.getByRole("link", { name: mainNav[1].label }).click();
-    await expect(page).toHaveURL(new RegExp(`${mainNav[1].href}$`));
-    await expect(list).toBeHidden();
+    await expect(page.getByRole("navigation", { name: "Điều hướng landing" })).toBeHidden();
+    const cta = page.getByRole("link", { name: /Tạo lớp học miễn phí/ });
+    await expect(cta).toBeVisible();
+    expect((await cta.boundingBox())?.height).toBeGreaterThanOrEqual(44);
   });
 });
