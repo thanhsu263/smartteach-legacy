@@ -207,7 +207,7 @@ Chiều sâu đến từ phân cấp vật liệu, không phải trang trí. Car
 - **Don't** sao chép logo, hình ảnh hay câu chữ của ezthi.com.
 - **Don't** dùng `border-left` hay `border-right` dày hơn 1px làm vạch màu trên thẻ.
 - **Don't** dùng chữ gradient, kính mờ chỉ để trang trí, hay lưới thẻ giống hệt nhau lặp vô tận.
-- **Don't** dùng nền chuyển động toàn màn hình, animation khi vào trang/scroll chỉ để trình diễn, tilt hoặc magnetic làm lệch mục tiêu bấm.
+- **Don't** dùng nền chuyển động toàn màn hình, animation khi vào trang/scroll chỉ để trình diễn, magnetic hoặc tilt làm lệch mục tiêu bấm ngoài ngoại lệ Quiz Sheets dưới đây.
 - **Don't** phủ kính lên màn hình chiếu của quiz trực tiếp, canvas bảng trắng hoặc khung game.
 - **Don't** dùng nhãn nhỏ viết hoa cách chữ (eyebrow) trên đầu mọi khu vực.
 - **Don't** dùng màu làm tín hiệu duy nhất cho trạng thái lỗi hoặc thành công.
@@ -223,5 +223,7 @@ Hệ vật liệu theo tinh thần Apple: phản hồi trực tiếp, chuyển �
 **Dùng trong markup:** `data-glass="btn|icon|chip|row|card|frame"` xác định vai trò tương tác; `data-variant="primary|secondary|on-primary"` xác định cấp hành động; `data-tone="ok|bad|warn|accent"` tạo tint trạng thái; `data-surface="float|sheet|panel"` phân biệt lớp nổi trong, sheet gần đặc và panel nội dung đặc. Trong CSS Modules dùng `--panel-bg`, `--panel-shadow`, `--item-shadow`, `--tint-bg`, `--tint-shadow` thay vì chép giá trị.
 
 **Motion grammar:** press 100ms, đổi trạng thái 180ms, menu/sheet 260ms. Menu và sheet xuất hiện từ gốc kích hoạt và đóng về cùng gốc. Loading có thể lặp; nội dung trang không tự choreography theo scroll hoặc route. `prefers-reduced-motion` rút mọi chuyển động về gần như tức thời.
+
+**Ngoại lệ Quiz Sheets:** Landing được phép có đúng một cụm minh hoạ Quiz Sheets: lớp giấy chồng có thể đổi `transform` rất nhẹ theo con trỏ **fine** bằng một `requestAnimationFrame` cục bộ; không dùng magnetic, không kéo mục tiêu bấm, không chạy khi nhàn rỗi và reset khi con trỏ rời cụm. Hiệu ứng này tắt ở touch/reduced motion. Nó không được áp dụng cho header, control nghiệp vụ, host, player, game, tool stage hay canvas bảng trắng.
 
 **Khả năng thích ứng:** `prefers-reduced-transparency` đổi lớp nổi sang nền đặc; `prefers-contrast` tăng viền; fallback không có `backdrop-filter` vẫn đọc và dùng được. Khung game, màn hình quiz và canvas bảng trắng luôn tránh blur.

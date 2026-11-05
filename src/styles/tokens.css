@@ -31,6 +31,8 @@
   --motion-press: 100ms;
   --motion-state: 180ms;
   --motion-layer: 260ms;
+  /* Signature transition chỉ dành cho Quiz Sheets ở landing. */
+  --motion-hero: 420ms;
 
   /* Bo góc theo cấp độ bề mặt. */
   --r-frame: 20px;
@@ -75,4 +77,18 @@
   --tint-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, var(--color-border));
   --tone-bg-ok: color-mix(in srgb, var(--ok) 9%, var(--color-surface));
   --tone-bg-bad: color-mix(in srgb, var(--bad) 8%, var(--color-surface));
+
+  /* Quiz Sheets — giữ cùng palette thương hiệu, không thêm màu thứ ba. */
+  --hero-field: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  --hero-field-ink: var(--color-surface);
+  --hero-field-muted: var(--color-on-primary-muted);
+  --sheet-paper: var(--color-surface);
+  --sheet-paper-muted: color-mix(in srgb, var(--color-surface) 92%, var(--color-primary-tint));
+  --sheet-edge: color-mix(in srgb, var(--accent) 18%, var(--color-border));
+  --sheet-shadow-front: 0 28px 56px -30px rgb(var(--ink-rgb) / 0.54);
+  --sheet-shadow-middle: 0 22px 42px -28px rgb(var(--ink-rgb) / 0.36);
+  --sheet-shadow-rear: 0 16px 32px -26px rgb(var(--ink-rgb) / 0.28);
+  --sheet-perspective: 1200px;
+  --sheet-tab-indicator: var(--color-accent);
+  --sheet-grain: radial-gradient(rgb(255 255 255 / 0.16) 0.65px, transparent 0.8px);
 }

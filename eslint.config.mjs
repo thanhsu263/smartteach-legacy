@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Reference source only; it is not part of the SmartTeach Next.js app.
+    "cloneTemplate/**",
   ]),
 ]);
 

@@ -19,10 +19,68 @@ test.describe("vật liệu và phản hồi Apple-style", () => {
     expect(await card.evaluate((el) => getComputedStyle(el).backdropFilter)).toBe("none");
   });
 
-  test("không còn tilt, magnetic hoặc reveal choreography trong DOM", async ({ page }) => {
+  test("parallax chỉ thuộc Quiz Sheets, không mở rộng sang control hoặc surface khác", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("[data-magnetic], [data-tilt], [data-reveal-on-scroll]")).toHaveCount(0);
+    await expect(page.locator("[data-parallax-stage]")).toHaveCount(1);
+    await expect(page.locator("[data-parallax-stage] [data-glass]")).toHaveCount(0);
+    await expect(page.locator("[data-quiz-sheets] [aria-hidden='true'][inert]")).toHaveCount(2);
     expect(await page.evaluate(() => document.getAnimations().some((item) => item.effect?.getComputedTiming().iterations === Infinity))).toBe(false);
+  });
+
+  test("Quiz Sheets đổi tab bằng bàn phím, chọn đáp án và reset parallax khi rời stage", async ({ page }) => {
+    await page.goto("/");
+    const stage = page.locator("[data-parallax-stage]");
+    const compose = page.getByRole("tab", { name: /Soạn quiz/ });
+    const play = page.getByRole("tab", { name: /Chơi trực tiếp/ });
+
+    await compose.focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(play).toBeFocused();
+    await expect(play).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByText("4 2 8 6")).toBeVisible();
+
+    await page.keyboard.press("Home");
+    await expect(compose).toHaveAttribute("aria-selected", "true");
+    const answer = page.getByRole("button", { name: /B Hà Nội/ });
+    await answer.click();
+    await expect(answer).toHaveAttribute("aria-pressed", "true");
+
+    const box = await stage.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.move(box!.x + box!.width, box!.y + box!.height);
+    await expect.poll(() => stage.evaluate((el) => el.style.getPropertyValue("--sheet-x"))).not.toBe("0px");
+    await page.mouse.move(1, 1);
+    await expect(stage).toHaveCSS("--sheet-x", "0px");
+    await expect(stage).toHaveCSS("--sheet-y", "0px");
+  });
+
+  test("Quiz Sheets chỉ thay state cục bộ, không phát sinh yêu cầu ghi quiz", async ({ page }) => {
+    const writeRequests: string[] = [];
+    page.on("request", (request) => {
+      if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method())) writeRequests.push(request.url());
+    });
+    await page.goto("/");
+    await page.getByRole("tab", { name: /Kết quả/ }).click();
+    await page.getByRole("tab", { name: /Soạn quiz/ }).click();
+    await page.getByRole("button", { name: /C Cần Thơ/ }).click();
+    expect(writeRequests).toEqual([]);
+  });
+
+  test("Quiz Sheets tái cấu trúc ở 320px và tablet, không cuộn ngang", async ({ page }) => {
+    for (const viewport of [
+      { width: 320, height: 700 },
+      { width: 768, height: 900 },
+    ]) {
+      await page.setViewportSize(viewport);
+      await page.goto("/");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+    }
+
+    await page.setViewportSize({ width: 320, height: 700 });
+    await page.goto("/");
+    await expect(page.locator("[data-quiz-sheets] > [aria-hidden='true']").first()).toBeHidden();
+    await expect(page.locator("[data-quiz-sheets] section")).toHaveCSS("transform", "none");
   });
 
   test("CTA phản hồi ngay khi nhấn rồi trở về trạng thái nghỉ", async ({ page }) => {
@@ -92,5 +150,10 @@ test.describe("giảm chuyển động", () => {
     );
     expect(Math.max(...durations)).toBeLessThan(0.001);
     expect(await page.evaluate(() => document.getAnimations().filter((item) => item.playState === "running").length)).toBe(0);
+    const stage = page.locator("[data-parallax-stage]");
+    const box = await stage.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.move(box!.x + box!.width, box!.y + box!.height);
+    await expect(stage).toHaveCSS("--sheet-x", "0px");
   });
 });

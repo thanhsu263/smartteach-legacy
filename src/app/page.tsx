@@ -1,7 +1,7 @@
 import { ButtonLink } from "@/components/button";
-import { ClassroomPreview } from "@/components/classroom-preview";
 import { GameCard } from "@/components/game-card";
 import { GamepadIcon, PencilIcon, UsersIcon } from "@/components/icons";
+import { QuizFlowPreview } from "@/components/quiz-flow-preview";
 import { ToolIcon } from "@/components/tool-icon";
 import { games } from "@/data/games";
 import { tools } from "@/data/tools";
@@ -52,7 +52,7 @@ export default function HomePage() {
               </ButtonLink>
             </div>
           </div>
-          <ClassroomPreview />
+          <QuizFlowPreview />
         </div>
       </section>
 
