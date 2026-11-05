@@ -1,8 +1,7 @@
 /*
- * SmartTeach — material tokens.
- * Nội dung làm việc dùng bề mặt gần đặc; translucency chỉ dành cho chrome nổi
- * (header, menu, popover, sheet). Nhờ vậy chữ luôn rõ khi chiếu và tránh kính
- * chồng kính. Màu thương hiệu vẫn lấy từ globals.css / DESIGN.md.
+ * SmartTeach — Classroom Control Room tokens.
+ * Nội dung công việc dùng surface gần đặc; translucency chỉ dành cho chrome
+ * nổi có ngữ cảnh thật phía sau. Màu và motion luôn đi qua role semantic.
  */
 :root {
   /* Vai trò màu */
@@ -16,8 +15,12 @@
   --line: var(--color-border);
   --ok: var(--color-success);
   --bad: var(--color-danger);
-  --warn: #8a5a00;
-  --ink-rgb: 23 32 51;
+  --warn: var(--color-warning);
+  --info: var(--color-info);
+  --data-low: var(--color-data-low);
+  --data-mid: var(--color-data-mid);
+  --data-high: var(--color-data-high);
+  --ink-rgb: 18 29 74;
 
   /* Chuyển động: phản hồi nhanh, không overshoot khi không có động lượng. */
   --ease-instant: cubic-bezier(0.2, 0, 0, 1);
@@ -31,6 +34,8 @@
   --motion-press: 100ms;
   --motion-state: 180ms;
   --motion-layer: 260ms;
+  --motion-panel: 420ms;
+  --motion-story: 560ms;
   /* Signature transition chỉ dành cho Quiz Sheets ở landing. */
   --motion-hero: 420ms;
 
@@ -91,4 +96,13 @@
   --sheet-perspective: 1200px;
   --sheet-tab-indicator: var(--color-accent);
   --sheet-grain: radial-gradient(rgb(255 255 255 / 0.16) 0.65px, transparent 0.8px);
+
+  /* Classroom Control Room roles, chuẩn bị cho landing và workspace. */
+  --control-room-field: linear-gradient(135deg, var(--accent-2), var(--color-primary-deep));
+  --control-room-ink: var(--color-surface);
+  --control-room-muted: var(--color-on-primary-muted);
+  --surface-subtle: color-mix(in srgb, var(--color-primary-tint) 45%, var(--color-surface));
+  --surface-elevated: var(--color-surface);
+  --border-selected: color-mix(in srgb, var(--accent) 64%, var(--color-border-strong));
+  --focus-ring-soft: color-mix(in srgb, var(--accent) 23%, transparent);
 }

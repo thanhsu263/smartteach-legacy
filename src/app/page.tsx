@@ -1,7 +1,8 @@
 import { ButtonLink } from "@/components/button";
 import { GameCard } from "@/components/game-card";
 import { GamepadIcon, PencilIcon, UsersIcon } from "@/components/icons";
-import { QuizFlowPreview } from "@/components/quiz-flow-preview";
+import { LessonLaunchBoard } from "@/components/lesson-launch-board";
+import { LessonStory } from "@/components/lesson-story";
 import { ToolIcon } from "@/components/tool-icon";
 import { games } from "@/data/games";
 import { tools } from "@/data/tools";
@@ -36,12 +37,12 @@ export default function HomePage() {
       <section className={`${styles.hero} on-primary`} aria-labelledby="hero-title">
         <div className={styles.heroInner}>
           <div className={styles.heroText}>
-            <p className={styles.eyebrow}>Dành riêng cho giáo viên Việt Nam</p>
+            <p className={styles.eyebrow}>Bàn điều phối tiết học</p>
             <h1 id="hero-title" className={styles.heroTitle}>
-              Mở hoạt động cho lớp trong vài giây
+              Chuẩn bị, mở lớp và đọc tín hiệu trong một nhịp
             </h1>
             <p className={styles.heroLead}>
-              Trò chơi, tiện ích và quiz trực tiếp để thầy cô khởi động giờ học mà học sinh không cần tài khoản.
+              SmartTeach tập hợp quiz, trò chơi và công cụ để thầy cô dẫn lớp rõ ràng, không cần học sinh có tài khoản.
             </p>
             <div className={styles.heroActions}>
               <ButtonLink href="/my-quizzes" variant="primary">
@@ -52,9 +53,11 @@ export default function HomePage() {
               </ButtonLink>
             </div>
           </div>
-          <QuizFlowPreview />
+          <LessonLaunchBoard />
         </div>
       </section>
+
+      <LessonStory />
 
       <section className={styles.section} aria-labelledby="quick-start-title">
         <div className={styles.sectionHeading}>

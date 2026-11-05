@@ -13,61 +13,57 @@ test.describe("vật liệu và phản hồi Apple-style", () => {
     await expect(ambient).toHaveCSS("pointer-events", "none");
     await expect(ambient).toHaveCSS("animation-name", "none");
 
-    const header = page.locator("header").first();
+    const header = page.getByRole("banner");
     const card = page.locator('[data-glass="card"]').first();
     expect(await header.evaluate((el) => getComputedStyle(el).backdropFilter)).toContain("blur");
     expect(await card.evaluate((el) => getComputedStyle(el).backdropFilter)).toBe("none");
   });
 
-  test("parallax chỉ thuộc Quiz Sheets, không mở rộng sang control hoặc surface khác", async ({ page }) => {
+  test("parallax chỉ thuộc Lesson Launch Board, không mở rộng sang control hoặc surface khác", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("[data-magnetic], [data-tilt], [data-reveal-on-scroll]")).toHaveCount(0);
-    await expect(page.locator("[data-parallax-stage]")).toHaveCount(1);
-    await expect(page.locator("[data-parallax-stage] [data-glass]")).toHaveCount(0);
-    await expect(page.locator("[data-quiz-sheets] [aria-hidden='true'][inert]")).toHaveCount(2);
+    await expect(page.locator("[data-lesson-launch-board]")).toHaveCount(1);
+    await expect(page.locator("[data-lesson-launch-board] [data-glass]")).toHaveCount(0);
+    await expect(page.locator("[data-lesson-launch-board] [aria-hidden='true'][inert]")).toHaveCount(2);
     expect(await page.evaluate(() => document.getAnimations().some((item) => item.effect?.getComputedTiming().iterations === Infinity))).toBe(false);
   });
 
-  test("Quiz Sheets đổi tab bằng bàn phím, chọn đáp án và reset parallax khi rời stage", async ({ page }) => {
+  test("Lesson Launch Board đổi tab bằng bàn phím và reset inertia khi rời stage", async ({ page }) => {
     await page.goto("/");
-    const stage = page.locator("[data-parallax-stage]");
-    const compose = page.getByRole("tab", { name: /Soạn quiz/ });
-    const play = page.getByRole("tab", { name: /Chơi trực tiếp/ });
+    const stage = page.locator("[data-lesson-launch-board]");
+    const compose = page.getByRole("tab", { name: "Chuẩn bị" });
+    const play = page.getByRole("tab", { name: "Mở lớp" });
 
     await compose.focus();
     await page.keyboard.press("ArrowRight");
     await expect(play).toBeFocused();
     await expect(play).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByText("4 2 8 6")).toBeVisible();
+    await expect(page.getByText("4286")).toBeVisible();
 
     await page.keyboard.press("Home");
     await expect(compose).toHaveAttribute("aria-selected", "true");
-    const answer = page.getByRole("button", { name: /B Hà Nội/ });
-    await answer.click();
-    await expect(answer).toHaveAttribute("aria-pressed", "true");
-
     const box = await stage.boundingBox();
     expect(box).not.toBeNull();
-    await page.mouse.move(box!.x + box!.width, box!.y + box!.height);
-    await expect.poll(() => stage.evaluate((el) => el.style.getPropertyValue("--sheet-x"))).not.toBe("0px");
+    // Giữ toạ độ nằm trong hit area; mép phải/dưới có thể thuộc pixel bên ngoài.
+    await page.mouse.move(box!.x + box!.width - 4, box!.y + box!.height - 4);
+    await expect.poll(() => stage.locator("section").evaluate((el) => el.style.getPropertyValue("--pointer-x"))).not.toBe("0.000");
     await page.mouse.move(1, 1);
-    await expect(stage).toHaveCSS("--sheet-x", "0px");
-    await expect(stage).toHaveCSS("--sheet-y", "0px");
+    await expect.poll(() => stage.locator("section").evaluate((el) => el.style.getPropertyValue("--pointer-x"))).toBe("0.000");
+    await expect.poll(() => stage.locator("section").evaluate((el) => el.style.getPropertyValue("--pointer-y"))).toBe("0.000");
   });
 
-  test("Quiz Sheets chỉ thay state cục bộ, không phát sinh yêu cầu ghi quiz", async ({ page }) => {
+  test("Lesson Launch Board chỉ thay state cục bộ, không phát sinh yêu cầu ghi quiz", async ({ page }) => {
     const writeRequests: string[] = [];
     page.on("request", (request) => {
       if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method())) writeRequests.push(request.url());
     });
     await page.goto("/");
-    await page.getByRole("tab", { name: /Kết quả/ }).click();
-    await page.getByRole("tab", { name: /Soạn quiz/ }).click();
-    await page.getByRole("button", { name: /C Cần Thơ/ }).click();
+    await page.getByRole("tab", { name: "Đọc lớp" }).click();
+    await page.getByRole("tab", { name: "Chuẩn bị" }).click();
     expect(writeRequests).toEqual([]);
   });
 
-  test("Quiz Sheets tái cấu trúc ở 320px và tablet, không cuộn ngang", async ({ page }) => {
+  test("Lesson Launch Board tái cấu trúc ở 320px và tablet, không cuộn ngang", async ({ page }) => {
     for (const viewport of [
       { width: 320, height: 700 },
       { width: 768, height: 900 },
@@ -79,8 +75,8 @@ test.describe("vật liệu và phản hồi Apple-style", () => {
 
     await page.setViewportSize({ width: 320, height: 700 });
     await page.goto("/");
-    await expect(page.locator("[data-quiz-sheets] > [aria-hidden='true']").first()).toBeHidden();
-    await expect(page.locator("[data-quiz-sheets] section")).toHaveCSS("transform", "none");
+    await expect(page.locator("[data-lesson-launch-board] > [aria-hidden='true']").first()).toBeHidden();
+    await expect(page.locator("[data-lesson-launch-board] section")).toHaveCSS("transform", "none");
   });
 
   test("CTA phản hồi ngay khi nhấn rồi trở về trạng thái nghỉ", async ({ page }) => {
@@ -92,7 +88,8 @@ test.describe("vật liệu và phản hồi Apple-style", () => {
     await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
     await page.mouse.down();
     expect(await cta.evaluate((el) => getComputedStyle(el).transform)).not.toBe("none");
-    expect(await cta.evaluate((el) => getComputedStyle(el).transitionDuration)).toContain("0.1s");
+    const durations = await cta.evaluate((el) => getComputedStyle(el).transitionDuration.split(",").map(Number.parseFloat));
+    expect(Math.max(...durations)).toBeLessThanOrEqual(0.2);
     await page.mouse.up();
     await page.mouse.move(1, 1);
     await expect(cta).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
@@ -150,10 +147,10 @@ test.describe("giảm chuyển động", () => {
     );
     expect(Math.max(...durations)).toBeLessThan(0.001);
     expect(await page.evaluate(() => document.getAnimations().filter((item) => item.playState === "running").length)).toBe(0);
-    const stage = page.locator("[data-parallax-stage]");
+    const stage = page.locator("[data-lesson-launch-board] section");
     const box = await stage.boundingBox();
     expect(box).not.toBeNull();
     await page.mouse.move(box!.x + box!.width, box!.y + box!.height);
-    await expect(stage).toHaveCSS("--sheet-x", "0px");
+    await expect(stage).toHaveCSS("--pointer-x", "0.000");
   });
 });

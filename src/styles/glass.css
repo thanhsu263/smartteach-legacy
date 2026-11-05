@@ -207,6 +207,7 @@
 [data-tone="ok"] { --tone: var(--ok); }
 [data-tone="bad"] { --tone: var(--bad); }
 [data-tone="warn"] { --tone: var(--warn); }
+[data-tone="info"] { --tone: var(--info); }
 [data-tone="accent"] { --tone: var(--accent); }
 
 [data-glass="btn"][data-variant="primary"] {
@@ -385,7 +386,7 @@ select:focus,
 textarea:focus {
   background: var(--color-surface);
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 17%, transparent);
+  box-shadow: 0 0 0 3px var(--focus-ring-soft);
 }
 
 input[type="checkbox"][data-switch] {
