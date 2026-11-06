@@ -114,8 +114,7 @@ export function WhiteboardTool() {
     const active = drawing.current;
     if (active) {
       if (event.currentTarget.hasPointerCapture(active.pointerId)) return;
-      // Con trỏ cũ đã mất quyền bắt mà không báo kết thúc: lưu nét dở rồi nhận nét mới.
-      strokes.current.push(active.stroke);
+      // Nét đã được thêm lúc pointerdown để ResizeObserver không thể xoá nó.
       drawing.current = null;
     }
     event.preventDefault();
@@ -129,6 +128,9 @@ export function WhiteboardTool() {
       erase,
       points: [pointFrom(event)],
     };
+    // Lưu ngay từ điểm đầu. ResizeObserver có thể chạy trong khi ngón tay còn
+    // chạm canvas; redraw() khi đó vẫn phải giữ nét đang vẽ.
+    strokes.current.push(stroke);
     drawing.current = { stroke, pointerId: event.pointerId };
     const rect = event.currentTarget.getBoundingClientRect();
     const context = event.currentTarget.getContext("2d");
@@ -149,7 +151,6 @@ export function WhiteboardTool() {
   function handleUp(event: PointerEvent<HTMLCanvasElement>) {
     const current = drawing.current;
     if (!current || current.pointerId !== event.pointerId) return;
-    strokes.current.push(current.stroke);
     drawing.current = null;
   }
 

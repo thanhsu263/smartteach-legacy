@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { LoginForm } from "@/components/login-form";
+import { LogoMark } from "@/components/icons";
 import styles from "./login.module.css";
 
 export const metadata: Metadata = {
@@ -11,21 +11,25 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className={`container ${styles.page}`}>
-      <header className={`${styles.hero} on-primary`}>
-        <div>
-          <p className={styles.eyebrow}>Không gian của giáo viên</p>
-          <h1 className={styles.title}>Đăng nhập</h1>
-          <p className={styles.heroMessage}>Lưu những gì thầy cô sẽ dùng lại</p>
+    <div className={styles.page}>
+      <section className={`${styles.showcase} on-primary`} aria-label="Giới thiệu SmartTeach">
+        <div className={styles.showcaseBrand}><LogoMark size={48} /><span>SmartTeach</span></div>
+        <div className={styles.showcaseCopy}>
+          <p>Không gian dành cho giáo viên</p>
+          <p className={styles.showcaseTitle}>Chuẩn bị bài dạy, kết nối lớp học và bắt đầu thật nhẹ nhàng.</p>
+          <span>Quiz, trò chơi và tiện ích lớp học cùng ở một nơi.</span>
         </div>
-        <p className={styles.lead}>
-          Thầy cô đăng nhập để lưu danh sách lớp và trò chơi yêu thích. Học sinh không cần tài khoản.{" "}
-          <Link href="/privacy">Xem cách ứng dụng dùng dữ liệu</Link>.
-        </p>
-      </header>
-      <Suspense fallback={null}>
-        <LoginForm />
-      </Suspense>
+        <div className={styles.preview} aria-hidden="true">
+          <div className={styles.previewBar}><span>Quiz trực tiếp</span><b>04 / 10</b></div>
+          <strong>Trái Đất quay quanh Mặt Trời mất bao lâu?</strong>
+          <div className={styles.answers}><span>A. 24 giờ</span><span data-selected="true">B. 365 ngày</span><span>C. 30 ngày</span><span>D. 12 giờ</span></div>
+        </div>
+      </section>
+      <section className={styles.authPanel}>
+        <div className={styles.mobileBrand}><LogoMark size={40} /><span>SmartTeach</span></div>
+        <header className={styles.intro}><h1>Đăng nhập</h1><p>Chào mừng trở lại! Đăng nhập để tiếp tục cùng lớp học.</p></header>
+        <Suspense fallback={null}><LoginForm /></Suspense>
+      </section>
     </div>
   );
 }

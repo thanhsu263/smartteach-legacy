@@ -2,13 +2,7 @@
   display: grid;
   gap: var(--space-4);
   width: 100%;
-  max-width: 26rem;
-  padding: var(--space-5);
-  background: var(--panel-bg);
-  -webkit-backdrop-filter: var(--glass-blur-card);
-  backdrop-filter: var(--glass-blur-card);
-  box-shadow: var(--panel-shadow);
-  border-radius: var(--r-sheet);
+  max-width: 30rem;
 }
 
 .divider {
@@ -61,6 +55,10 @@
 }
 
 .error {
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-danger) 7%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-danger) 28%, var(--color-border));
+  border-radius: var(--radius-sm);
   color: var(--color-danger);
   font-size: var(--text-sm);
   font-weight: 600;
@@ -70,7 +68,8 @@
   padding: var(--space-3);
   background: var(--tint-bg);
   box-shadow: var(--tint-shadow);
-  border-radius: var(--r-card);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
 

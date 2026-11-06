@@ -29,7 +29,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f6f8fc",
+  themeColor: "#f0f5ff",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -39,9 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <AmbientBackground />
         <AuthProvider>
           <FavoritesProvider>
-            <a className="skip-link" href="#main">
-              Bỏ qua tới nội dung
-            </a>
+            <a className="skip-link" href="#main">Bỏ qua tới nội dung</a>
             <Suspense fallback={null}>
               <AppHeader />
             </Suspense>

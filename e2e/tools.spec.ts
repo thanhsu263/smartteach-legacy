@@ -57,6 +57,24 @@ test.describe("điều hướng tới tiện ích", () => {
   });
 });
 
+test.describe("tìm tiện ích", () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  test("tìm không dấu, báo số kết quả và khôi phục danh sách", async ({ page }) => {
+    await page.goto("/tools");
+    const search = page.getByLabel("Tìm tiện ích");
+    await search.fill("boc tham");
+    await expect(page.getByRole("link", { name: "Bốc thăm tên" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Đồng hồ đếm ngược" })).toHaveCount(0);
+    await expect(page.getByRole("status")).toHaveText("Có 1 công cụ khớp");
+
+    await search.fill("khong co cong cu");
+    await expect(page.getByText("Không tìm thấy tiện ích phù hợp.")).toBeVisible();
+    await page.getByRole("button", { name: "Xem tất cả tiện ích" }).click();
+    await expect(page.getByRole("status")).toHaveText(`Có ${tools.length} công cụ`);
+  });
+});
+
 test.describe("đồng hồ đếm ngược", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
@@ -324,18 +342,20 @@ test.describe("bảng trắng", () => {
     await waitForHydration(page);
     const box = (await page.locator("canvas").boundingBox())!;
     const client = await context.newCDPSession(page);
-    const point = (x: number, y: number, id: number) => ({ x: box.x + x, y: box.y + y, id });
+    // Canvas thay đổi kích thước theo breakpoint; tọa độ theo tỉ lệ giữ thao tác
+    // trong vùng vẽ thay vì buộc layout phải khớp vị trí pixel cũ.
+    const point = (x: number, y: number, id: number) => ({ x: box.x + box.width * x, y: box.y + box.height * y, id });
 
     // Ngón 1 vẽ, ngón 2 chạm xuống trong lúc ngón 1 còn đang chạm.
-    await client.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point(30, 300, 1)] });
-    await client.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [point(200, 340, 1)] });
+    await client.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point(.05, .55, 1)] });
+    await client.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [point(.33, .65, 1)] });
     await client.send("Input.dispatchTouchEvent", {
       type: "touchStart",
-      touchPoints: [point(200, 340, 1), point(400, 300, 2)],
+      touchPoints: [point(.33, .65, 1), point(.66, .55, 2)],
     });
     await client.send("Input.dispatchTouchEvent", {
       type: "touchMove",
-      touchPoints: [point(260, 380, 1), point(400, 300, 2)],
+      touchPoints: [point(.43, .75, 1), point(.66, .55, 2)],
     });
     await client.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
 

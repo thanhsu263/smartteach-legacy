@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Button, IconButton } from "@/components/button";
 import { TrashIcon } from "@/components/icons";
@@ -26,6 +26,7 @@ export function ClassesManager() {
 
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deleteDialogRef = useRef<HTMLDialogElement>(null);
   const nameId = useId();
   const namesId = useId();
 
@@ -42,9 +43,17 @@ export function ClassesManager() {
     };
   }, [userId, reloadKey]);
 
+  useEffect(() => {
+    const dialog = deleteDialogRef.current;
+    if (!dialog) return;
+    if (confirmingId && !dialog.open) dialog.showModal();
+    if (!confirmingId && dialog.open) dialog.close();
+  }, [confirmingId]);
+
   const current = loaded && loaded.userId === userId ? loaded.result : null;
   const classes = current?.ok ? current.classes : [];
   const atLimit = classes.length >= MAX_CLASSES;
+  const confirmingClass = classes.find((item) => item.id === confirmingId) ?? null;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -176,31 +185,17 @@ export function ClassesManager() {
                   </h3>
                   <p className={styles.hint}>{item.studentCount} học sinh</p>
                 </div>
-                {confirmingId === item.id ? (
-                  <div className={styles.confirm} role="group" aria-label={`Xoá lớp ${item.name}`}>
-                    <p>Xoá lớp “{item.name}” và toàn bộ danh sách học sinh?</p>
-                    <div className={styles.confirmActions}>
-                      <Button variant="secondary" onClick={() => confirmDelete(item.id)}>
-                        Xoá lớp
-                      </Button>
-                      <Button variant="secondary" onClick={() => setConfirmingId(null)}>
-                        Giữ lại
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <IconButton
-                    aria-label={`Xoá lớp ${item.name}`}
-                    tooltip="Xoá lớp"
-                    tone="danger"
-                    onClick={() => {
-                      setDeleteError(null);
-                      setConfirmingId(item.id);
-                    }}
-                  >
-                    <TrashIcon size={20} />
-                  </IconButton>
-                )}
+                <IconButton
+                  aria-label={`Xoá lớp ${item.name}`}
+                  tooltip="Xoá lớp"
+                  tone="danger"
+                  onClick={() => {
+                    setDeleteError(null);
+                    setConfirmingId(item.id);
+                  }}
+                >
+                  <TrashIcon size={20} />
+                </IconButton>
               </li>
             ))}
           </ul>
@@ -211,6 +206,29 @@ export function ClassesManager() {
           </p>
         ) : null}
       </section>
+
+      <dialog
+        ref={deleteDialogRef}
+        className={styles.deleteDialog}
+        aria-labelledby="delete-class-title"
+        onClose={() => setConfirmingId(null)}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) setConfirmingId(null);
+        }}
+      >
+        <div className={styles.confirm}>
+          <h2 id="delete-class-title">Xoá lớp?</h2>
+          <p>Xoá lớp “{confirmingClass?.name}” và toàn bộ danh sách học sinh?</p>
+          <div className={styles.confirmActions}>
+            <Button variant="secondary" onClick={() => setConfirmingId(null)}>
+              Giữ lại
+            </Button>
+            <Button variant="primary" onClick={() => confirmingId && void confirmDelete(confirmingId)}>
+              Xoá lớp
+            </Button>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }

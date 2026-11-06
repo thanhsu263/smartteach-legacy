@@ -20,7 +20,7 @@
   width: 44px;
   min-width: 44px;
   padding: 0;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
 }
 
 .button[data-icon-only] > svg {

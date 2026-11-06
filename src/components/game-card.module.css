@@ -3,11 +3,6 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-5);
-  transition: transform var(--motion-state) var(--ease-fluid), box-shadow var(--motion-state) var(--ease-fluid), border-color var(--motion-state) var(--ease-fluid);
-}
-
-.card:hover {
-  transform: translateY(-2px);
 }
 
 .card:focus-within {

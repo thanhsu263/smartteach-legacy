@@ -3,19 +3,22 @@ name: SmartTeach
 description: Hub tiện ích giảng dạy cho giáo viên Việt Nam, sáng, xanh dương và vàng, gọn như công cụ.
 colors:
   primary: "#2259ED"
-  primary-deep: "#102B68"
+  primary-hover: "#1948CA"
+  primary-deep: "#153DAA"
   primary-tint: "#F0F5FF"
+  brand: "#102B68"
   accent: "#FFD453"
   accent-deep: "#F2C23D"
   ink: "#142B50"
   ink-muted: "#52627A"
-  bg: "#F6F8FC"
+  bg: "#F0F5FF"
   surface: "#FFFFFF"
   border: "#D7E0ED"
-  border-strong: "#7C8AA5"
-  success: "#14703F"
-  danger: "#B3261E"
-  on-primary-muted: "#DBE5FF"
+  border-strong: "#687B96"
+  success: "#17613E"
+  warning: "#9A6700"
+  danger: "#B42318"
+  on-primary-muted: "#DCE7FF"
   tile-a: "#1D4FD7"
   tile-b: "#0A6C74"
   tile-c: "#2B7A2E"
@@ -51,8 +54,8 @@ typography:
     fontWeight: 600
     lineHeight: 1.4
 rounded:
-  sm: "6px"
-  md: "10px"
+  sm: "8px"
+  md: "12px"
   lg: "16px"
   pill: "999px"
 spacing:
@@ -61,15 +64,15 @@ spacing:
   md: "16px"
   lg: "24px"
   xl: "48px"
-  xxl: "80px"
+  xxl: "56px"
 components:
   button-primary:
-    backgroundColor: "{colors.accent}"
-    textColor: "{colors.ink}"
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.surface}"
     rounded: "{rounded.md}"
     padding: "12px 20px"
   button-primary-hover:
-    backgroundColor: "{colors.accent-deep}"
+    backgroundColor: "{colors.primary-hover}"
   button-secondary:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.primary}"
@@ -108,25 +111,26 @@ Hệ thống từ chối: phần mềm hành chính hay cổng thông tin nhà t
 Xanh dương làm màu chủ đạo, vàng chỉ cho nút kêu gọi hành động, trung tính pha xanh rất nhẹ. Toàn bộ giá trị hex trong frontmatter là nguồn duy nhất.
 
 ### Primary
-- **Xanh bảng (Blackboard Blue)** (#1D4FD7): nền hero trang chủ, liên kết, trạng thái đang chọn, viền focus trên nền sáng. Chữ trắng trên nền này đạt tương phản 4.5:1.
-- **Xanh đậm (Deep Chalk Blue)** (#153BA8): hover của nút và liên kết xanh, vòng focus trên nền sáng.
-- **Xanh nhạt (Tint Wash)** (#E9EFFD): nền phần phụ, hàng đang chọn.
+- **Xanh hành động (Action Blue)** (#2259ED): hành động chính, liên kết, trạng thái đang chọn và viền focus trên nền sáng. Chữ trắng trên nền này đạt tương phản 4.5:1.
+- **Xanh hover (Action Hover)** (#1948CA): hover của hành động xanh; **Xanh pressed** (#153DAA) dùng cho trạng thái nhấn.
+- **Xanh thương hiệu (Brand Navy)** (#102B68): mảng nhận diện cần độ sâu như hero hoặc footer; không thay thế action blue.
+- **Xanh nhạt (Subtle Wash)** (#F0F5FF): nền phần phụ, hàng đang chọn.
 
 ### Secondary
-- **Vàng phấn (Chalk Yellow)** (#FFC72C): chỉ cho nút kêu gọi hành động chính, chữ trên nút là Mực (#172033). Hover là #F2B300.
+- **Vàng điểm nhấn (Highlight Yellow)** (#FFD453): chỉ cho badge, nhấn mạnh thành tựu hoặc điểm nhận diện nhỏ; không dùng làm nút hành động mặc định của app.
 
 ### Neutral
-- **Mực (Ink)** (#172033): chữ chính và tiêu đề.
-- **Mực nhạt (Muted Ink)** (#4B5568): chữ phụ, mô tả; vẫn đạt 4.5:1 trên nền và bề mặt.
-- **Nền lớp học (Daylight)** (#F6F8FC): nền trang.
+- **Mực (Ink)** (#142B50): chữ chính và tiêu đề.
+- **Mực nhạt (Muted Ink)** (#52627A): chữ phụ, mô tả; vẫn đạt 4.5:1 trên nền và bề mặt.
+- **Nền lớp học (Subtle Wash)** (#F0F5FF): nền trang.
 - **Bề mặt (Paper)** (#FFFFFF): thẻ, ô nhập, ngăn kéo.
-- **Viền (Hairline)** (#D5DDEB): đường kẻ trang trí, viền thẻ.
-- **Viền ô nhập (Control Edge)** (#7C8AA5): viền của ô nhập và nút phụ, đạt 3:1 so với bề mặt.
-- **Chữ phụ trên nền xanh (Chalk Dust)** (#DBE5FF): đoạn mô tả dưới tiêu đề hero, đạt 4.5:1 trên Xanh bảng.
-- **Thành công** (#14703F) và **Lỗi** (#B3261E): chỉ dùng kèm biểu tượng hoặc chữ, không chỉ bằng màu.
+- **Viền (Hairline)** (#D7E0ED): đường kẻ trang trí, viền thẻ.
+- **Viền ô nhập (Control Edge)** (#687B96): viền của ô nhập và nút phụ, đạt 3:1 so với bề mặt.
+- **Chữ phụ trên nền xanh (Chalk Dust)** (#DCE7FF): đoạn mô tả dưới tiêu đề hero, đạt 4.5:1 trên Xanh hành động.
+- **Thành công** (#17613E), **Cảnh báo** (#9A6700) và **Lỗi** (#B42318): chỉ dùng kèm biểu tượng hoặc chữ, không chỉ bằng màu.
 
 ### Named Rules
-**Quy tắc một vệt vàng.** Vàng chỉ xuất hiện ở nút kêu gọi hành động chính, tối đa một nút trên mỗi màn hình. Vàng không bao giờ làm nền chữ dài hay trang trí.
+**Quy tắc một vệt vàng.** Vàng chỉ xuất hiện như điểm nhấn có ý nghĩa, tối đa một điểm mạnh trên mỗi màn hình. Vàng không bao giờ làm nền chữ dài hay trang trí.
 **Quy tắc xanh có việc.** Trong tiện ích và "Lớp của tôi", xanh dương chỉ cho hành động và lựa chọn đang chọn, không dùng làm nền mảng lớn.
 
 ## 3. Typography
@@ -160,9 +164,9 @@ Chiều sâu đến từ phân cấp vật liệu, không phải trang trí. Car
 ## 5. Components
 
 ### Buttons
-- **Shape:** bo góc vừa (10px), chiều cao tối thiểu 44px cho vùng chạm.
-- **Primary:** nền Vàng phấn, chữ Mực, đệm 12px 20px; một nút mỗi màn hình.
-- **Hover / Focus:** hover chuyển sang vàng đậm trong 150ms; focus-visible có viền 3px, cách nút 2px (Xanh đậm trên nền sáng, Vàng trên nền xanh).
+- **Shape:** bo góc 12px, chiều cao tối thiểu 44px cho vùng chạm.
+- **Primary:** nền Xanh hành động, chữ trắng, đệm 12px 20px; một hành động ưu tiên trên mỗi màn hình.
+- **Hover / Focus:** hover chuyển sang xanh hover trong 150ms; focus-visible có viền 2px và vòng ngoài nhạt cách nút 2px (Xanh hành động trên nền sáng, Vàng trên nền xanh).
 - **Secondary:** nền Bề mặt, chữ Xanh bảng, viền Control Edge; hover đổi nền sang Xanh nhạt.
 - **On primary:** trên nền hero xanh, nút phụ trong suốt với viền và chữ trắng.
 - **Disabled:** nền Hairline, chữ Mực nhạt, con trỏ not-allowed, vẫn đạt đọc được.
@@ -182,7 +186,7 @@ Chiều sâu đến từ phân cấp vật liệu, không phải trang trí. Car
 - **Internal Padding:** 24px.
 
 ### Inputs / Fields
-- **Style:** nền Bề mặt, viền 1px Control Edge, bo góc 10px, cao tối thiểu 44px.
+- **Style:** nền Bề mặt, viền 1px Control Edge, bo góc 8px, cao tối thiểu 44px.
 - **Focus:** viền đổi sang Xanh bảng cộng vòng focus 3px.
 - **Error / Disabled:** viền và chữ lỗi Đỏ (#B3261E) kèm biểu tượng và lời nhắn; disabled dùng nền Hairline.
 

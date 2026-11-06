@@ -9,3 +9,4 @@
 .landing{--muted:#52627a;--line:#d7e0ed}
 .resourceArt[data-tone=purple]{color:#6047aa}
 @media(max-width:650px){.filters{flex-wrap:wrap;overflow:visible}.filters span{white-space:normal}}
+.toolLinks{display:grid;gap:8px;padding-top:4px;border-top:1px solid var(--line)}.toolLinks a{min-height:28px;color:var(--ink);font-size:12px}.toolLinks a:hover{color:var(--blue)}

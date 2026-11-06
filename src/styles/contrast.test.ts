@@ -45,6 +45,18 @@ const textPairs: Array<[string, string, string, number]> = [
 ];
 
 describe("tương phản WCAG AA của token màu", () => {
+  it("khóa semantic roles theo Figma Foundation", () => {
+    expect(token("primary")).toBe("#2259ed");
+    expect(token("primary-hover")).toBe("#1948ca");
+    expect(token("primary-deep")).toBe("#153daa");
+    expect(token("primary-tint")).toBe("#f0f5ff");
+    expect(token("accent")).toBe("#ffd453");
+    expect(token("ink")).toBe("#142b50");
+    expect(token("ink-muted")).toBe("#52627a");
+    expect(token("border")).toBe("#d7e0ed");
+    expect(token("border-strong")).toBe("#687b96");
+  });
+
   it.each(textPairs)("chữ %s trên %s đạt tối thiểu %s", (_label, fg, bg, min) => {
     expect(contrast(token(fg), token(bg))).toBeGreaterThanOrEqual(min);
   });

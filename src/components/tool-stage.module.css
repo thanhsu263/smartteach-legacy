@@ -3,9 +3,10 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: var(--surface-elevated);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-rest);
+  background: var(--panel-bg);
+  -webkit-backdrop-filter: var(--glass-blur-card);
+  backdrop-filter: var(--glass-blur-card);
+  box-shadow: var(--panel-shadow);
   border-radius: var(--r-sheet);
 }
 
@@ -32,7 +33,7 @@
   top: 0;
   z-index: 1;
   padding-block: var(--space-2);
-  background: var(--surface-elevated);
+  background: var(--panel-bg);
   box-shadow: 0 8px 12px -14px rgb(var(--ink-rgb) / 0.52);
 }
 

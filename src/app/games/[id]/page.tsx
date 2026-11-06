@@ -15,7 +15,10 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/games/[id]">): Promise<Metadata> {
   const { id } = await params;
   const game = findGame(games, id);
-  if (!game) return {};
+  // Với Cache Components, trang có thể bắt đầu stream trước khi phần body gọi
+  // `notFound()`. Chặn ngay lúc tạo metadata để response cho id không hợp lệ
+  // vẫn mang HTTP 404, không chỉ hiển thị giao diện 404.
+  if (!game) notFound();
   return { title: game.title, description: game.description };
 }
 

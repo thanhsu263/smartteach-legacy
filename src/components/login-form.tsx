@@ -91,7 +91,7 @@ export function LoginForm() {
         </p>
       ) : null}
 
-      <Button variant="secondary" onClick={signInWithGoogle} disabled={busy}>
+      <Button variant="secondary" onClick={signInWithGoogle} disabled={busy} aria-busy={busy}>
         Tiếp tục với Google
       </Button>
 
@@ -141,7 +141,7 @@ export function LoginForm() {
           </p>
         ) : null}
 
-        <Button type="submit" variant="primary" disabled={busy}>
+        <Button type="submit" variant="primary" disabled={busy} aria-busy={busy}>
           {busy ? "Đang xử lý…" : signingUp ? "Tạo tài khoản" : "Đăng nhập"}
         </Button>
       </form>

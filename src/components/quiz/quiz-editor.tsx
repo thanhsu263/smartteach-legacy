@@ -54,6 +54,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
   const [renaming, setRenaming] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const deleteDialogRef = useRef<HTMLDialogElement>(null);
   const [moving, setMoving] = useState(false);
   const [message, setMessage] = useState<{ kind: "error" | "info"; text: string } | null>(null);
   const [tokenOverride, setTokenOverride] = useState<{ key: string; token: string | null } | null>(null);
@@ -88,6 +89,13 @@ export function QuizEditor({ quizId }: { quizId: string }) {
       cancelled = true;
     };
   }, [userId, quizId, reloadKey, requestFocus]);
+
+  useEffect(() => {
+    const dialog = deleteDialogRef.current;
+    if (!dialog) return;
+    if (confirmingId && !dialog.open) dialog.showModal();
+    if (!confirmingId && dialog.open) dialog.close();
+  }, [confirmingId]);
 
   const current = loaded && loaded.key === key ? loaded.result : null;
   const reload = () => setReloadKey((value) => value + 1);
@@ -141,6 +149,8 @@ export function QuizEditor({ quizId }: { quizId: string }) {
   const shareToken = tokenOverride && tokenOverride.key === key ? tokenOverride.token : quiz.shareToken;
   const editing = mode?.id ? questions.find((question) => question.id === mode.id) : undefined;
   const editingIndex = mode?.id ? questions.findIndex((question) => question.id === mode.id) : -1;
+  const confirmingQuestion = questions.find((question) => question.id === confirmingId) ?? null;
+  const confirmingIndex = confirmingQuestion ? questions.findIndex((question) => question.id === confirmingQuestion.id) : -1;
   const formHeadingId = `${baseId}-form`;
 
   /** Chuyển sang câu khác (hoặc đóng form); nếu còn thay đổi chưa lưu thì hỏi lại trước. */
@@ -322,33 +332,15 @@ export function QuizEditor({ quizId }: { quizId: string }) {
                       >
                         <ArrowDownIcon size={20} />
                       </IconButton>
-                      {confirmingId === question.id ? (
-                        <>
-                          <Button variant="secondary" aria-label={`Xoá câu này, câu ${index + 1}`} onClick={() => remove(question.id, index + 1)}>
-                            Xoá câu này
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            autoFocus
-                            onClick={() => {
-                              setConfirmingId(null);
-                              requestFocus(`${baseId}-del-${question.id}`);
-                            }}
-                          >
-                            Giữ lại
-                          </Button>
-                        </>
-                      ) : (
-                        <IconButton
-                          id={`${baseId}-del-${question.id}`}
-                          aria-label={`Xoá câu ${index + 1}`}
-                          tooltip="Xoá câu"
-                          tone="danger"
-                          onClick={() => setConfirmingId(question.id)}
-                        >
-                          <TrashIcon size={20} />
-                        </IconButton>
-                      )}
+                      <IconButton
+                        id={`${baseId}-del-${question.id}`}
+                        aria-label={`Xoá câu ${index + 1}`}
+                        tooltip="Xoá câu"
+                        tone="danger"
+                        onClick={() => setConfirmingId(question.id)}
+                      >
+                        <TrashIcon size={20} />
+                      </IconButton>
                     </div>
                   </li>
                 );
@@ -427,6 +419,37 @@ export function QuizEditor({ quizId }: { quizId: string }) {
         token={shareToken}
         onChange={(token) => setTokenOverride({ key, token })}
       />
+
+      <dialog
+        ref={deleteDialogRef}
+        className={styles.deleteDialog}
+        aria-labelledby={`${baseId}-delete-question-title`}
+        onClose={() => setConfirmingId(null)}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) setConfirmingId(null);
+        }}
+      >
+        <div className={styles.confirm}>
+          <h2 id={`${baseId}-delete-question-title`}>Xoá câu hỏi?</h2>
+          <p>Câu {confirmingIndex + 1} sẽ bị xoá vĩnh viễn khỏi quiz.</p>
+          <div className={styles.rowActions}>
+            <Button
+              variant="secondary"
+              autoFocus
+              onClick={() => {
+                const id = confirmingId;
+                setConfirmingId(null);
+                if (id) requestFocus(`${baseId}-del-${id}`);
+              }}
+            >
+              Giữ lại
+            </Button>
+            <Button variant="primary" aria-label={`Xoá câu này, câu ${confirmingIndex + 1}`} onClick={() => confirmingId && void remove(confirmingId, confirmingIndex + 1)}>
+              Xoá câu này
+            </Button>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }

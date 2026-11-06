@@ -150,3 +150,9 @@
 .sound label {
   cursor: pointer;
 }
+
+@media (min-width: 720px) and (max-width: 959px) {
+  .time {
+    font-size: clamp(4.5rem, 18vw, 9rem);
+  }
+}

@@ -68,4 +68,11 @@ describe("hệ vật liệu Apple-style", () => {
     expect(tokens).toContain("--motion-press: 100ms");
     expect(tokens).toContain("--motion-layer: 260ms");
   });
+
+  it("button Foundation dùng action blue, vùng chạm 44px và focus hai lớp", () => {
+    expect(glass).toContain('[data-glass="btn"][data-variant="primary"]');
+    expect(glass).toContain("background: var(--color-primary)");
+    expect(glass).toContain("min-height: 44px");
+    expect(globals).toContain("--focus-ring-outer:");
+  });
 });

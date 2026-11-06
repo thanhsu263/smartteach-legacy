@@ -9,6 +9,7 @@ test.skip(
 
 const password = "e2e-password-123";
 const game = games[0];
+const localOrigin = `http://localhost:${process.env.PLAYWRIGHT_PORT ?? 3100}`;
 
 function uniqueEmail() {
   return `e2e-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}@example.test`;
@@ -107,7 +108,7 @@ test.describe("đăng nhập và phiên", () => {
       "https://evil.example/login",
     ]) {
       await signIn(page, email, `/login?next=${encodeURIComponent(evil)}`);
-      await expect(page, evil).toHaveURL(/localhost:3100\/my-classes$/);
+      await expect(page, evil).toHaveURL(new RegExp(`${localOrigin}/my-classes$`));
       expect(new URL(page.url()).hostname, evil).toBe("localhost");
       await signOut(page);
     }
@@ -117,13 +118,13 @@ test.describe("đăng nhập và phiên", () => {
     await register(page);
     await expect(page).toHaveURL(/\/my-classes$/);
     await page.goto("/login?next=%2Fgames%3Fq%3Dxi");
-    await expect(page).toHaveURL(/localhost:3100\/games\?q=xi$/);
+    await expect(page).toHaveURL(new RegExp(`${localOrigin}/games\\?q=xi$`));
   });
 
   test("/auth/callback với mã sai về trang đăng nhập kèm lỗi, không chuyển ra ngoài", async ({ page, request }) => {
     const raw = await request.get("/auth/callback?code=ma-sai&next=%2F..%2F%2Fevil.example", { maxRedirects: 0 });
     expect(raw.status()).toBe(307);
-    expect(new URL(raw.headers()["location"]).origin).toBe("http://localhost:3100");
+    expect(new URL(raw.headers()["location"]).origin).toBe(localOrigin);
 
     await page.goto("/auth/callback?code=ma-sai&next=%2F..%2F%2Fevil.example");
     await expect(page).toHaveURL(/\/login\?error=callback$/);

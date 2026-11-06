@@ -3,28 +3,26 @@
 import { usePathname } from "next/navigation";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { TeacherShell } from "@/components/teacher-shell";
 
-/**
- * Giữ một root layout duy nhất nhưng chỉ render header/footer cho các route
- * thường. `main` vẫn được root layout server-render trực tiếp để route 404 và
- * metadata không bị biến thành fallback client.
- */
 function isLiveCanvas(pathname: string) {
   return pathname === "/play" || /^\/host\/[^/]+(?:\/results)?$/.test(pathname);
 }
 
-function ownsChrome(pathname: string) {
-  return pathname === "/" || isLiveCanvas(pathname);
+function usesTeacherShell(pathname: string) {
+  return ["/my-classes", "/my-quizzes", "/games", "/tools"].some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 }
 
+/** Tách chrome khỏi `<main>` để `notFound()` của Server Component giữ mã HTTP. */
 export function AppHeader() {
   const pathname = usePathname();
-
-  return ownsChrome(pathname) ? null : <SiteHeader />;
+  if (usesTeacherShell(pathname)) return <TeacherShell />;
+  return pathname === "/" || pathname === "/login" || isLiveCanvas(pathname) ? null : <SiteHeader />;
 }
 
 export function AppFooter() {
   const pathname = usePathname();
-
-  return ownsChrome(pathname) ? null : <SiteFooter />;
+  return pathname === "/" || pathname === "/login" || isLiveCanvas(pathname) || usesTeacherShell(pathname) ? null : <SiteFooter />;
 }

@@ -7,7 +7,7 @@ try {
   // Không có .env.local: các test cần Supabase sẽ tự bỏ qua.
 }
 
-const port = 3100;
+const port = Number(process.env.PLAYWRIGHT_PORT ?? 3100);
 
 export default defineConfig({
   testDir: "e2e",
