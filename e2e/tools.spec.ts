@@ -141,6 +141,16 @@ test.describe("đồng hồ đếm ngược", () => {
   });
 });
 
+test.describe("đồng hồ đếm ngược trên tablet", () => {
+  test.use({ viewport: { width: 768, height: 800 } });
+
+  test("không tràn ngang khi sidebar còn hiển thị", async ({ page }) => {
+    await page.goto("/tools/countdown");
+    await waitForHydration(page);
+    expect(await hasHorizontalScroll(page)).toBe(false);
+  });
+});
+
 test.describe("bốc thăm tên", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 

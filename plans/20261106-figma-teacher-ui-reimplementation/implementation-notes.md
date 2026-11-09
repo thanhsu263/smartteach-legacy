@@ -134,11 +134,13 @@
 - Audit bằng `rg` xác nhận code production không còn import/reference
   `cloneTemplate`, Stitch, Orbit hoặc URL Figma runtime; source/e2e cũng không
   tham chiếu hai fixture `tests/fixtures/quiz-thu-nghiem.*`.
-- Visual production probe ở viewport tablet hẹp phát hiện shell desktop 240px
-  làm đồng hồ đếm ngược bị tràn ngang. Shell nay chuyển sang topbar + drawer
-  từ `959px` trở xuống (thay vì chỉ `719px`): vùng canvas đủ rộng, timer không
-  bị cắt, dialog mở/đóng được và focus quay về nút “Mở menu điều hướng”. Đây
-  chỉ là thay đổi presentation breakpoint, không đổi route, state hay API.
+- Visual production probe ở viewport tablet hẹp phát hiện timer có thể tràn
+  khi sidebar desktop thu hẹp content width. Đã thử chuyển drawer lên `959px`,
+  nhưng điều đó phá vỡ contract navigation 768px. Bản cuối giữ drawer dưới
+  `720px`, tự thu gọn sidebar tablet thành rail 88px trong dải 720–959px và
+  giảm cỡ chữ timer trong cùng dải; navigation vẫn có accessible name, canvas
+  timer không bị cắt và overflow đã có regression test 768px. Đây chỉ là thay
+  đổi presentation, không đổi route, state hay API.
 
 ## Regression và evidence để đóng Phase 02–05
 
@@ -167,3 +169,41 @@
   dòng tổng kết nên không có exit code có thể lưu; tiêu chí hai lượt full suite
   được ghi là có bằng chứng không-failure, nhưng chưa thể gọi là exit-code
   verified.
+
+## Bổ sung Phase 06 — responsive và regression local
+
+- Ở 768px, shell nay tự thu gọn sidebar thành rail 88px, vẫn giữ drawer chỉ
+  cho màn hình dưới 720px. Các navigation link luôn có accessible name, nên
+  rail không chữ vẫn dùng được với assistive technology. `ToolPage` cũng ép
+  grid children co lại trong available width. Regression Playwright cho
+  `/tools/countdown` ở 768px và toàn bộ `e2e/tools.spec.ts` đạt **28/28**.
+- Assertion e2e sign-out từng đợi navigation giáo viên trong khi hành vi thật
+  đã điều hướng về landing. Đây là race test: có lúc shell cũ còn hiện một
+  frame nên pass, có lúc đã unmount nên fail. Test nay xác nhận URL `/` và
+  link Đăng nhập trên landing; không đổi auth/state ứng dụng. `auth.spec.ts`
+  và `a11y-auth.spec.ts` đạt **20/20** sau sửa.
+- Axe phát hiện nút primary bị disable giảm `opacity` làm chữ trắng không đủ
+  tương phản. Thêm token `--color-primary-disabled` và override riêng cho
+  primary disabled, giữ disabled semantics nhưng đạt WCAG AA. `a11y.spec.ts`
+  đạt **30/30** sau sửa.
+- Với Docker Desktop Linux engine chạy, toàn bộ DB suite đã xác minh theo
+  batch để không vượt giới hạn runner: `rls`/`quiz`/`quiz-import`/`live`
+  **116**, `live-treasure` **22**, `live-retention` **15**,
+  `live-realtime` **7**, `live-auto` **13** — tổng **173 assertion pass**.
+  Các log duplicate key và `invalid_retention` là ca negative có chủ ý.
+- Gate hiện tại trên diff: `npm run typecheck`, `npm run lint`, `npm test`
+  (**24 files / 287 tests**), `npm run build`, `npm run scan:bundle` và
+  `git diff --check` đều đạt. Một full Playwright với production server tái
+  dùng đã in đủ dấu tiến trình nhưng host runner lại cắt trước reporter và
+  `.last-run.json`; vì vậy không thay trạng thái Phase 06 thành complete cho
+  tới khi lấy được hai exit code full suite.
+
+## Đóng Phase 06
+
+- Hai regression do Figma landing thay đổi structure đã được sửa ở lớp phù hợp:
+  CTA landing đi qua kho game trước khi mở game; form login khôi phục link
+  quyền riêng tư; kho quiz khôi phục CTA tới lịch sử các buổi đã chơi.
+- Race kho báu khi đọc kết quả sau khi kết thúc phiên được ổn định bằng cách
+  chờ CTA kết quả của màn giáo viên, tức trạng thái backend thực sự đã hoàn tất.
+- Hai lượt full Playwright trên production build local, chia 8 shard để không
+  bị giới hạn runner, đều đạt **219/219** với exit code thành công.

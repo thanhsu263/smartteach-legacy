@@ -6,7 +6,7 @@ test.describe("trang Quyền riêng tư", () => {
 
   test("mở được từ chân trang và từ trang đăng nhập", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("navigation", { name: "Liên kết cuối trang" }).getByRole("link", { name: "Quyền riêng tư" }).click();
+    await page.getByRole("link", { name: "Quyền riêng tư", exact: true }).click();
     await expect(page).toHaveURL(/\/privacy$/);
     await expect(page.getByRole("heading", { level: 1, name: "Quyền riêng tư" })).toBeVisible();
 

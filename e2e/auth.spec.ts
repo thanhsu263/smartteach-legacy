@@ -35,7 +35,8 @@ async function signIn(page: Page, email: string, loginUrl = "/login") {
 
 async function signOut(page: Page) {
   await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("button", { name: "Đăng xuất" }).click();
-  await expect(page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Đăng nhập" })).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("link", { name: "Đăng nhập", exact: true }).first()).toBeVisible();
 }
 
 test.describe("đăng nhập và phiên", () => {

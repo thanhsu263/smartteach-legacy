@@ -114,6 +114,8 @@ test.describe("trang chơi", () => {
   test("trang chủ hiện game nổi bật và dẫn tới trang chơi trong tối đa 2 lần bấm", async ({ page }) => {
     await page.goto("/");
     const featured = games.filter((g) => g.featured)[0];
+    await page.getByRole("link", { name: "Thử một trò chơi" }).click();
+    await expect(page).toHaveURL(/\/games$/);
     await page.getByRole("link", { name: featured.title }).click();
     await expect(page).toHaveURL(new RegExp(`/games/${featured.id}$`));
   });

@@ -135,14 +135,19 @@ export function QuizzesManager() {
       </section>
 
       <section aria-labelledby={`${titleId}-list`} className={`${styles.panel} ${styles.listPanel}`}>
-        <h2 id={`${titleId}-list`} className={styles.heading} tabIndex={-1}>
-          Quiz đã lưu{" "}
-          {current?.ok ? (
-            <span>
-              ({quizzes.length} / {MAX_QUIZZES})
-            </span>
-          ) : null}
-        </h2>
+        <div className={styles.listHeading}>
+          <h2 id={`${titleId}-list`} className={styles.heading} tabIndex={-1}>
+            Quiz đã lưu{" "}
+            {current?.ok ? (
+              <span>
+                ({quizzes.length} / {MAX_QUIZZES})
+              </span>
+            ) : null}
+          </h2>
+          <ButtonLink href="/host" variant="secondary">
+            Xem kết quả và xoá các buổi đã chơi
+          </ButtonLink>
+        </div>
 
         {notice ? (
           <p role="status" className={`${styles.notice} animate-fade-up`}>

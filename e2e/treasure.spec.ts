@@ -318,6 +318,7 @@ for (const viewport of [
       await next(teacherPage, "Xem kết quả");
       await expect(heading(binh, "Kết thúc!")).toBeVisible();
       await audit(binh, "màn kết thúc có tổng kết kho báu");
+      await expect(teacherPage.getByRole("link", { name: "Xem kết quả chi tiết" })).toBeVisible();
       await teacherPage.goto(`/host/${session.id}/results`);
       await expect(teacherPage.getByRole("columnheader", { name: "Kho báu" })).toBeVisible();
       await audit(teacherPage, "trang kết quả có cột kho báu");

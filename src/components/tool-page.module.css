@@ -1,7 +1,14 @@
 .page {
   display: grid;
   gap: var(--space-4);
+  min-width: 0;
   padding-block: 0;
+}
+
+.page > * {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .title {

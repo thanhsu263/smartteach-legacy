@@ -91,3 +91,13 @@
   text-underline-offset: 3px;
   cursor: pointer;
 }
+
+.privacy {
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+}
+
+.privacy a {
+  color: var(--color-primary);
+  text-underline-offset: 3px;
+}

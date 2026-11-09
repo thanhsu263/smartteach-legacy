@@ -24,7 +24,7 @@ function Navigation({ compact, onNavigate }: { compact?: boolean; onNavigate?: (
   return <nav aria-label="Điều hướng chính" className={styles.navigation}>
     {!compact ? <p className={styles.navHeading}>Không gian dạy học</p> : null}
     <ul>{navigation.map(({ href, label, Icon }) => <li key={href}>
-      <Link href={href} className={styles.navLink} aria-current={current(pathname, href) ? "page" : undefined} aria-label={compact ? label : undefined} data-tooltip={compact ? label : undefined} onClick={onNavigate}>
+      <Link href={href} className={styles.navLink} aria-current={current(pathname, href) ? "page" : undefined} aria-label={label} data-tooltip={compact ? label : undefined} onClick={onNavigate}>
         <Icon size={20} />{!compact ? <span>{label}</span> : null}
       </Link>
     </li>)}</ul>

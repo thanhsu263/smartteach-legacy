@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useId, useState, type FormEvent } from "react";
 import { Button } from "@/components/button";
 import { describeAuthError } from "@/lib/auth/messages";
@@ -151,6 +152,9 @@ export function LoginForm() {
         <button type="button" data-glass="row" onClick={() => switchMode(signingUp ? "sign-in" : "sign-up")}>
           {signingUp ? "Đăng nhập" : "Đăng ký"}
         </button>
+      </p>
+      <p className={styles.privacy}>
+        <Link href="/privacy">Xem cách ứng dụng dùng dữ liệu</Link>
       </p>
     </div>
   );

@@ -86,7 +86,7 @@ Muốn hoàn thiện chúng cần frame Figma mới và một plan nối tiếp.
 | 03 | [Quản lý lớp học](./phase-03-classes.md) | Implemented — list/detail, destructive dialog và auth/a11y flow đạt |
 | 04 | [Kho, trình soạn và nhập quiz](./phase-04-quizzes.md) | Implemented — editor/import e2e đạt 27/27 |
 | 05 | [Kho tiện ích và đồng hồ](./phase-05-tools.md) | Implemented — catalog, countdown và whiteboard regression e2e đạt 27/27 |
-| 06 | [Kiểm chứng, dọn nguồn Stitch và bàn giao khoảng trống](./phase-06-verification.md) | In progress — build/static gates, audit và targeted e2e đạt; hai lượt full e2e chưa ghi được exit code vì giới hạn runner phiên |
+| 06 | [Kiểm chứng, dọn nguồn Stitch và bàn giao khoảng trống](./phase-06-verification.md) | Implemented — build/static gates, audit và hai lượt full e2e sharded (219/219 mỗi lượt) đạt |
 
 ## Bản đồ acceptance
 
