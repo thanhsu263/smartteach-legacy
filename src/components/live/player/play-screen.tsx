@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/button";
+import { ConnectionStatus } from "@/components/live/connection-status";
 import { playerAnnouncement } from "@/lib/live/announce";
 import { player } from "@/lib/live/rpc";
 import type { AnswerValue } from "@/lib/live/types";
@@ -13,7 +14,6 @@ import { JoinForm } from "./join-form";
 import { Lobby } from "./lobby";
 import { Question } from "./question";
 import { Result } from "./result";
-import { StatusBanner } from "./status-banner";
 import styles from "./player.module.css";
 
 /** Toàn bộ luồng của học sinh: nhập PIN, phòng chờ, từng câu, kết quả, kết thúc. */
@@ -71,7 +71,7 @@ export function PlayScreen({ initialPin }: { initialPin: string }) {
     );
   }
 
-  const offline = live.status === "offline" || live.error !== null;
+  const connection = live.error === null ? live.status : "offline";
 
   let body;
   if (!state) {
@@ -107,11 +107,9 @@ export function PlayScreen({ initialPin }: { initialPin: string }) {
       <p className="visually-hidden" role="status" aria-live="polite">
         {playerAnnouncement(state)}
       </p>
-      {offline ? (
-        <div className={styles.bannerWrap}>
-          <StatusBanner offline />
-        </div>
-      ) : null}
+      <div className={styles.bannerWrap}>
+        <ConnectionStatus status={connection} />
+      </div>
       {body}
     </div>
   );

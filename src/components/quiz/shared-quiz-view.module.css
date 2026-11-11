@@ -9,6 +9,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
 }
 
 .title {
@@ -126,4 +127,10 @@
 .skeleton span {
   display: block;
   height: 6rem;
+}
+
+@media (min-width: 720px) {
+  .header {
+    padding: var(--space-5) var(--space-6);
+  }
 }

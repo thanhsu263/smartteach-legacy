@@ -2,6 +2,18 @@ import type { Metadata } from "next";
 import { siteConfig } from "@/config/site";
 import styles from "./privacy.module.css";
 
+const sections = [
+  { id: "who", label: "Học sinh và khách" },
+  { id: "teacher", label: "Giáo viên có tài khoản" },
+  { id: "students", label: "Tên học sinh" },
+  { id: "quiz", label: "Quiz chơi trực tiếp" },
+  { id: "import", label: "Nhập quiz từ tệp" },
+  { id: "where", label: "Dữ liệu được lưu ở đâu" },
+  { id: "cookies", label: "Cookie và theo dõi" },
+  { id: "game", label: "Game do bên khác cung cấp" },
+  { id: "delete", label: "Xoá dữ liệu" },
+] as const;
+
 export const metadata: Metadata = {
   title: "Quyền riêng tư",
   description: "SmartTeach lưu những dữ liệu nào, để làm gì, ở đâu và cách xoá.",
@@ -23,6 +35,17 @@ export default function PrivacyPage() {
             Bản nháp, chưa được chủ dự án duyệt. Nội dung dưới đây mô tả cách ứng dụng đang hoạt động, chưa phải văn bản pháp lý.
           </p>
         )}
+
+        <nav className={styles.toc} aria-label="Mục lục quyền riêng tư">
+          <p className={styles.tocTitle}>Trong trang này</p>
+          <ol className={styles.tocList}>
+            {sections.map((section) => (
+              <li key={section.id}>
+                <a href={`#${section.id}`}>{section.label}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
 
         <section aria-labelledby="who" className={styles.section}>
           <h2 id="who" className={styles.heading}>

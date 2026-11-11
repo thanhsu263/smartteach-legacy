@@ -57,7 +57,7 @@ export function SharedQuizView({ token }: { token: string }) {
 
   if (current === null) {
     return (
-      <div className={styles.skeleton} aria-busy="true">
+    <div className={styles.skeleton} aria-busy="true" aria-live="polite">
         <p className="visually-hidden" role="status">
           Đang tải quiz…
         </p>
@@ -97,14 +97,14 @@ export function SharedQuizView({ token }: { token: string }) {
   return (
     <div className={styles.view}>
       <Breadcrumb items={[{ label: "Quiz của tôi", href: "/my-quizzes" }, { label: quiz.title }]} />
-      <header className={styles.header}>
+      <header className={styles.header} data-surface="panel">
         <div>
           <h1 className={styles.title}>{quiz.title}</h1>
           <p className={styles.hint}>
             Quiz do đồng nghiệp chia sẻ, {quiz.questions.length} câu. Thầy cô xem được cả đáp án đúng. Sao chép về để chỉnh sửa và dùng riêng.
           </p>
         </div>
-        <Button variant="primary" disabled={cloning} onClick={clone}>
+        <Button variant="primary" disabled={cloning} aria-busy={cloning} onClick={clone}>
           {cloning ? "Đang sao chép…" : "Sao chép về tài khoản của tôi"}
         </Button>
       </header>

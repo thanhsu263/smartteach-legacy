@@ -6,7 +6,7 @@ import { getSupabaseConfig } from "@/lib/supabase/config";
 
 /**
  * Làm mới phiên đăng nhập và chuyển hướng:
- * - trang của giáo viên (/my-classes, /my-quizzes, /shared, /host) mà chưa đăng nhập thì về /login, nhớ trang đang vào;
+ * - trang của giáo viên (/dashboard, /my-classes, /my-quizzes, /shared, /host) mà chưa đăng nhập thì về /login, nhớ trang đang vào;
  * - /login mà đã đăng nhập thì về trang đích.
  * Đây chỉ là lớp tiện lợi; quyền truy cập dữ liệu thật do RLS và kiểm tra ở server bảo đảm.
  */
@@ -39,7 +39,7 @@ export async function proxy(request: NextRequest) {
 
   if (signedIn && pathname === "/login") {
     // Dựng URL từ cả đường dẫn lẫn query của `next`; gán riêng `pathname` sẽ mã hoá dấu "?".
-    const url = internalRedirectUrl(request.nextUrl.searchParams.get("next"), request.nextUrl.origin, "/my-classes");
+    const url = internalRedirectUrl(request.nextUrl.searchParams.get("next"), request.nextUrl.origin, "/dashboard");
     return redirectWithCookies(url, response);
   }
 
@@ -55,5 +55,5 @@ function redirectWithCookies(url: URL, from: NextResponse) {
 
 // Giữ khớp với PROTECTED_PREFIXES trong src/lib/auth/protected-paths.ts.
 export const config = {
-  matcher: ["/my-classes/:path*", "/my-quizzes/:path*", "/shared/:path*", "/host/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/my-classes/:path*", "/my-quizzes/:path*", "/shared/:path*", "/host/:path*", "/login"],
 };

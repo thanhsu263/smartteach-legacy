@@ -45,6 +45,35 @@ async function startFromUi(page: Page, title = "Quiz kiểm thử") {
 }
 
 test.describe("giáo viên: bắt đầu phiên", () => {
+  test("trang phiên cho chọn quiz rồi dùng lại thiết lập phiên hiện có", async ({ page }) => {
+    const { teacher } = await teacherWithQuiz(page, fourKinds, "Quiz chọn từ trang phiên");
+    await newQuiz(teacher, fourKinds, "Quiz thứ hai");
+
+    await page.goto("/host");
+    await expect(heading(page, "Các buổi đã chơi")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Chọn quiz để bắt đầu" })).toBeVisible();
+
+    const choice = page.getByRole("button", { name: /Quiz chọn từ trang phiên/ });
+    await choice.click();
+    await expect(choice).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByText("Quiz đã chọn")).toBeVisible();
+
+    await page.getByRole("button", { name: "Chơi ngay" }).click();
+    await page.getByLabel(/Tính thêm điểm theo tốc độ/).uncheck();
+    await page.getByRole("button", { name: "Bắt đầu phiên" }).click();
+    await expect(page).toHaveURL(/\/host\/[0-9a-f-]{36}$/);
+    await expect(heading(page, /Phòng chờ/)).toBeVisible();
+  });
+
+  test("trang phiên hướng dẫn tạo quiz khi tài khoản chưa có quiz", async ({ page }) => {
+    const teacher = await newTeacher("host-empty-e2e");
+    await loginAs(page, teacher, "/host");
+
+    await expect(page.getByText("Chưa có quiz nào để chơi trực tiếp.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Tạo quiz" })).toHaveAttribute("href", "/my-quizzes");
+    await expect(page.getByRole("link", { name: "Nhập từ tệp" })).toHaveAttribute("href", "/my-quizzes/import");
+  });
+
   test("quiz còn lỗi bị chặn và nêu lý do; sửa xong mới bắt đầu được", async ({ page }) => {
     await teacherWithQuiz(
       page,

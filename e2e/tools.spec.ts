@@ -17,8 +17,11 @@ async function waitForHydration(page: Page) {
 }
 
 for (const viewport of [
+  { name: "điện thoại hẹp 320px", width: 320, height: 640 },
   { name: "điện thoại 375px", width: 375, height: 812 },
+  { name: "máy tính bảng 768px", width: 768, height: 900 },
   { name: "máy tính 1280px", width: 1280, height: 800 },
+  { name: "màn hình rộng 1440px", width: 1440, height: 900 },
 ] as const) {
   test.describe(`tiện ích ở ${viewport.name}`, () => {
     test.use({ viewport: { width: viewport.width, height: viewport.height } });
@@ -69,7 +72,7 @@ test.describe("tìm tiện ích", () => {
     await expect(page.getByRole("status")).toHaveText("Có 1 công cụ khớp");
 
     await search.fill("khong co cong cu");
-    await expect(page.getByText("Không tìm thấy tiện ích phù hợp.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Không tìm thấy tiện ích phù hợp" })).toBeVisible();
     await page.getByRole("button", { name: "Xem tất cả tiện ích" }).click();
     await expect(page.getByRole("status")).toHaveText(`Có ${tools.length} công cụ`);
   });

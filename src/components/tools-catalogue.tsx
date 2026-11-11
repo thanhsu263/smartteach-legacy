@@ -25,7 +25,7 @@ export function ToolsCatalogue({ tools }: { tools: readonly Tool[] }) {
         <p className={styles.sectionNote}>Mở trực tiếp trong trình duyệt</p>
       </div>
 
-      <div className={styles.search}>
+      <div className={styles.search} data-surface="panel">
         <label htmlFor="tool-search">Tìm tiện ích</label>
         <input
           id="tool-search"
@@ -43,10 +43,11 @@ export function ToolsCatalogue({ tools }: { tools: readonly Tool[] }) {
           {visibleTools.map((tool) => <li key={tool.id}><ToolCard tool={tool} headingLevel={3} /></li>)}
         </ul>
       ) : (
-        <div className={styles.empty}>
-          <p>Không tìm thấy tiện ích phù hợp.</p>
+        <section className={styles.empty} aria-labelledby="tools-empty-title">
+          <h3 id="tools-empty-title" className={styles.emptyTitle}>Không tìm thấy tiện ích phù hợp</h3>
+          <p>Thử dùng một từ khoá khác hoặc xem lại toàn bộ tiện ích lớp học.</p>
           <Button variant="secondary" onClick={() => setQuery("")}>Xem tất cả tiện ích</Button>
-        </div>
+        </section>
       )}
     </section>
   );

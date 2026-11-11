@@ -10,8 +10,11 @@ async function hasHorizontalScroll(page: Page) {
 }
 
 for (const viewport of [
+  { name: "điện thoại hẹp 320px", width: 320, height: 640 },
   { name: "điện thoại 375px", width: 375, height: 812 },
+  { name: "máy tính bảng 768px", width: 768, height: 900 },
   { name: "máy tính 1280px", width: 1280, height: 800 },
+  { name: "màn hình rộng 1440px", width: 1440, height: 900 },
 ] as const) {
   test.describe(`kho game ở ${viewport.name}`, () => {
     test.use({ viewport: { width: viewport.width, height: viewport.height } });
@@ -33,6 +36,9 @@ for (const viewport of [
       await expect(frame).toHaveAttribute("src", game.embedUrl);
       await expect(frame).toHaveAttribute("allow", /fullscreen/);
       await expect(frame).toBeVisible();
+      const box = await frame.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.width / box!.height).toBeCloseTo(16 / 9, 1);
       expect(await hasHorizontalScroll(page)).toBe(false);
     });
   });
@@ -87,6 +93,7 @@ test.describe("trang chơi", () => {
     );
     await page.goto(`/games/${game.id}`);
     await expect(page.getByText("Đang tải trò chơi…")).toBeHidden();
+    await expect(page.locator("iframe").locator("..")).toHaveAttribute("aria-busy", "false");
     await expect(page.frameLocator("iframe").getByText("game")).toBeVisible();
   });
 
@@ -100,6 +107,7 @@ test.describe("trang chơi", () => {
     await expect(page.getByText("Đang tải trò chơi…")).toBeVisible();
     // Iframe chỉ được dựng sau khi hydrate, lúc đó bộ đếm thời gian mới được đặt.
     await expect(page.locator("iframe")).toBeAttached();
+    await expect(page.locator("iframe").locator("..")).toHaveAttribute("aria-busy", "true");
     await page.clock.fastForward(9000);
     await expect(page.getByText(/Tải lâu hơn dự kiến/)).toBeVisible();
   });

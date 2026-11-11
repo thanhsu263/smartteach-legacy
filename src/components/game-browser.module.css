@@ -35,11 +35,6 @@
   display: grid;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: var(--panel-bg);
-  -webkit-backdrop-filter: var(--glass-blur-card);
-  backdrop-filter: var(--glass-blur-card);
-  box-shadow: var(--panel-shadow);
-  border-radius: var(--r-sheet);
 }
 
 .field {
@@ -101,11 +96,10 @@
   gap: var(--space-2);
   justify-items: start;
   padding: var(--space-5);
-  background: var(--panel-bg);
-  -webkit-backdrop-filter: var(--glass-blur-card);
-  backdrop-filter: var(--glass-blur-card);
+  background: var(--color-surface);
   border: 1px dashed var(--color-border-strong);
   border-radius: var(--r-sheet);
+  box-shadow: var(--shadow-rest);
 }
 
 .emptyTitle {

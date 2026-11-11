@@ -34,9 +34,9 @@ describe("GET /auth/callback", () => {
     expect(location(response)).toBe(`${origin}/games/gargamel-bat-xi-trum`);
   });
 
-  it("không có next thì về Lớp của tôi", async () => {
+  it("không có next thì về Tổng quan", async () => {
     exchangeCodeForSession.mockResolvedValue({ error: null });
-    expect(location(await call("?code=abc"))).toBe(`${origin}/my-classes`);
+    expect(location(await call("?code=abc"))).toBe(`${origin}/dashboard`);
   });
 
   it("next trỏ ra ngoài (kể cả bằng dấu chấm) thì bị thay bằng trang mặc định, không bao giờ rời tên miền", async () => {
@@ -50,7 +50,7 @@ describe("GET /auth/callback", () => {
       "/\\evil.example",
     ]) {
       const target = location(await call(`?code=abc&next=${encodeURIComponent(evil)}`));
-      expect(target, evil).toBe(`${origin}/my-classes`);
+      expect(target, evil).toBe(`${origin}/dashboard`);
       expect(new URL(target!).origin, evil).toBe(origin);
     }
   });

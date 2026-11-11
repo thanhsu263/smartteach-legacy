@@ -59,7 +59,7 @@ export function GameEmbed({ title, src }: GameEmbedProps) {
           Mở trong tab mới
         </ButtonLink>
       </div>
-      <div className={styles.frame}>
+      <div className={styles.frame} aria-busy={!loaded}>
         {mounted ? (
           <iframe
             ref={frameRef}
@@ -73,7 +73,7 @@ export function GameEmbed({ title, src }: GameEmbedProps) {
           />
         ) : null}
         {loaded ? null : (
-          <div className={styles.loading} role="status">
+          <div className={styles.loading} role="status" aria-live="polite">
             <span className="glass-spinner" aria-hidden="true" />
             <p className={styles.loadingTitle}>Đang tải trò chơi…</p>
             {slow ? (

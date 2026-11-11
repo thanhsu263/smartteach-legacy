@@ -15,6 +15,15 @@ test.describe("trang Quyền riêng tư", () => {
     await expect(page).toHaveURL(/\/privacy$/);
   });
 
+  test("có mục lục dẫn tới từng phần của chính sách", async ({ page }) => {
+    await page.goto("/privacy");
+    const toc = page.getByRole("navigation", { name: "Mục lục quyền riêng tư" });
+    await expect(toc).toBeVisible();
+    await expect(toc.getByRole("link")).toHaveCount(9);
+    await expect(toc.getByRole("link", { name: "Quiz chơi trực tiếp" })).toHaveAttribute("href", "#quiz");
+    await expect(toc.getByRole("link", { name: "Xoá dữ liệu" })).toHaveAttribute("href", "#delete");
+  });
+
   test("nói rõ dữ liệu lưu, nơi lưu, cookie, game bên khác và cách xoá", async ({ page }) => {
     await page.goto("/privacy");
     for (const heading of [

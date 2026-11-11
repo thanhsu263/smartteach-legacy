@@ -12,7 +12,8 @@
 .frame {
   position: relative;
   width: 100%;
-  height: clamp(480px, 78dvh, 900px);
+  aspect-ratio: 16 / 9;
+  min-height: 0;
   /* Khung chứa iframe trò chơi: nền đặc, không blur, để không tốn thêm khi game vẽ liên tục. */
   background: var(--color-surface);
   box-shadow: var(--panel-shadow);
@@ -50,4 +51,10 @@
   max-width: 44ch;
   color: var(--color-ink-muted);
   font-size: var(--text-sm);
+}
+
+@media (max-width: 719px) {
+  .toolbar > * {
+    flex: 1 1 10rem;
+  }
 }

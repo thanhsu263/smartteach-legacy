@@ -60,8 +60,7 @@
   overflow-x: auto;
   border-radius: var(--r-card);
   background: var(--panel-bg);
-  -webkit-backdrop-filter: var(--glass-blur-card);
-  backdrop-filter: var(--glass-blur-card);
+  border: 1px solid var(--color-border);
   box-shadow: var(--panel-shadow);
 }
 

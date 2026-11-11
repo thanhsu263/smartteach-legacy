@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SessionHub } from "@/components/live/host/session-hub";
 import { SessionHistory } from "@/components/live/results/session-history";
 import styles from "./host.module.css";
 
@@ -22,6 +23,7 @@ export default function SessionsPage() {
           Kết quả mọi buổi chơi trực tiếp của thầy cô. Dữ liệu người chơi tự xoá sau khoảng 90 ngày; thầy cô xoá ngay được từng buổi.
         </p>
       </header>
+      <SessionHub />
       <SessionHistory />
       <p className={styles.back}>
         <Link href="/my-quizzes">Về Quiz của tôi</Link>

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button, ButtonLink } from "@/components/button";
+import { ConnectionStatus } from "@/components/live/connection-status";
 import { AutoAdvanceBar } from "./auto-advance-bar";
 import { ToolStage } from "@/components/tool-stage";
 import { host, type LiveResult } from "@/lib/live/rpc";
@@ -148,7 +149,7 @@ export function HostScreen({ sessionId }: { sessionId: string }) {
   }
 
   const ended = state.status === "ended";
-  const offline = live.status === "offline" || live.error !== null;
+  const connection = live.error === null ? live.status : "offline";
 
   const endButton = ended ? null : (
     <Button variant="secondary" onClick={() => setConfirmEnd(true)} aria-expanded={confirmEnd}>
@@ -235,11 +236,7 @@ export function HostScreen({ sessionId }: { sessionId: string }) {
           </div>
         ) : null}
 
-        {offline ? (
-          <p role="status" className={`${styles.banner} animate-fade-up`}>
-            Mất kết nối. Đang thử lại…
-          </p>
-        ) : null}
+        <ConnectionStatus status={connection} />
         {message ? (
           <p role="alert" className={`${styles.error} animate-fade-up`}>
             {message}

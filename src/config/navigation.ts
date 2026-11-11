@@ -15,6 +15,7 @@ export const privacyNav: NavItem = { href: "/privacy", label: "Quyền riêng t�
 
 /** Chỉ hiện khi giáo viên đã đăng nhập. */
 export const accountNav: readonly NavItem[] = [
+  { href: "/dashboard", label: "Tổng quan" },
   { href: "/my-quizzes", label: "Quiz của tôi" },
   { href: "/my-classes", label: "Lớp của tôi" },
 ];

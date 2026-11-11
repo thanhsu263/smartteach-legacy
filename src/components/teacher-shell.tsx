@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
-import { BlocksIcon, ClipboardListIcon, CloseIcon, GamepadIcon, LogoMark, MenuIcon, PanelLeftIcon, SchoolIcon } from "@/components/icons";
+import { BlocksIcon, ClipboardListIcon, CloseIcon, DashboardIcon, GamepadIcon, LogoMark, MenuIcon, PanelLeftIcon, SchoolIcon } from "@/components/icons";
 import styles from "./teacher-shell.module.css";
 
-type NavigationItem = { href: "/my-classes" | "/my-quizzes" | "/games" | "/tools"; label: string; Icon: typeof SchoolIcon };
+type NavigationItem = { href: "/dashboard" | "/my-classes" | "/my-quizzes" | "/games" | "/tools"; label: string; Icon: typeof SchoolIcon };
 
 const navigation: readonly NavigationItem[] = [
+  { href: "/dashboard", label: "Tổng quan", Icon: DashboardIcon },
   { href: "/my-classes", label: "Lớp của tôi", Icon: SchoolIcon },
   { href: "/my-quizzes", label: "Quiz của tôi", Icon: ClipboardListIcon },
   { href: "/games", label: "Kho game", Icon: GamepadIcon },
@@ -59,7 +60,7 @@ export function TeacherShell() {
 
   return <div className={styles.shell} data-collapsed={collapsed}>
     <aside className={styles.sidebar} aria-label="Thanh điều hướng giáo viên">
-      <Link href="/my-classes" className={styles.brand} aria-label="SmartTeach — Lớp học"><LogoMark size={40} />{!collapsed ? <span>SmartTeach</span> : null}</Link>
+      <Link href="/dashboard" className={styles.brand} aria-label="SmartTeach — Tổng quan"><LogoMark size={40} />{!collapsed ? <span>SmartTeach</span> : null}</Link>
       <Navigation compact={collapsed} />
       <div className={styles.sidebarFooter}><button type="button" className={styles.collapseButton} aria-pressed={collapsed} aria-label={collapsed ? "Mở rộng menu" : "Thu gọn menu"} data-tooltip={collapsed ? "Mở rộng menu" : "Thu gọn menu"} onClick={() => setCollapsed((value) => !value)}><PanelLeftIcon size={20} />{!collapsed ? <span>Thu gọn menu</span> : null}</button></div>
     </aside>
@@ -75,7 +76,7 @@ export function TeacherShell() {
     </div>
     <dialog ref={dialogRef} id="teacher-navigation" className={styles.mobileDialog} aria-label="Điều hướng giáo viên" onClose={closeMobileNavigation} onClick={(event) => { if (event.target === event.currentTarget) closeMobileNavigation(); }}>
       <div className={styles.mobileDrawer}>
-        <div className={styles.mobileDrawerTop}><Link href="/my-classes" className={styles.brand} onClick={closeMobileNavigation}><LogoMark size={40} /><span>SmartTeach</span></Link><button type="button" aria-label="Đóng menu" onClick={closeMobileNavigation}><CloseIcon size={20} /></button></div>
+        <div className={styles.mobileDrawerTop}><Link href="/dashboard" className={styles.brand} onClick={closeMobileNavigation}><LogoMark size={40} /><span>SmartTeach</span></Link><button type="button" aria-label="Đóng menu" onClick={closeMobileNavigation}><CloseIcon size={20} /></button></div>
         <Navigation onNavigate={closeMobileNavigation} />
       </div>
     </dialog>

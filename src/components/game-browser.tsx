@@ -20,10 +20,10 @@ export function GameBrowser({ games }: { games: readonly Game[] }) {
 
   if (games.length === 0) {
     return (
-      <div className={styles.empty}>
-        <p className={styles.emptyTitle}>Kho game đang được chuẩn bị</p>
+      <section className={styles.empty} aria-labelledby="games-empty-title">
+        <h2 id="games-empty-title" className={styles.emptyTitle}>Kho game đang được chuẩn bị</h2>
         <p className={styles.emptyText}>Chưa có trò chơi nào. Thầy cô quay lại sau nhé.</p>
-      </div>
+      </section>
     );
   }
 
@@ -47,6 +47,7 @@ export function GameBrowser({ games }: { games: readonly Game[] }) {
       </div>
       <form
         className={styles.filters}
+        data-surface="panel"
         role="search"
         aria-label="Lọc trò chơi"
         onSubmit={(event) => event.preventDefault()}
@@ -112,15 +113,15 @@ export function GameBrowser({ games }: { games: readonly Game[] }) {
           ))}
         </ul>
       ) : (
-        <div className={styles.empty}>
-          <p className={styles.emptyTitle}>Không có trò chơi nào khớp</p>
+        <section className={styles.empty} aria-labelledby="games-no-result-title">
+          <h3 id="games-no-result-title" className={styles.emptyTitle}>Không có trò chơi nào khớp</h3>
           <p className={styles.emptyText}>
             Thử bỏ bớt điều kiện lọc hoặc tìm bằng từ khoá khác.
           </p>
           <Button variant="secondary" onClick={reset}>
             Xoá bộ lọc
           </Button>
-        </div>
+        </section>
       )}
     </div>
   );

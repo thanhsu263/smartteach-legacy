@@ -33,6 +33,35 @@
   font-weight: 600;
 }
 
+.toc {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-primary-tint);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+  border-radius: var(--r-card);
+}
+
+.tocTitle {
+  color: var(--color-primary-deep);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.tocList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+}
+
+.tocList a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
 .section {
   display: grid;
   gap: var(--space-2);
@@ -58,4 +87,11 @@
 .updated {
   color: var(--color-ink-muted);
   font-size: var(--text-sm);
+}
+
+@media (min-width: 720px) {
+  .tocList {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

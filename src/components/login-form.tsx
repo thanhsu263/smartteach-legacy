@@ -15,7 +15,7 @@ type Mode = "sign-in" | "sign-up";
 export function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = safeNextPath(params.get("next"), "/my-classes");
+  const next = safeNextPath(params.get("next"), "/dashboard");
   const callbackFailed = params.get("error") === "callback";
 
   const [mode, setMode] = useState<Mode>("sign-in");

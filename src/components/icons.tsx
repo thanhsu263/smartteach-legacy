@@ -71,6 +71,10 @@ export function SchoolIcon(props: IconProps) {
   return <Icon {...props}><path d="m3 10 9-5 9 5v9H3z" /><path d="M7 19v-5h10v5M10 19v-5h4v5M3 10h18" /></Icon>;
 }
 
+export function DashboardIcon(props: IconProps) {
+  return <Icon {...props}><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></Icon>;
+}
+
 export function ClipboardListIcon(props: IconProps) {
   return <Icon {...props}><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4.5h6v3H9zM9 12h6M9 16h4" /></Icon>;
 }

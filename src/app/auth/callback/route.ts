@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     if (supabase) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
-        return NextResponse.redirect(internalRedirectUrl(searchParams.get("next"), origin, "/my-classes"));
+        return NextResponse.redirect(internalRedirectUrl(searchParams.get("next"), origin, "/dashboard"));
       }
     }
   }

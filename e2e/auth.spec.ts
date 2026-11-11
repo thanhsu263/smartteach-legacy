@@ -48,6 +48,12 @@ test.describe("đăng nhập và phiên", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Đăng nhập" })).toBeVisible();
   });
 
+  test("khách vào tổng quan thì được chuyển tới đăng nhập và quay lại đúng trang", async ({ page }) => {
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/login\?next=%2Fdashboard/);
+    await expect(page.getByRole("heading", { level: 1, name: "Đăng nhập" })).toBeVisible();
+  });
+
   test("học sinh và khách dùng kho game và tiện ích mà không bị hỏi đăng nhập", async ({ page }) => {
     for (const path of ["/games", `/games/${game.id}`, "/tools", "/tools/draw", "/tools/groups", "/tools/countdown"]) {
       const response = await page.goto(path);
@@ -58,8 +64,9 @@ test.describe("đăng nhập và phiên", () => {
 
   test("đăng ký rồi đăng xuất, đăng nhập lại và trang giáo viên được bảo vệ", async ({ page }) => {
     const email = await register(page);
-    await expect(page).toHaveURL(/\/my-classes$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     const nav = page.getByRole("navigation", { name: "Điều hướng chính" });
+    await expect(nav.getByRole("link", { name: "Tổng quan" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Lớp của tôi" })).toBeVisible();
     await expect(nav.getByRole("button", { name: "Đăng xuất" })).toBeVisible();
 
@@ -68,12 +75,12 @@ test.describe("đăng nhập và phiên", () => {
     await expect(page).toHaveURL(/\/login/);
 
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/my-classes$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
   });
 
   test("sai mật khẩu thì báo lỗi rõ ràng và không đăng nhập", async ({ page }) => {
     const email = await register(page);
-    await expect(page).toHaveURL(/\/my-classes$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await signOut(page);
 
     await page.goto("/login");
@@ -86,14 +93,14 @@ test.describe("đăng nhập và phiên", () => {
 
   test("đã đăng nhập mà vào /login thì được đưa tới trang đích", async ({ page }) => {
     await register(page);
-    await expect(page).toHaveURL(/\/my-classes$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await page.goto("/login?next=%2Fgames");
     await expect(page).toHaveURL(/\/games$/);
   });
 
   test("tham số next trỏ ra ngoài bị bỏ qua, kể cả khi ngụy trang bằng dấu chấm", async ({ page }) => {
     const email = await register(page);
-    await expect(page).toHaveURL(/\/my-classes$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await signOut(page);
 
     // Chặn mọi yêu cầu tới tên miền giả để nếu bị chuyển hướng ra ngoài thì vẫn thấy được địa chỉ cuối.
@@ -109,7 +116,7 @@ test.describe("đăng nhập và phiên", () => {
       "https://evil.example/login",
     ]) {
       await signIn(page, email, `/login?next=${encodeURIComponent(evil)}`);
-      await expect(page, evil).toHaveURL(new RegExp(`${localOrigin}/my-classes$`));
+      await expect(page, evil).toHaveURL(new RegExp(`${localOrigin}/dashboard$`));
       expect(new URL(page.url()).hostname, evil).toBe("localhost");
       await signOut(page);
     }
@@ -117,7 +124,7 @@ test.describe("đăng nhập và phiên", () => {
 
   test("đã đăng nhập mà next có query thì giữ nguyên query", async ({ page }) => {
     await register(page);
-    await expect(page).toHaveURL(/\/my-classes$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await page.goto("/login?next=%2Fgames%3Fq%3Dxi");
     await expect(page).toHaveURL(new RegExp(`${localOrigin}/games\\?q=xi$`));
   });
@@ -140,7 +147,7 @@ test.describe("lớp của tôi", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
   test("tạo lớp có danh sách, sửa, xoá học sinh và dùng lại trong bốc thăm và chia nhóm", async ({ page }) => {
-    await register(page);
+    await register(page, "/login?next=%2Fmy-classes");
     await expect(page).toHaveURL(/\/my-classes$/);
     await expect(page.getByText("Thầy cô chưa có lớp nào")).toBeVisible();
 
@@ -187,7 +194,7 @@ test.describe("lớp của tôi", () => {
   });
 
   test("xoá lớp cần xác nhận và có thể giữ lại", async ({ page }) => {
-    await register(page);
+    await register(page, "/login?next=%2Fmy-classes");
     await page.getByLabel("Tên lớp").filter({ visible: true }).fill("Lớp thử xoá");
     await page.getByRole("button", { name: "Tạo lớp" }).click();
     await expect(page.getByRole("link", { name: "Lớp thử xoá" })).toBeVisible();
@@ -210,7 +217,7 @@ test.describe("lớp của tôi", () => {
   });
 
   test("giáo viên khác không thấy hay mở được lớp của người khác", async ({ page }) => {
-    await register(page);
+    await register(page, "/login?next=%2Fmy-classes");
     await page.getByLabel("Tên lớp").filter({ visible: true }).fill("Lớp riêng của A");
     await page.getByRole("button", { name: "Tạo lớp" }).click();
     await page.getByRole("link", { name: "Lớp riêng của A" }).click();
@@ -218,7 +225,7 @@ test.describe("lớp của tôi", () => {
     const classUrl = page.url();
 
     await signOut(page);
-    await register(page);
+    await register(page, "/login?next=%2Fmy-classes");
     await expect(page).toHaveURL(/\/my-classes$/);
     await expect(page.getByRole("link", { name: "Lớp riêng của A" })).toHaveCount(0);
     await expect(page.getByText("Thầy cô chưa có lớp nào")).toBeVisible();
@@ -228,7 +235,7 @@ test.describe("lớp của tôi", () => {
   });
 
   test("mở lớp bằng id không phải UUID thì báo không tìm thấy, không báo lỗi chung", async ({ page }) => {
-    await register(page);
+    await register(page, "/login?next=%2Fmy-classes");
     await expect(page).toHaveURL(/\/my-classes$/);
     await page.goto("/my-classes/abc");
     await expect(page.getByRole("heading", { level: 1, name: "Không tìm thấy lớp này" })).toBeVisible();
@@ -236,7 +243,7 @@ test.describe("lớp của tôi", () => {
   });
 
   test("cấp tiêu đề của trang Lớp của tôi không nhảy cấp", async ({ page }) => {
-    await register(page);
+    await register(page, "/login?next=%2Fmy-classes");
     await page.getByLabel("Tên lớp").filter({ visible: true }).fill("Lớp kiểm tiêu đề");
     await page.getByRole("button", { name: "Tạo lớp" }).click();
     await expect(page.getByRole("link", { name: "Lớp kiểm tiêu đề" })).toBeVisible();
@@ -317,7 +324,7 @@ test.describe("điện thoại 375px", () => {
     await page.goto("/login");
     expect(await overflows()).toBe(false);
 
-    await register(page);
+    await register(page, "/login?next=%2Fmy-classes");
     await expect(page).toHaveURL(/\/my-classes$/);
     await page.getByLabel("Tên lớp").filter({ visible: true }).fill("Lớp có tên khá dài để thử ngắt dòng trên điện thoại nhỏ");
     await page.getByLabel(/Danh sách học sinh/).fill("Nguyễn Thị Minh Anh Rất Dài Tên\nGia Huy");
