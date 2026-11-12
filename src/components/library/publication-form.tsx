@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/button";
+import { WorkspaceFeedback } from "@/components/workspace-feedback";
 import { GRADES, SUBJECTS, type GradeId, type SubjectId } from "@/lib/catalog";
 import { listOwnPublications, resubmitPublication, submitPublication, withdrawPublication } from "@/lib/library/api";
 import type { OwnPublication } from "@/lib/library/types";
@@ -26,7 +27,7 @@ export function PublicationForm({ quizId, title: quizTitle }: { quizId: string; 
   const [items, setItems] = useState<OwnPublication[]>([]);
   const [pending, setPending] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; tone: "success" | "error" } | null>(null);
 
   async function reload() {
     const supabase = getBrowserSupabase();
@@ -67,7 +68,7 @@ export function PublicationForm({ quizId, title: quizTitle }: { quizId: string; 
     const result = await submitPublication(supabase, { quizId, title, description, subject, grades: [grade] });
     setPending(false);
     setConfirming(false);
-    setMessage(result.ok ? "Đã gửi duyệt." : result.message);
+    setMessage(result.ok ? { text: "Đã gửi duyệt.", tone: "success" } : { text: result.message, tone: "error" });
     if (result.ok) await reload();
   }
 
@@ -75,9 +76,12 @@ export function PublicationForm({ quizId, title: quizTitle }: { quizId: string; 
     const supabase = getBrowserSupabase();
     if (!supabase || pending) return;
     setPending(true);
+    setMessage(null);
     const result = kind === "withdraw" ? await withdrawPublication(supabase, id) : await resubmitPublication(supabase, id);
     setPending(false);
-    setMessage(result.ok ? (kind === "withdraw" ? "Đã thu hồi về bản nháp." : "Đã gửi duyệt lại.") : result.message);
+    setMessage(result.ok
+      ? { text: kind === "withdraw" ? "Đã thu hồi về bản nháp." : "Đã gửi duyệt lại.", tone: "success" }
+      : { text: result.message, tone: "error" });
     if (result.ok) await reload();
   }
 
@@ -104,8 +108,8 @@ export function PublicationForm({ quizId, title: quizTitle }: { quizId: string; 
         <div className={styles.publicationSubmit}><Button type="submit" variant="secondary" disabled={pending}>Xem lại trước khi gửi</Button></div>
       </form>
       {items.length > 0 ? <ul className={styles.publicationList}>{items.map((item) => <li key={item.id}><div><strong>{publicationStatus(item.status)}</strong><p>{item.title}</p>{item.reviewReason ? <p>Lý do: {item.reviewReason}</p> : null}</div><div className={styles.publicationActions}>{item.status === "pending" ? <Button variant="secondary" disabled={pending} onClick={() => void action(item.id, "withdraw")}>Thu hồi</Button> : null}{item.status === "draft" || item.status === "rejected" ? <Button variant="secondary" disabled={pending} onClick={() => void action(item.id, "resubmit")}>Gửi duyệt lại</Button> : null}</div></li>)}</ul> : null}
-      {message ? <p role={message.startsWith("Đã") ? "status" : "alert"}>{message}</p> : null}
-      <dialog ref={confirmDialogRef} className={styles.confirmDialog} aria-labelledby={`${baseId}-confirm-heading`} onClose={() => setConfirming(false)} onClick={(event) => { if (event.target === event.currentTarget) setConfirming(false); }}>
+      <WorkspaceFeedback tone={message?.tone ?? "success"}>{message?.text}</WorkspaceFeedback>
+      <dialog ref={confirmDialogRef} data-work-dialog className={styles.confirmDialog} aria-labelledby={`${baseId}-confirm-heading`} onClose={() => setConfirming(false)} onClick={(event) => { if (event.target === event.currentTarget) setConfirming(false); }}>
         <div>
           <h2 id={`${baseId}-confirm-heading`}>Xác nhận gửi duyệt</h2>
           <p>Thầy cô kiểm tra lại thông tin trước khi gửi. Có thể thu hồi khi đang chờ duyệt.</p>
@@ -116,7 +120,7 @@ export function PublicationForm({ quizId, title: quizTitle }: { quizId: string; 
           </dl>
           <div className={styles.publicationActions}>
             <Button variant="secondary" autoFocus onClick={() => setConfirming(false)}>Quay lại</Button>
-            <Button variant="primary" disabled={pending} onClick={() => void submit()}>{pending ? "Đang gửi…" : "Gửi duyệt"}</Button>
+            <Button variant="primary" data-pending-action aria-busy={pending || undefined} disabled={pending} onClick={() => void submit()}>{pending ? "Đang gửi…" : "Gửi duyệt"}</Button>
           </div>
         </div>
       </dialog>

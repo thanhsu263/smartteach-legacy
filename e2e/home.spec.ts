@@ -3,7 +3,9 @@ import { loginNav, mainNav } from "../src/config/navigation";
 import { siteConfig } from "../src/config/site";
 
 const viewports = [
+  { name: "điện thoại 320px", width: 320, height: 700 },
   { name: "điện thoại 375px", width: 375, height: 812 },
+  { name: "máy tính bảng 768px", width: 768, height: 900 },
   { name: "máy tính 1280px", width: 1280, height: 800 },
 ] as const;
 
@@ -20,7 +22,7 @@ for (const viewport of viewports) {
     test("hiển thị thương hiệu từ cấu hình và không cuộn ngang", async ({ page }) => {
       await page.goto("/");
       await expect(page).toHaveTitle(new RegExp(siteConfig.name));
-      await expect(page.locator("header").getByText(siteConfig.name)).toBeVisible();
+      await expect(page.locator("header").first().getByRole("link", { name: siteConfig.name })).toBeVisible();
       await expect(page.locator("footer").getByText(siteConfig.name).first()).toBeVisible();
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       expect(await hasHorizontalScroll(page)).toBe(false);
@@ -81,6 +83,37 @@ test.describe("điều hướng", () => {
     expect(outline.style).not.toBe("none");
     expect(parseFloat(outline.width)).toBeGreaterThanOrEqual(2);
   });
+
+  test("anchor đặt nội dung dưới header, giữ focus, mục hiện tại và history", async ({ page }) => {
+    await page.goto("/#hoc-lieu");
+    const header = page.locator("header").first();
+    const nav = header.getByRole("navigation", { name: "Điều hướng landing" });
+    const assertAnchor = async (id: string) => {
+      const section = page.locator(`#${id}`);
+      await expect(page).toHaveURL(new RegExp(`#${id}$`));
+      await expect.poll(async () => {
+        const offset = (await section.boundingBox())!.y - (await header.boundingBox())!.height;
+        return Math.abs(offset - 12);
+      }).toBeLessThanOrEqual(2);
+      await expect(nav.locator(`a[href="#${id}"]`)).toHaveAttribute("aria-current", "location");
+    };
+    await assertAnchor("hoc-lieu");
+    for (const id of ["tinh-nang", "giao-vien", "cach-dung", "hoc-lieu"]) {
+      await nav.locator(`a[href="#${id}"]`).press("Enter");
+      await assertAnchor(id);
+      await expect(page.locator(`#${id} h2`)).toBeFocused();
+      await expect(nav.locator('[aria-current="location"]')).toHaveCount(1);
+    }
+    await page.goBack();
+    await assertAnchor("cach-dung");
+    await page.goForward();
+    await assertAnchor("hoc-lieu");
+    const historyLength = await page.evaluate(() => history.length);
+    await page.locator("#giao-vien").evaluate((el) => el.scrollIntoView());
+    await expect(nav.locator('a[href="#giao-vien"]')).toHaveAttribute("aria-current", "location");
+    await expect(page).toHaveURL(/#hoc-lieu$/);
+    expect(await page.evaluate(() => history.length)).toBe(historyLength);
+  });
 });
 
 test.describe("canvas quiz trực tiếp", () => {
@@ -106,4 +139,62 @@ test.describe("landing trên điện thoại", () => {
     await expect(cta).toBeVisible();
     expect((await cta.boundingBox())?.height).toBeGreaterThanOrEqual(44);
   });
+
+  test("Escape đóng disclosure và resize chuyển focus sang nav desktop", async ({ page }, testInfo) => {
+    await page.goto("/");
+    const menu = page.getByLabel("Menu", { exact: true });
+    const mobile = page.getByRole("navigation", { name: "Điều hướng landing trên điện thoại" });
+    await menu.press("Enter");
+    const link = mobile.getByRole("link", { name: "Kho học liệu" });
+    await link.focus();
+    await page.screenshot({ path: testInfo.outputPath("landing-mobile-menu.png"), animations: "disabled" });
+    await page.keyboard.press("Escape");
+    await expect(mobile).toBeHidden();
+    await expect(menu).toBeFocused();
+    await menu.press("Enter");
+    await link.focus();
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const desktop = page.getByRole("navigation", { name: "Điều hướng landing", exact: true });
+    await expect(desktop.getByRole("link", { name: "Kho học liệu" })).toBeFocused();
+    await expect(mobile).toBeHidden();
+  });
+});
+
+for (const width of [375, 768]) {
+  test(`landing ${width}px dùng được bằng tap và hero tĩnh`, async ({ browser, baseURL }) => {
+    const context = await browser.newContext({ baseURL, viewport: { width, height: 812 }, hasTouch: true, reducedMotion: "no-preference" });
+    try {
+      const page = await context.newPage();
+      await page.goto("/");
+      const demo = page.getByRole("img", { name: "Minh họa quiz trực tiếp" });
+      await demo.tap();
+      await expect(demo).not.toHaveAttribute("data-hero-wash");
+      await expect(demo).not.toHaveAttribute("data-quiz-tracking");
+      const menu = page.getByLabel("Menu", { exact: true });
+      expect((await menu.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      await menu.tap();
+      const mobile = page.getByRole("navigation", { name: "Điều hướng landing trên điện thoại" });
+      await mobile.getByRole("link", { name: "Cách hoạt động" }).tap();
+      await expect(page).toHaveURL(/#cach-dung$/);
+      await expect(page.locator("#cach-dung h2")).toBeFocused();
+      await expect(mobile).toBeHidden();
+      expect((await page.locator("header").first().boundingBox())!.y).toBe(0);
+    } finally {
+      await context.close();
+    }
+  });
+}
+
+test("landing vẫn hiển thị hero và dùng được menu khi tắt JavaScript", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL, javaScriptEnabled: false, viewport: { width: 375, height: 812 } });
+  try {
+    const page = await context.newPage();
+    await page.goto("/");
+    await expect(page.getByRole("img", { name: "Minh họa quiz trực tiếp" })).toBeVisible();
+    await page.getByLabel("Menu", { exact: true }).click();
+    await page.getByRole("navigation", { name: "Điều hướng landing trên điện thoại" }).getByRole("link", { name: "Kho học liệu" }).click();
+    await expect(page).toHaveURL(/#hoc-lieu$/);
+  } finally {
+    await context.close();
+  }
 });

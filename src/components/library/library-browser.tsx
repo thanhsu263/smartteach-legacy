@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/button";
 import { GRADES, SUBJECTS, type GradeId, type SubjectId } from "@/lib/catalog";
@@ -19,6 +19,9 @@ export function LibraryBrowser() {
   const query = params.get("q") ?? "";
   const subject = (params.get("subject") ?? "") as SubjectId | "";
   const grade = (params.get("grade") ?? "") as GradeId | "";
+  const queryInput = useRef<HTMLInputElement>(null);
+  const [draft, setDraft] = useState({ query, value: query });
+  if (draft.query !== query) setDraft({ query, value: query });
   const filterKey = `${query}\u0000${subject}\u0000${grade}`;
   const [items, setItems] = useState<PublicationSummary[] | null>(null);
   const [total, setTotal] = useState(0);
@@ -70,11 +73,11 @@ export function LibraryBrowser() {
     }
     setOffsetKey(filterKey);
     setOffset(0);
-    router.replace(`${pathname}${value.size ? `?${value}` : ""}`);
+    router.replace(`${pathname}${value.size ? `?${value}` : ""}`, { scroll: false });
   }
 
   return (
-    <main className={`container ${styles.page}`}>
+    <div className={`container ${styles.page}`} data-workspace-controls>
       <header className={styles.header}>
         <div>
           <p>Kho học liệu</p>
@@ -83,7 +86,6 @@ export function LibraryBrowser() {
         </div>
       </header>
       <form
-        key={filterKey}
         className={styles.filters}
         data-surface="panel"
         role="search"
@@ -94,7 +96,7 @@ export function LibraryBrowser() {
       >
         <label>
           Tìm học liệu
-          <input name="q" type="search" defaultValue={query} placeholder="Tên hoặc chủ đề" />
+          <input ref={queryInput} name="q" type="search" value={draft.value} onChange={(event) => setDraft({ query, value: event.target.value })} placeholder="Tên hoặc chủ đề" />
         </label>
         <label>
           Môn
@@ -111,7 +113,11 @@ export function LibraryBrowser() {
           </select>
         </label>
         <Button type="submit" variant="primary">Tìm</Button>
-        {query || subject || grade ? <Button type="button" variant="secondary" onClick={() => setFilters({ q: "", subject: "", grade: "" })}>Xoá bộ lọc</Button> : null}
+        {query || subject || grade ? <Button type="button" variant="secondary" onClick={() => {
+          setDraft({ query, value: "" });
+          setFilters({ q: "", subject: "", grade: "" });
+          queryInput.current?.focus({ preventScroll: true });
+        }}>Xoá bộ lọc</Button> : null}
       </form>
       {loadingFirstPage || items === null ? <p role="status">Đang tải học liệu…</p> : error ? <p role="alert">{error}</p> : items.length === 0 ? (
         <section className={styles.empty} data-surface="panel">
@@ -133,9 +139,11 @@ export function LibraryBrowser() {
               </li>
             ))}
           </ul>
-          {hasMore ? <Button variant="secondary" disabled={loadingMore} onClick={() => setOffset((value) => value + PAGE_SIZE)}>{loadingMore ? "Đang tải…" : "Tải thêm"}</Button> : null}
+          {hasMore ? <Button variant="secondary" className={styles.loadMore} aria-disabled={loadingMore || undefined} aria-busy={loadingMore || undefined} onClick={() => {
+            if (!loadingMore) setOffset((value) => value + PAGE_SIZE);
+          }}>{loadingMore ? "Đang tải…" : "Tải thêm"}</Button> : null}
         </>
       )}
-    </main>
+    </div>
   );
 }

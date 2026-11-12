@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button, ButtonLink, IconButton } from "@/components/button";
 import { PencilIcon, TrashIcon } from "@/components/icons";
+import { useFocusRequest } from "@/components/use-focus-request";
+import { WorkspaceFeedback } from "@/components/workspace-feedback";
 import {
   addStudents,
   deleteStudent,
@@ -25,6 +27,8 @@ type Loaded = {
   result: Result<{ found: boolean; name: string; students: Student[] }>;
 };
 
+type ClassAction = "rename" | "student" | "add" | "delete";
+
 export function ClassEditor({ classId }: { classId: string }) {
   const { user } = useAuth();
   const userId = user?.id ?? null;
@@ -38,7 +42,10 @@ export function ClassEditor({ classId }: { classId: string }) {
   const [studentDraft, setStudentDraft] = useState("");
   const [addText, setAddText] = useState("");
   const [message, setMessage] = useState<{ kind: "error" | "info"; text: string } | null>(null);
+  const [pending, setPending] = useState<ClassAction | null>(null);
+  const submitting = useRef(false);
   const addId = useId();
+  const requestFocus = useFocusRequest();
 
   useEffect(() => {
     if (!userId) return;
@@ -56,23 +63,30 @@ export function ClassEditor({ classId }: { classId: string }) {
   const current = loaded && loaded.key === key ? loaded.result : null;
   const reload = () => setReloadKey((value) => value + 1);
 
-  async function run(action: (supabase: NonNullable<ReturnType<typeof getBrowserSupabase>>) => Promise<Result<object>>, info?: string) {
+  async function run(kind: ClassAction, action: (supabase: NonNullable<ReturnType<typeof getBrowserSupabase>>) => Promise<Result<object>>, info: string) {
     const supabase = getBrowserSupabase();
-    if (!supabase) return false;
+    if (!supabase || submitting.current) return false;
+    submitting.current = true;
+    setPending(kind);
     setMessage(null);
-    const result = await action(supabase);
-    if (!result.ok) {
-      setMessage({ kind: "error", text: result.message });
-      return false;
+    try {
+      const result = await action(supabase);
+      if (!result.ok) {
+        setMessage({ kind: "error", text: result.message });
+        return false;
+      }
+      setMessage({ kind: "info", text: info });
+      reload();
+      return true;
+    } finally {
+      submitting.current = false;
+      setPending(null);
     }
-    if (info) setMessage({ kind: "info", text: info });
-    reload();
-    return true;
   }
 
   if (current === null) {
     return (
-      <div className={styles.skeleton} aria-busy="true">
+      <div className={styles.skeleton} aria-busy="true" data-workspace-controls>
         <p className="visually-hidden" role="status">
           Đang tải lớp…
         </p>
@@ -111,28 +125,35 @@ export function ClassEditor({ classId }: { classId: string }) {
 
   async function submitRename(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (await run((supabase) => renameClass(supabase, classId, nameDraft))) setRenaming(false);
+    if (await run("rename", (supabase) => renameClass(supabase, classId, nameDraft), "Đã đổi tên lớp.")) {
+      setRenaming(false);
+      requestFocus(`${addId}-rename`);
+    }
   }
 
   async function submitStudentRename(event: FormEvent<HTMLFormElement>, id: string) {
     event.preventDefault();
-    if (await run((supabase) => renameStudent(supabase, id, studentDraft))) setEditingId(null);
+    if (await run("student", (supabase) => renameStudent(supabase, id, studentDraft), "Đã lưu tên học sinh.")) {
+      setEditingId(null);
+      requestFocus(`${addId}-edit-${id}`);
+    }
   }
 
   async function submitAdd(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting.current) return;
     const names = parseNames(addText);
     if (names.length === 0) {
       setMessage({ kind: "error", text: "Thầy cô nhập ít nhất một tên, mỗi dòng một bạn." });
       return;
     }
-    if (await run((supabase) => addStudents(supabase, classId, names, students), `Đã thêm ${names.length} bạn.`)) {
+    if (await run("add", (supabase) => addStudents(supabase, classId, names, students), `Đã thêm ${names.length} bạn.`)) {
       setAddText("");
     }
   }
 
   return (
-    <div className={styles.editor}>
+    <div className={styles.editor} data-workspace-controls>
       <Breadcrumb items={[{ label: "Lớp của tôi", href: "/my-classes" }, { label: name }]} />
 
       <header className={styles.header}>
@@ -144,14 +165,15 @@ export function ClassEditor({ classId }: { classId: string }) {
             <input
               id={`${addId}-name`}
               value={nameDraft}
+              readOnly={pending === "rename"}
               maxLength={100}
               onChange={(event) => setNameDraft(event.target.value)}
               autoFocus
             />
-            <Button type="submit" variant="primary">
-              Lưu
+            <Button type="submit" variant="primary" data-pending-action aria-disabled={pending !== null || undefined} aria-busy={pending === "rename" || undefined}>
+              {pending === "rename" ? "Đang lưu…" : "Lưu"}
             </Button>
-            <Button variant="secondary" onClick={() => setRenaming(false)}>
+            <Button variant="secondary" disabled={pending === "rename"} onClick={() => { setRenaming(false); requestFocus(`${addId}-rename`); }}>
               Huỷ
             </Button>
           </form>
@@ -159,6 +181,7 @@ export function ClassEditor({ classId }: { classId: string }) {
           <>
             <h1 className={styles.title}>{name}</h1>
             <Button
+              id={`${addId}-rename`}
               variant="secondary"
               onClick={() => {
                 setNameDraft(name);
@@ -177,14 +200,10 @@ export function ClassEditor({ classId }: { classId: string }) {
       </p>
       {students.length > 0 ? <ButtonLink href={`/assignments/new?class=${classId}`} variant="secondary">Giao bài cho lớp này</ButtonLink> : null}
 
-      {message ? (
-        <p role={message.kind === "error" ? "alert" : "status"} className={message.kind === "error" ? styles.error : styles.notice}>
-          {message.text}
-        </p>
-      ) : null}
+      <WorkspaceFeedback tone={message?.kind === "error" ? "error" : "success"}>{message?.text}</WorkspaceFeedback>
 
       <section aria-labelledby={`${addId}-students`} className={styles.panel}>
-        <h2 id={`${addId}-students`} className={styles.heading}>
+        <h2 id={`${addId}-students`} className={styles.heading} tabIndex={-1}>
           Học sinh
         </h2>
         {students.length === 0 ? (
@@ -201,14 +220,15 @@ export function ClassEditor({ classId }: { classId: string }) {
                     <input
                       id={`${addId}-${student.id}`}
                       value={studentDraft}
+                      readOnly={pending === "student"}
                       maxLength={100}
                       onChange={(event) => setStudentDraft(event.target.value)}
                       autoFocus
                     />
-                    <Button type="submit" variant="primary">
-                      Lưu
+                    <Button type="submit" variant="primary" data-pending-action aria-disabled={pending !== null || undefined} aria-busy={pending === "student" || undefined}>
+                      {pending === "student" ? "Đang lưu…" : "Lưu"}
                     </Button>
-                    <Button variant="secondary" onClick={() => setEditingId(null)}>
+                    <Button variant="secondary" disabled={pending === "student"} onClick={() => { setEditingId(null); requestFocus(`${addId}-edit-${student.id}`); }}>
                       Huỷ
                     </Button>
                   </form>
@@ -217,6 +237,7 @@ export function ClassEditor({ classId }: { classId: string }) {
                     <span className={styles.studentName}>{student.name}</span>
                     <span className={styles.studentActions}>
                       <IconButton
+                        id={`${addId}-edit-${student.id}`}
                         aria-label={`Sửa tên ${student.name}`}
                         tooltip="Sửa tên"
                         onClick={() => {
@@ -230,7 +251,12 @@ export function ClassEditor({ classId }: { classId: string }) {
                         aria-label={`Xoá ${student.name}`}
                         tooltip="Xoá học sinh"
                         tone="danger"
-                        onClick={() => run((supabase) => deleteStudent(supabase, student.id), `Đã xoá ${student.name}.`)}
+                        aria-disabled={pending !== null || undefined}
+                        onClick={async () => {
+                          if (await run("delete", (supabase) => deleteStudent(supabase, student.id), `Đã xoá ${student.name}.`)) {
+                            requestFocus(`${addId}-students`);
+                          }
+                        }}
                       >
                         <TrashIcon size={20} />
                       </IconButton>
@@ -253,12 +279,13 @@ export function ClassEditor({ classId }: { classId: string }) {
             id={addId}
             rows={6}
             value={addText}
+            readOnly={pending === "add"}
             spellCheck={false}
             onChange={(event) => setAddText(event.target.value)}
           />
           <p className={styles.hint}>{parseNames(addText).length} tên</p>
-          <Button type="submit" variant="primary">
-            Thêm vào lớp
+          <Button type="submit" variant="primary" data-pending-action aria-disabled={pending !== null || undefined} aria-busy={pending === "add" || undefined}>
+            {pending === "add" ? "Đang thêm…" : "Thêm vào lớp"}
           </Button>
         </form>
       </section>

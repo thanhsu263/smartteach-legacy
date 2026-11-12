@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { Button, IconButton } from "@/components/button";
+import { WorkspaceFeedback } from "@/components/workspace-feedback";
 import { TrashIcon } from "@/components/icons";
 import { useFocusRequest } from "@/components/use-focus-request";
 import { problemText } from "@/lib/quiz/errors";
@@ -296,14 +297,10 @@ export function QuestionForm({ initial, isNew, onSave, onCancel, onDirtyChange }
         </ul>
       ) : null}
 
-      {saveError ? (
-        <p role="alert" className={`${styles.error} animate-fade-up`}>
-          {saveError}
-        </p>
-      ) : null}
+      <WorkspaceFeedback tone={saveError ? "error" : "success"}>{saveError}</WorkspaceFeedback>
 
       <div className={styles.actions}>
-        <Button type="submit" id={`${baseId}-submit`} variant="primary" disabled={saving}>
+        <Button type="submit" id={`${baseId}-submit`} variant="primary" data-pending-action aria-busy={saving || undefined} disabled={saving}>
           {saving ? "Đang lưu…" : isNew ? "Thêm câu hỏi" : "Lưu câu hỏi"}
         </Button>
         {onCancel ? (

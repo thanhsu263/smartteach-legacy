@@ -88,7 +88,7 @@ export function ClassesManager() {
   }
 
   return (
-    <div className={styles.manager}>
+    <div className={styles.manager} data-workspace-controls>
       <section aria-labelledby={`${nameId}-title`} className={`${styles.panel} ${styles.createPanel}`}>
         <h2 id={`${nameId}-title`} className={styles.heading}>
           Tạo lớp mới
@@ -128,7 +128,7 @@ export function ClassesManager() {
               Đã tạo lớp “{created}”.
             </p>
           ) : null}
-          <Button type="submit" variant="primary" disabled={creating || atLimit}>
+          <Button type="submit" variant="primary" data-pending-action aria-busy={creating || undefined} disabled={creating || atLimit}>
             {creating ? "Đang tạo…" : "Tạo lớp"}
           </Button>
           {atLimit ? (
@@ -208,6 +208,7 @@ export function ClassesManager() {
       </section>
 
       <dialog
+        data-work-dialog
         ref={deleteDialogRef}
         className={styles.deleteDialog}
         aria-labelledby="delete-class-title"

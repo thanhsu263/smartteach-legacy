@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ButtonLink } from "@/components/button";
+import { Button, ButtonLink } from "@/components/button";
 import { listAssignments } from "@/lib/assignments/api";
 import type { AssignmentSummary } from "@/lib/assignments/types";
 import { listClasses, type ClassSummary } from "@/lib/classes/api";
@@ -34,12 +34,17 @@ function toBlock<T>(result: { ok: true; items: T[] } | { ok: false; message: str
 }
 
 function BlockState({ block, empty, children, onRetry }: { block: Block<unknown>; empty: string; children: () => React.ReactNode; onRetry: () => void }) {
-  if (block.status === "loading") return <p className={styles.loading} role="status">Đang tải…</p>;
+  if (block.status === "loading") {
+    return <div className={styles.loading}>
+      <p role="status">Đang tải…</p>
+      <div aria-hidden="true" className="glass-skeleton" />
+    </div>;
+  }
   if (block.status === "error") {
     return (
       <div className={styles.blockError} role="alert">
         <p>{block.message}</p>
-        <button type="button" onClick={onRetry}>Thử lại</button>
+        <Button onClick={onRetry}>Thử lại</Button>
       </div>
     );
   }
@@ -106,7 +111,7 @@ export function TeacherDashboard() {
     data.sessions.items.length === 0;
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} data-workspace-controls>
       <header className={styles.header}>
         <div>
           <h1>Tổng quan</h1>

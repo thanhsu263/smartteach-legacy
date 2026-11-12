@@ -98,7 +98,7 @@ export function QuizzesManager() {
   }
 
   return (
-    <div className={styles.manager}>
+    <div className={styles.manager} data-workspace-controls>
       <section aria-labelledby={`${titleId}-new`} className={`${styles.panel} ${styles.createPanel}`}>
         <h2 id={`${titleId}-new`} className={styles.heading}>
           Tạo quiz mới
@@ -121,7 +121,7 @@ export function QuizzesManager() {
               {formError}
             </p>
           ) : null}
-          <Button type="submit" variant="primary" disabled={creating || atLimit}>
+          <Button type="submit" variant="primary" data-pending-action aria-busy={creating || undefined} disabled={creating || atLimit}>
             {creating ? "Đang tạo…" : "Tạo quiz"}
           </Button>
           {atLimit ? <p className={styles.hint}>Đã đủ {MAX_QUIZZES} quiz. Xoá bớt quiz cũ để tạo quiz mới.</p> : null}

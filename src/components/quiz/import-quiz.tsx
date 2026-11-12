@@ -111,7 +111,7 @@ export function ImportQuiz() {
   }
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} data-workspace-controls>
       <div role="tablist" aria-label="Cách nhập" className={styles.tabs}>
         {(["file", "text"] as const).map((value) => (
           <button
@@ -272,7 +272,7 @@ export function ImportQuiz() {
                 }}
               />
             </div>
-            <Button variant="primary" onClick={() => void create()} disabled={busy || blocking || titleProblem !== null}>
+            <Button variant="primary" data-pending-action aria-busy={busy || undefined} onClick={() => void create()} disabled={busy || blocking || titleProblem !== null}>
               {busy ? "Đang tạo…" : `Tạo quiz (${parse.questions.length} câu)`}
             </Button>
             {titleProblem && !blocking ? <p className={styles.hint}>{titleProblem}</p> : null}

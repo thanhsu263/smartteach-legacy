@@ -134,7 +134,7 @@ test.describe("WCAG AA: menu trên điện thoại", () => {
 
   test("menu đang mở", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: "Menu" }).click();
+    await page.getByLabel("Menu", { exact: true }).click();
     await expect(page.locator("#site-menu")).toBeVisible();
     await expectNoViolations(page, "menu mở");
   });

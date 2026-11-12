@@ -142,6 +142,43 @@ test.describe("đồng hồ đếm ngược", () => {
     await page.getByRole("button", { name: "Thoát toàn màn hình" }).click();
     await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
   });
+
+  test("10 giây cuối và hết giờ giữ số đếm ổn định khi trình chiếu", async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.clock.install({ time: START });
+    await page.goto("/tools/countdown");
+    await waitForHydration(page);
+    await page.evaluate(() => document.fonts.ready);
+    await page.clock.pauseAt(new Date(START.getTime() + 10_000));
+    await page.getByLabel("Phút").fill("0");
+    await page.getByLabel("Giây").fill("12");
+    await page.getByRole("button", { name: "Toàn màn hình" }).click();
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement !== null)).toBe(true);
+    const timer = page.getByRole("timer");
+    const status = page.getByRole("status");
+    await expect(status).toHaveText("Sẵn sàng");
+    await page.getByRole("button", { name: "Bắt đầu" }).click();
+    await page.clock.runFor(1_000);
+    await expect(timer).toHaveText("00:11");
+    await expect(status).toHaveText("Đang chạy");
+    const running = (await timer.boundingBox())!;
+    await page.clock.runFor(1_000);
+    await expect(timer).toHaveText("00:10");
+    await expect(status).toHaveText("10 giây cuối");
+    expect((await timer.boundingBox())!.y).toBeCloseTo(running.y);
+    await page.screenshot({ path: testInfo.outputPath("countdown-projector-warning.png"), animations: "disabled" });
+    await page.getByRole("button", { name: "Tạm dừng" }).click();
+    await expect(status).toHaveText("Tạm dừng");
+    await page.getByRole("button", { name: "Chạy tiếp" }).click();
+    await page.clock.runFor(10_000);
+    await expect(timer).toHaveText("00:00");
+    await expect(status).toHaveText("Hết giờ!");
+    expect((await timer.boundingBox())!.y).toBeCloseTo(running.y);
+    await page.screenshot({ path: testInfo.outputPath("countdown-projector-finished.png"), animations: "disabled" });
+    await page.getByRole("button", { name: "Đặt lại" }).click();
+    await expect(status).toHaveText("Sẵn sàng");
+  });
 });
 
 test.describe("đồng hồ đếm ngược trên tablet", () => {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
 import styles from "./button.module.css";
 
 export type ButtonVariant = "primary" | "secondary" | "on-primary";
@@ -19,8 +19,9 @@ type IconButtonProps = Omit<ButtonProps, "children" | "aria-label"> & {
   /** Tên thao tác là bắt buộc vì biểu tượng không tự truyền đạt đủ ngữ cảnh cho trình đọc màn hình. */
   "aria-label": string;
   children: ReactNode;
+  ref?: Ref<HTMLButtonElement>;
   /** Gợi ý ngắn cho người dùng chuột/bàn phím; mặc định dùng nhãn truy cập. */
-  tooltip?: string;
+  tooltip?: string | null;
   tone?: "default" | "danger";
 };
 
@@ -76,7 +77,7 @@ export function IconButton({
   "aria-label": ariaLabel,
   ...props
 }: IconButtonProps) {
-  const hint = tooltip ?? ariaLabel;
+  const hint = tooltip === null ? undefined : tooltip ?? ariaLabel;
 
   return (
     <button

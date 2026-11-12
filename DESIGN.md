@@ -104,7 +104,7 @@ Hệ thống từ chối: phần mềm hành chính hay cổng thông tin nhà t
 - Nền sáng, tương phản cao, đọc được từ cuối lớp khi chiếu lên màn lớn.
 - Một họ chữ (Be Vietnam Pro), thang cỡ chữ cố định theo rem, không co giãn theo viewport.
 - Vùng làm việc dùng bề mặt gần đặc; vật liệu trong chỉ xuất hiện ở chrome nổi có nội dung thật sự đi bên dưới (header, menu, popover, sheet).
-- Chuyển động 100-260ms, tăng tốc và hãm tự nhiên, chỉ báo press, đổi trạng thái hoặc quan hệ không gian; không overshoot nếu không có động lượng.
+- Chuyển động giao diện 100–260 ms, tăng tốc và hãm tự nhiên để báo press, đổi trạng thái hoặc quan hệ không gian. Chữ và CTA hiện ngay khi trang tải. Hero landing có hai hiệu ứng cục bộ theo mục 7.
 
 ## 2. Colors
 
@@ -166,7 +166,7 @@ Chiều sâu đến từ phân cấp vật liệu, không phải trang trí. Car
 ### Buttons
 - **Shape:** bo góc 12px, chiều cao tối thiểu 44px cho vùng chạm.
 - **Primary:** nền Xanh hành động, chữ trắng, đệm 12px 20px; một hành động ưu tiên trên mỗi màn hình.
-- **Hover / Focus:** hover chuyển sang xanh hover trong 150ms; focus-visible có viền 2px và vòng ngoài nhạt cách nút 2px (Xanh hành động trên nền sáng, Vàng trên nền xanh).
+- **Hover / Focus:** hover trên con trỏ fine chuyển sang xanh hover với `--motion-state` (180 ms). Focus-visible xuất hiện ngay với viền 2px và vòng ngoài nhạt cách nút 2px (Xanh hành động trên nền sáng, Vàng trên nền xanh). Press dùng `--motion-press` (100 ms), giữ vùng bấm ổn định.
 - **Secondary:** nền Bề mặt, chữ Xanh bảng, viền Control Edge; hover đổi nền sang Xanh nhạt.
 - **On primary:** trên nền hero xanh, nút phụ trong suốt với viền và chữ trắng.
 - **Disabled:** nền Hairline, chữ Mực nhạt, con trỏ not-allowed, vẫn đạt đọc được.
@@ -191,9 +191,8 @@ Chiều sâu đến từ phân cấp vật liệu, không phải trang trí. Car
 - **Error / Disabled:** viền và chữ lỗi Đỏ (#B3261E) kèm biểu tượng và lời nhắn; disabled dùng nền Hairline.
 
 ### Navigation
-- **Style:** thanh trên cố định là một lớp nổi trong nhẹ vì nội dung cuộn bên dưới; logo bên trái, liên kết giữa, một nút Đăng nhập bên phải. Mép cuộn là hairline gradient rất nhẹ thay vì khung cứng.
-- **States:** liên kết hiện tại có nền tint xanh và chỉ báo cạnh; hover đổi nền sang Xanh nhạt. Trạng thái hiện tại không chỉ dựa vào màu.
-- **Mobile:** dưới 720px, các liên kết gộp vào nút Menu mở từ chính gốc nút, đóng về cùng vị trí khi chọn liên kết hoặc nhấn Esc, có `aria-expanded` và trả focus về nút.
+- **Landing:** header sticky giữ chỗ trong bố cục. Trên desktop từ 1001 px có chuột và cho phép motion, header có thể ẩn khi cuộn xuống và hiện lại khi cuộn lên, đưa chuột tới mép trên hoặc khi nhận focus. Trên touch và reduced motion, header luôn hiện. Anchor chừa khoảng bằng chiều cao header cộng 12 px và dùng `aria-current="location"` cho mục đang đọc. Từ 1000 px trở xuống, Menu dùng disclosure native. Escape trả focus về Menu. Khi chọn một mục trong Menu hoặc dùng bàn phím kích hoạt anchor, focus tới tiêu đề đích.
+- **Shell giáo viên:** từ 960 px, sidebar có trạng thái ghim mở, rail thu gọn và mở tạm qua hover chuột/focus bàn phím. Mở tạm không đổi bề rộng vùng làm việc. Từ 720 đến 959 px, sidebar hẹp luôn hiện nhãn. Dưới 720 px, Menu mở dialog có trap focus và Escape trả focus về nút mở. Mục hiện tại dùng `aria-current="page"` và dấu hình học ngoài màu. Danh sách cuộn độc lập khi viewport thấp.
 
 ## 6. Do's and Don'ts
 
@@ -211,8 +210,8 @@ Chiều sâu đến từ phân cấp vật liệu, không phải trang trí. Car
 - **Don't** sao chép logo, hình ảnh hay câu chữ của ezthi.com.
 - **Don't** dùng `border-left` hay `border-right` dày hơn 1px làm vạch màu trên thẻ.
 - **Don't** dùng chữ gradient, kính mờ chỉ để trang trí, hay lưới thẻ giống hệt nhau lặp vô tận.
-- **Don't** dùng nền chuyển động toàn màn hình, animation khi vào trang/scroll chỉ để trình diễn, magnetic hoặc tilt làm lệch mục tiêu bấm ngoài ngoại lệ Quiz Sheets dưới đây.
-- **Don't** phủ kính lên màn hình chiếu của quiz trực tiếp, canvas bảng trắng hoặc khung game.
+- **Don't** dùng nền chuyển động toàn màn hình, choreography trang trí theo scroll/route hoặc magnetic. Giới hạn chuyển động nền vào wash cục bộ trong hero theo mục 7. Chuyển động header phục vụ điều hướng.
+- **Don't** phủ kính, thêm nền động, parallax hoặc tilt vào màn hình chiếu của quiz trực tiếp, đồng hồ fullscreen, canvas bảng trắng, khung game hoặc vùng nhập liệu quan trọng.
 - **Don't** dùng nhãn nhỏ viết hoa cách chữ (eyebrow) trên đầu mọi khu vực.
 - **Don't** dùng màu làm tín hiệu duy nhất cho trạng thái lỗi hoặc thành công.
 
@@ -220,14 +219,14 @@ Chiều sâu đến từ phân cấp vật liệu, không phải trang trí. Car
 
 Hệ vật liệu theo tinh thần Apple: phản hồi trực tiếp, chuyển động liên tục về không gian và dùng translucency có mục đích. Không mô phỏng giao diện hệ điều hành; vẫn giữ màu, chữ và mô hình thao tác riêng của SmartTeach.
 
-**Tệp:** `src/styles/tokens.css` chứa vai trò màu, thời lượng, easing, bo góc và vật liệu; `src/styles/glass.css` chứa thành phần dùng chung và các trạng thái; `components/ambient-background.tsx` chỉ tạo wash màu tĩnh. Không có listener con trỏ toàn trang hoặc state React cập nhật theo frame.
+**Tệp:** `src/styles/tokens.css` chứa vai trò màu, thời lượng, easing, bo góc và vật liệu. `src/styles/glass.css` chứa thành phần dùng chung và các trạng thái. `src/components/ambient-background.tsx` chỉ tạo nền tĩnh toàn app. Listener con trỏ điều khiển minh họa chỉ gắn vào cụm Quiz Sheets. Các giá trị theo frame ghi vào CSS, ngoài state React.
 
 **Đổi tông:** `--accent` / `--accent-2` ánh xạ sang Xanh bảng và Xanh đậm; `--cta` / `--cta-2` dành riêng cho nút chính vàng. Mọi màu còn lại đi qua `--color-*` trong `globals.css`.
 
 **Dùng trong markup:** `data-glass="btn|icon|chip|row|card|frame"` xác định vai trò tương tác; `data-variant="primary|secondary|on-primary"` xác định cấp hành động; `data-tone="ok|bad|warn|accent"` tạo tint trạng thái; `data-surface="float|sheet|panel"` phân biệt lớp nổi trong, sheet gần đặc và panel nội dung đặc. Trong CSS Modules dùng `--panel-bg`, `--panel-shadow`, `--item-shadow`, `--tint-bg`, `--tint-shadow` thay vì chép giá trị.
 
-**Motion grammar:** press 100ms, đổi trạng thái 180ms, menu/sheet 260ms. Menu và sheet xuất hiện từ gốc kích hoạt và đóng về cùng gốc. Loading có thể lặp; nội dung trang không tự choreography theo scroll hoặc route. `prefers-reduced-motion` rút mọi chuyển động về gần như tức thời.
+**Motion grammar:** press 100 ms, đổi trạng thái 180 ms, mở menu/sheet 260 ms. Exit tối đa 180 ms khi giữ được focus và ngữ nghĩa. Nếu browser thiếu hỗ trợ, dùng mở/đóng tức thì. Tooltip hiện khi hover ổn định hoặc focus, đóng bằng Escape hoặc khi rời. Loading phản ánh request thật. Skeleton trong vùng làm việc có thể shimmer tối đa 4,2 giây rồi giữ tĩnh. Feedback xuất hiện ở đúng tác vụ, có chữ và thông báo hỗ trợ trình đọc màn hình. Reduced motion dùng trạng thái tức thì, skeleton tĩnh và cuộn theo hành vi mặc định của trình duyệt.
 
-**Ngoại lệ Quiz Sheets:** Landing được phép có đúng một cụm minh hoạ Quiz Sheets: lớp giấy chồng có thể đổi `transform` rất nhẹ theo con trỏ **fine** bằng một `requestAnimationFrame` cục bộ; không dùng magnetic, không kéo mục tiêu bấm, không chạy khi nhàn rỗi và reset khi con trỏ rời cụm. Hiệu ứng này tắt ở touch/reduced motion. Nó không được áp dụng cho header, control nghiệp vụ, host, player, game, tool stage hay canvas bảng trắng.
+**Ngoại lệ hero landing:** Quiz Sheets phản ứng nhẹ với chuột bằng một `requestAnimationFrame` cục bộ. Lớp giấy về vị trí nghỉ trong 420 ms khi chuột rời. Lớp wash riêng phía sau minh họa dịch nhẹ một lần tối đa 2400 ms rồi về vị trí nghỉ. Hai hiệu ứng dừng khi rời viewport, tab ẩn hoặc đổi media. Touch, reduced motion và trình duyệt thiếu API dùng bố cục tĩnh. Copy, CTA và vùng bấm giữ nguyên vị trí.
 
 **Khả năng thích ứng:** `prefers-reduced-transparency` đổi lớp nổi sang nền đặc; `prefers-contrast` tăng viền; fallback không có `backdrop-filter` vẫn đọc và dùng được. Khung game, màn hình quiz và canvas bảng trắng luôn tránh blur.

@@ -70,6 +70,30 @@ test.describe("dashboard giáo viên", () => {
     await expectNoAxeViolations(page, "dashboard tablet");
   });
 
+  test("một khối chờ hoặc lỗi không thay trạng thái những khối khác", async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 768, height: 900 });
+    const teacher = await newTeacher("dashboard-pending-e2e");
+    const quizId = await newQuiz(teacher, fourKinds, "Quiz vẫn hiển thị");
+    const release = Promise.withResolvers<void>();
+    await page.route((url) => url.pathname.endsWith("/rest/v1/classes"), async (route) => {
+      await release.promise;
+      await route.fulfill({ status: 400, json: { message: "Lỗi dữ liệu trong kiểm thử", code: "P0001" } });
+    });
+    const classes = page.getByRole("region", { name: "Lớp gần đây" });
+    const quiz = page.getByRole("link", { name: /Quiz vẫn hiển thị/ });
+    try {
+      await loginAs(page, teacher, "/dashboard");
+      await expect(classes.getByRole("status")).toHaveText("Đang tải…");
+      await expect(quiz).toHaveAttribute("href", `/my-quizzes/${quizId}`);
+      await page.screenshot({ path: testInfo.outputPath("dashboard-pending-768.png"), animations: "disabled" });
+    } finally {
+      release.resolve();
+    }
+    await expect(classes.getByRole("alert")).toBeVisible();
+    await expect(quiz).toBeVisible();
+    await expectNoOverflow(page, "dashboard khối lớp gặp lỗi 768px");
+  });
+
   test("drawer mobile đóng bằng Escape và trả focus về nút mở", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     const teacher = await newTeacher("dashboard-drawer-e2e");

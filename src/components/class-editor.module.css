@@ -32,15 +32,6 @@
   font-weight: 600;
 }
 
-.notice {
-  padding: var(--space-3);
-  background: var(--tint-bg);
-  box-shadow: var(--tint-shadow);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
-}
-
 .panel {
   display: grid;
   gap: var(--space-4);

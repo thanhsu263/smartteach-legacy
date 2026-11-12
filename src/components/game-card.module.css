@@ -42,10 +42,12 @@
   border-radius: var(--r-card);
 }
 
-.link:hover {
-  color: var(--color-primary-deep);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+@media (hover: hover) and (pointer: fine) {
+  .link:hover {
+    color: var(--color-primary-deep);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
 }
 
 .link:focus-visible {

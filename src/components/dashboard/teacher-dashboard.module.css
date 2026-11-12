@@ -86,17 +86,22 @@
   color: var(--color-ink);
   border-radius: var(--radius-sm);
   text-decoration: none;
-  transition: background-color var(--motion-state) var(--ease-fluid), transform var(--motion-press) var(--ease-instant);
+  transition: background-color var(--motion-state) var(--ease-fluid);
 }
 
-.list a:hover { background: var(--color-primary-tint); }
-.list a:active { transform: scale(0.99); }
+@media (hover: hover) and (pointer: fine) {
+  .list a:hover { background: var(--color-primary-tint); }
+}
+.list a:active { background: var(--color-primary-tint); transition-duration: var(--motion-press); }
 .list a:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 .list span { overflow-wrap: anywhere; font-weight: 700; }
 .list small { color: var(--color-ink-muted); font-size: var(--text-sm); }
 
 .loading,
 .emptyText { margin: 0; color: var(--color-ink-muted); }
+
+.loading { display: grid; gap: var(--space-2); }
+.loading > div { min-height: 52px; }
 
 .blockError {
   display: flex;
@@ -107,8 +112,6 @@
 }
 
 .blockError p { margin: 0; font-weight: 600; }
-.blockError button { min-height: 44px; padding: var(--space-2) var(--space-3); color: var(--color-primary); background: var(--color-surface); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); font: inherit; font-weight: 600; cursor: pointer; }
-.blockError button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 
 @media (max-width: 719px) {
   .page { gap: var(--space-5); }

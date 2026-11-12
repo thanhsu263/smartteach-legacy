@@ -176,9 +176,30 @@ test.describe("lớp của tôi", () => {
     await expect(page.getByText("4 / 100 học sinh")).toBeVisible();
 
     await page.getByRole("button", { name: "Đổi tên lớp" }).click();
-    await page.getByLabel("Tên lớp").filter({ visible: true }).fill("10A2");
+    const draft = page.getByLabel("Tên lớp").filter({ visible: true });
+    await draft.fill("10A2");
+    const classRequest = (url: URL) => url.pathname.endsWith("/rest/v1/classes");
+    const release = Promise.withResolvers<void>();
+    await page.route(classRequest, async (route) => {
+      if (route.request().method() !== "PATCH") return route.continue();
+      await release.promise;
+      await route.abort("failed");
+    });
+    try {
+      await page.getByRole("button", { name: "Lưu", exact: true }).click();
+      const saving = page.getByRole("button", { name: "Đang lưu…" });
+      await expect(saving).toHaveAttribute("aria-busy", "true");
+      await expect(saving).toBeDisabled();
+    } finally {
+      release.resolve();
+    }
+    await expect(page.getByRole("alert")).toBeVisible();
+    await expect(draft).toHaveValue("10A2");
+    await page.unroute(classRequest);
     await page.getByRole("button", { name: "Lưu" }).click();
     await expect(page.getByRole("heading", { level: 1, name: "10A2" })).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "Đã đổi tên lớp." })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Đổi tên lớp" })).toBeFocused();
 
     // Dùng lớp đã lưu trong bốc thăm và chia nhóm.
     await page.goto("/tools/draw");

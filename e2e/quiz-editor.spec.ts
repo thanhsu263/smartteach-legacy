@@ -151,7 +151,8 @@ test.describe("soạn quiz", () => {
     // Đổi thứ tự: câu 4 lên đầu.
     const moveFourthUp = page.getByRole("button", { name: "Chuyển câu 4 lên trên" });
     await expect(moveFourthUp).toHaveAttribute("data-icon-only", "true");
-    await expect(moveFourthUp).toHaveAttribute("data-tooltip", "Đưa lên");
+    await moveFourthUp.hover();
+    await expect(page.getByRole("tooltip", { name: "Đưa lên" })).toBeVisible();
     await moveFourthUp.click();
     await expect(page.getByRole("button", { name: /Câu 3.*Thủ đô nước Pháp/ })).toBeVisible();
     await page.getByRole("button", { name: "Chuyển câu 3 lên trên" }).click();
@@ -201,8 +202,19 @@ test.describe("soạn quiz", () => {
     await page.getByLabel("Câu hỏi", { exact: true }).fill("Nội dung dài đã gõ");
     await page.getByLabel("Đáp án chấp nhận 1", { exact: true }).fill("đáp án");
 
-    await page.route("**/rest/v1/rpc/save_question", (route) => route.abort("failed"));
-    await page.getByRole("button", { name: "Thêm câu hỏi" }).click();
+    const release = Promise.withResolvers<void>();
+    await page.route("**/rest/v1/rpc/save_question", async (route) => {
+      await release.promise;
+      await route.abort("failed");
+    });
+    try {
+      await page.getByRole("button", { name: "Thêm câu hỏi" }).click();
+      const pending = page.getByRole("button", { name: "Đang lưu…" });
+      await expect(pending).toBeDisabled();
+      await expect(pending).toHaveAttribute("aria-busy", "true");
+    } finally {
+      release.resolve();
+    }
     await expect(page.getByRole("alert").filter({ hasText: "Không kết nối được máy chủ" })).toBeVisible();
     await expect(page.getByLabel("Câu hỏi", { exact: true })).toHaveValue("Nội dung dài đã gõ");
     await expect(page.getByLabel("Đáp án chấp nhận 1", { exact: true })).toHaveValue("đáp án");
@@ -211,6 +223,27 @@ test.describe("soạn quiz", () => {
     await page.getByRole("button", { name: "Thêm câu hỏi" }).click();
     await expect(page.getByText("Đã thêm câu hỏi.")).toBeVisible();
     await expect(page.getByRole("button", { name: /Câu 1.*Nội dung dài đã gõ/ })).toBeVisible();
+  });
+
+  test("quiz editor 768px giữ nhãn sidebar, câu dài và tooltip bàn phím", async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 768, height: 900 });
+    await register(page);
+    await createQuiz(page, "Quiz tablet");
+    await addSingle(page, "Câu có nội dung dài để kiểm tra bố cục ở máy tính bảng", ["Một lựa chọn đủ dài để xuống dòng trong vùng làm việc", "B", "C", "D"], 0);
+    await addSingle(page, "Câu thứ hai", ["Một", "Hai", "Ba", "Bốn"], 0);
+    const nav = page.getByRole("navigation", { name: "Điều hướng chính" });
+    await expect(nav.getByRole("link", { name: "Quiz của tôi" }).getByText("Quiz của tôi")).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(768);
+    const reorder = page.getByRole("button", { name: "Chuyển câu 2 lên trên" });
+    await page.getByRole("button", { name: /Câu 2.*Câu thứ hai/ }).press("Tab");
+    await expect(reorder).toBeFocused();
+    await expect(page.getByRole("tooltip", { name: "Đưa lên" })).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath("quiz-editor-768-tooltip.png"), animations: "disabled" });
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("tooltip")).toBeHidden();
+    await expect(reorder).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("button", { name: /Câu 1.*Câu thứ hai/ })).toBeVisible();
   });
 
   test("danh sách quiz: nhân đôi, đổi tên và xoá có xác nhận", async ({ page }) => {

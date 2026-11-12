@@ -38,14 +38,6 @@
   font-weight: 600;
 }
 
-.notice {
-  padding: var(--space-3);
-  background: var(--tint-bg);
-  box-shadow: var(--tint-shadow);
-  border-radius: var(--r-card);
-  font-size: var(--text-sm);
-}
-
 .workspace {
   display: grid;
   gap: var(--space-4);
@@ -197,5 +189,22 @@
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
+
+.reorderTooltip {
+  display: none;
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  max-width: min(16rem, calc(100vw - 16px));
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-surface);
+  background: var(--color-ink);
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+}
+
+.reorderTooltip:popover-open { display: block; animation: reorderTooltipIn var(--motion-state) var(--ease-fluid) both; }
+@keyframes reorderTooltipIn { from { opacity: 0; } to { opacity: 1; } }
 
 .deleteDialog { width: min(100% - 2rem, 28rem); margin: auto; padding: 0; color: var(--color-ink); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-raised); }.deleteDialog::backdrop { background: rgb(20 43 80 / .36); backdrop-filter: blur(3px); }.deleteDialog .confirm { display: grid; gap: var(--space-4); padding: var(--space-6); }.deleteDialog h2 { margin: 0; font-size: var(--text-xl); letter-spacing: var(--letter-spacing-display); }.deleteDialog p { margin: 0; color: var(--color-ink-muted); }

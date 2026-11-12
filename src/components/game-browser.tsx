@@ -37,7 +37,7 @@ export function GameBrowser({ games }: { games: readonly Game[] }) {
   }
 
   return (
-    <div className={styles.browser}>
+    <div className={styles.browser} data-workspace-controls>
       <div className={styles.sectionHead}>
         <div>
           <p className={styles.eyebrow}>Tìm hoạt động phù hợp</p>

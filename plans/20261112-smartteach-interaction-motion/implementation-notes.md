@@ -1,0 +1,30 @@
+# Bàn giao interaction và motion SmartTeach
+
+## Điểm đã xử lý khi triển khai
+
+- Landing dành riêng 12 px ngoài chiều cao sticky header cho mỗi anchor. CSS của landing triệt phần scroll padding 80 px dùng chung để native fragment, history và scrollspy cùng dùng một mốc.
+- Menu landing dùng `<details>`/`<summary>` để anchor vẫn dùng được khi tắt JS. Escape trả focus về summary. Khi chuyển sang desktop, giữ mục đã focus nếu disclosure vừa bị CSS ẩn.
+- Sidebar tablet rộng 152 px và hiện nhãn ở 720–959 px. Cỡ số đồng hồ theo bề rộng container trong dải này. Sidebar mở tạm dùng lớp phủ, giữ nguyên offset và bề rộng của `main`.
+- Tooltip nút sắp xếp câu dùng popover native opt-in để thoát vùng clipping và đóng bằng Escape. Tên truy cập trên nút vẫn đủ khi popover thiếu hỗ trợ. Các dialog nghiệp vụ giữ focus và vòng đời native. Hiệu ứng exit dùng `overlay` và `allow-discrete` khi trình duyệt hỗ trợ.
+- Kho học liệu giữ node bộ lọc và focus khi đổi URL. Lỗi tạo bản sao hiển thị cạnh nút để có thể thử lại. Thao tác đổi tên lớp giữ dữ liệu nhập khi lỗi và trả focus về nút mở khi thành công.
+- Đồng hồ dùng vùng status cố định, có tín hiệu chữ ở 10 giây cuối và khi hết giờ. Fullscreen giữ cập nhật số và thanh tiến độ theo đồng hồ hiện có, bỏ nội suy trang trí.
+
+## Hiệu năng và hình ảnh
+
+Đo hai production build bằng Chromium trên cùng máy, cùng viewport, tắt cache ở context mới. Các số bên dưới là byte JS/CSS tải trước thao tác. Tài nguyên tự prefetch trong lần tải đầu được tính theo cùng cách cho hai bản.
+
+| Route | JS raw trước → sau | JS gzip trước → sau | CSS raw trước → sau | CSS gzip trước → sau |
+| --- | ---: | ---: | ---: | ---: |
+| `/` | 750215 → 758455 | 215125 → 218313 | 144537 → 148799 | 24864 → 26281 |
+| `/tools/countdown` | 779719 → 782748 | 226137 → 227647 | 125277 → 124384 | 20607 → 20824 |
+| `/play` | 781933 → 784252 | 225168 → 226376 | 125277 → 124384 | 20607 → 20824 |
+
+Ảnh trước/sau, trace và danh sách tài nguyên nằm trong `artifacts/motion-build-20261112/`. Tệp `capture.mjs` tái chạy phép đo trên production server local. `after/reflow.json` ghi kết quả ở 640 × 400 CSS px với hệ số 2× và luồng bàn phím qua anchor. Kết quả trình chiếu là mô phỏng Chromium 1280 × 720. Chưa đo trên máy chiếu vật lý hoặc nghe live region bằng trình đọc màn hình ngoài trình duyệt.
+
+JavaScript gzip tăng 3,11 KiB ở landing, 1,47 KiB ở trang đồng hồ và 1,18 KiB ở `/play`, trong ngân sách 8/4/4 KiB. Kiểm các chunk tải ở `/play` và trang đồng hồ xác nhận island hero chỉ tải ở `/`. Sáu trace sau thay đổi có task renderer dài nhất 6,03 ms và không ghi layout shift ngoài thao tác người dùng. Baseline tương ứng là 9,70 ms và 0 layout shift ngoài thao tác.
+
+## Kiểm thử
+
+- `npm run lint`, `npm run typecheck`, `npm test` (294/294), `npm run build`, `npm run scan:bundle` và `git diff --check` đạt. Baseline primitive/contrast đạt 43/43 và hai spec Playwright baseline đạt 41/41.
+- Lượt toàn bộ trên production build cuối với Chromium và Supabase local có 272 đạt, 1 lỗi môi trường, 0 skip. Chromium báo `ERR_NO_BUFFER_SPACE` khi mở `/login` trước assertion của ca WCAG 375 px. Chạy riêng `e2e/a11y-auth.spec.ts` bằng một worker đạt 2/2, gồm ca đó. Giữ cả hai báo cáo trong thư mục evidence.
+- Lượt lặp `e2e/home.spec.ts`, `e2e/apple-interface.spec.ts`, `e2e/teacher-sidebar.spec.ts` trên cùng build đạt 37/37. Có ảnh các viewport 320/375/768/1280, drawer, sidebar mở tạm, anchor, tooltip, dashboard đang tải và đồng hồ trình chiếu.

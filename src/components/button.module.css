@@ -27,7 +27,7 @@
   flex: none;
 }
 
-.button[data-icon-only]::after {
+.button[data-icon-only][data-tooltip]::after {
   position: absolute;
   z-index: var(--z-menu);
   inset-block-end: calc(100% + var(--space-2));
@@ -53,14 +53,14 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .button[data-icon-only]:hover:not(:disabled)::after,
-  .button[data-icon-only]:focus-visible::after {
+  .button[data-icon-only][data-tooltip]:hover:not(:disabled)::after,
+  .button[data-icon-only][data-tooltip]:focus-visible::after {
     opacity: 1;
     transform: translate(-50%, 0);
   }
 }
 
-.button[data-icon-only]:focus-visible::after {
+.button[data-icon-only][data-tooltip]:focus-visible::after {
   opacity: 1;
   transform: translate(-50%, 0);
 }

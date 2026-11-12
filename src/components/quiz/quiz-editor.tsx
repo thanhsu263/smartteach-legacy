@@ -4,6 +4,8 @@ import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button, ButtonLink, IconButton } from "@/components/button";
+import { WorkspaceFeedback } from "@/components/workspace-feedback";
+import { QuizReorderButton } from "./quiz-reorder-button";
 import { ArrowDownIcon, ArrowUpIcon, TrashIcon } from "@/components/icons";
 import { StartSession } from "@/components/live/host/start-session";
 import { PublicationForm } from "@/components/library/publication-form";
@@ -103,7 +105,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
 
   if (current === null) {
     return (
-      <div className={styles.skeleton} aria-busy="true">
+      <div className={styles.skeleton} aria-busy="true" data-workspace-controls>
         <p className="visually-hidden" role="status">
           Đang tải quiz…
         </p>
@@ -243,7 +245,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
   }
 
   return (
-    <div className={styles.editor}>
+    <div className={styles.editor} data-workspace-controls>
       <Breadcrumb items={[{ label: "Quiz của tôi", href: "/my-quizzes" }, { label: quiz.title }]} />
 
       <header className={`${styles.header} on-primary`}>
@@ -288,11 +290,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
       {problems.length === 0 ? <ButtonLink href={`/assignments/new?quiz=${quizId}`} variant="secondary">Giao bài từ quiz này</ButtonLink> : null}
       {problems.length === 0 ? <PublicationForm quizId={quizId} title={quiz.title} /> : null}
 
-      {message ? (
-        <p role={message.kind === "error" ? "alert" : "status"} className={message.kind === "error" ? styles.error : styles.notice}>
-          {message.text}
-        </p>
-      ) : null}
+      <WorkspaceFeedback tone={message?.kind === "error" ? "error" : "success"}>{message?.text}</WorkspaceFeedback>
 
       <div className={styles.workspace}>
         <section aria-labelledby={`${baseId}-questions`} className={`${styles.panel} ${styles.questionsPanel}`}>
@@ -319,22 +317,22 @@ export function QuizEditor({ quizId }: { quizId: string }) {
                       <span className={styles.kind}>{KIND_LABELS[question.kind]}</span>
                     </button>
                     <div className={`${styles.rowActions} ${styles.questionActions}`} role="group" aria-label={`Thao tác câu ${index + 1}`}>
-                      <IconButton
-                        aria-label={`Chuyển câu ${index + 1} lên trên`}
-                        tooltip="Đưa lên"
+                      <QuizReorderButton
+                        label={`Chuyển câu ${index + 1} lên trên`}
+                        hint="Đưa lên"
                         disabled={index === 0 || moving}
                         onClick={() => move(index, -1)}
                       >
                         <ArrowUpIcon size={20} />
-                      </IconButton>
-                      <IconButton
-                        aria-label={`Chuyển câu ${index + 1} xuống dưới`}
-                        tooltip="Đưa xuống"
+                      </QuizReorderButton>
+                      <QuizReorderButton
+                        label={`Chuyển câu ${index + 1} xuống dưới`}
+                        hint="Đưa xuống"
                         disabled={index === questions.length - 1 || moving}
                         onClick={() => move(index, 1)}
                       >
                         <ArrowDownIcon size={20} />
-                      </IconButton>
+                      </QuizReorderButton>
                       <IconButton
                         id={`${baseId}-del-${question.id}`}
                         aria-label={`Xoá câu ${index + 1}`}
@@ -424,6 +422,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
       />
 
       <dialog
+        data-work-dialog
         ref={deleteDialogRef}
         className={styles.deleteDialog}
         aria-labelledby={`${baseId}-delete-question-title`}

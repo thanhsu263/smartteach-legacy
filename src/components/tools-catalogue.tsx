@@ -16,7 +16,7 @@ export function ToolsCatalogue({ tools }: { tools: readonly Tool[] }) {
   }, [query, tools]);
 
   return (
-    <section className={styles.catalogue} aria-labelledby="tools-heading">
+    <section className={styles.catalogue} aria-labelledby="tools-heading" data-workspace-controls>
       <div className={styles.sectionHead}>
         <div>
           <p className={styles.sectionEyebrow}>Chọn việc cần làm</p>

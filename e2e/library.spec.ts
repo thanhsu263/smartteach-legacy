@@ -17,6 +17,11 @@ test("kho học liệu public preview và clone", async ({ page }) => {
   await page.goto("/library?subject=toan&grade=6");
   await expect(page.getByRole("link", { name: /Học liệu e2e/ })).toBeVisible();
   await expect(page).toHaveURL(/subject=toan/);
+  const query = page.getByRole("searchbox", { name: "Tìm học liệu" });
+  await query.fill("Học liệu e2e");
+  await query.press("Enter");
+  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("Học liệu e2e");
+  await expect(query).toBeFocused();
   await page.getByRole("link", { name: /Học liệu e2e/ }).click();
   await expect(page.getByRole("heading", { name: "Học liệu e2e" })).toBeVisible();
   await expect(page.getByText("Câu thư viện")).toBeVisible();
@@ -57,6 +62,11 @@ test("kho học liệu public preview và clone", async ({ page }) => {
   const dialog = page.getByRole("dialog");
   await expect(dialog).toContainText("Học liệu thầy cô tự gửi");
   await expect(dialog).toContainText("Mô tả do thầy cô nhập trước khi gửi duyệt.");
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  const openDialog = page.getByRole("button", { name: "Xem lại trước khi gửi" });
+  await expect(openDialog).toBeFocused();
+  await openDialog.press("Enter");
   await dialog.getByRole("button", { name: "Gửi duyệt", exact: true }).click();
   await expect(page.getByText("Đã gửi duyệt.")).toBeVisible();
   const own = await teacher.client.rpc("own_quiz_publications", { p_quiz_id: quizForPublication });

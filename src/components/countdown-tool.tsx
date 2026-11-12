@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useReducer, useRef, useState } from "react";
 import { Button } from "@/components/button";
+import { CheckIcon, ClockIcon } from "@/components/icons";
 import { ToolStage } from "@/components/tool-stage";
 import { playFinishBeeps, prepareAudio } from "@/lib/utilities/beep";
 import {
@@ -42,6 +43,13 @@ function reducer(state: TimerState, action: Action): TimerState {
 const PRESET_MINUTES = [1, 3, 5, 10] as const;
 const DEFAULT_MINUTES = 5;
 const TICK_MS = 200;
+const TIMER_STATUS = {
+  idle: "Sẵn sàng",
+  running: "Đang chạy",
+  paused: "Tạm dừng",
+  warning: "10 giây cuối",
+  finished: "Hết giờ!",
+};
 
 export function CountdownTool() {
   const [state, dispatch] = useReducer(reducer, createTimer(DEFAULT_MINUTES * 60_000));
@@ -86,20 +94,22 @@ export function CountdownTool() {
   const progress =
     state.durationMs > 0 ? Math.min(1, Math.max(0, 1 - state.remainingMs / state.durationMs)) : 0;
   const canStart = state.durationMs > 0 && !running;
+  const displayStatus = running && state.remainingMs <= 10_000 ? "warning" : state.status;
 
   return (
     <ToolStage label="Đồng hồ đếm ngược">
-      <div className={styles.tool}>
-        <div className={styles.display} data-status={state.status}>
+      <div className={styles.tool} data-workspace-controls>
+        <div className={styles.display} data-status={displayStatus}>
+          <p className={styles.status} role="status">
+            {finished ? <CheckIcon size={18} /> : <ClockIcon size={18} />}
+            {TIMER_STATUS[displayStatus]}
+          </p>
           <p role="timer" aria-label="Thời gian còn lại" className={styles.time}>
             {formatTime(state.remainingMs)}
           </p>
           <div className={styles.progress} aria-hidden="true">
             <span style={{ width: `${progress * 100}%` }} />
           </div>
-          <p role="status" className={`${styles.finished} animate-fade-up`}>
-            {finished ? "Hết giờ!" : ""}
-          </p>
         </div>
 
         <div className={styles.controls}>
