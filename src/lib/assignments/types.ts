@@ -42,3 +42,63 @@ export type AssignmentDraftInput = {
 };
 
 export type CreateAssignmentInput = AssignmentDraftInput & { classId: string; quizId: string };
+
+export type AssignmentProgress = {
+  notStarted: number;
+  inProgress: number;
+  submitted: number;
+};
+
+export type AssignmentRosterEntry = {
+  studentId: string;
+  name: string;
+  attemptStatus: "in_progress" | "submitted" | "invalidated" | null;
+  startedAt: string | null;
+  submittedAt: string | null;
+  score: number | null;
+  correct: number | null;
+  total: number | null;
+};
+
+export type AssignmentQuestionAnalytics = { position: number; answered: number; correct: number; unanswered: number };
+
+export type AssignmentAttemptDetail = {
+  studentId: string;
+  name: string;
+  status: AssignmentRosterEntry["attemptStatus"];
+  startedAt: string | null;
+  submittedAt: string | null;
+  score: number | null;
+  correct: number | null;
+  total: number | null;
+  answers: Array<{ position: number; answer: StudentAnswer; isCorrect: boolean | null }>;
+};
+
+export type IssuedCredential = {
+  studentId: string;
+  credential: string;
+  hint: string;
+  version: number;
+};
+
+export type StudentAssignmentQuestion = {
+  index: number;
+  kind: AssignmentQuestionSnapshot["kind"];
+  prompt: string;
+  timeLimitSeconds: number;
+  options: string[];
+};
+
+export type StudentAnswer = number | number[] | string;
+
+export type StudentAssignmentState = {
+  phase: "in_progress" | "submitted" | "invalidated" | "unavailable";
+  title: string;
+  description: string;
+  attemptId: string;
+  expiresAt: string;
+  questions: StudentAssignmentQuestion[];
+  answers: Record<string, StudentAnswer>;
+  submittedAt: string | null;
+  result: { score: number; correct: number; total: number } | null;
+};

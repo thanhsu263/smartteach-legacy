@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { Button, ButtonLink, IconButton } from "@/components/button";
 import { ArrowDownIcon, ArrowUpIcon, TrashIcon } from "@/components/icons";
 import { StartSession } from "@/components/live/host/start-session";
+import { PublicationForm } from "@/components/library/publication-form";
 import { SessionHistory } from "@/components/live/results/session-history";
 import { useFocusRequest } from "@/components/use-focus-request";
 import type { Result } from "@/lib/classes/api";
@@ -284,6 +285,8 @@ export function QuizEditor({ quizId }: { quizId: string }) {
       <QuizProblems problems={problems} />
 
       <StartSession quizId={quizId} problems={problems} />
+      {problems.length === 0 ? <ButtonLink href={`/assignments/new?quiz=${quizId}`} variant="secondary">Giao bài từ quiz này</ButtonLink> : null}
+      {problems.length === 0 ? <PublicationForm quizId={quizId} title={quiz.title} /> : null}
 
       {message ? (
         <p role={message.kind === "error" ? "alert" : "status"} className={message.kind === "error" ? styles.error : styles.notice}>

@@ -6,7 +6,22 @@ import {
   MAX_ASSIGNMENT_LIST_PAGE,
   MAX_ASSIGNMENT_TITLE_LENGTH,
 } from "./limits";
-import type { AssignmentDetail, AssignmentDraftInput, AssignmentStatus, AssignmentSummary, CreateAssignmentInput, RevealPolicy } from "./types";
+import type {
+  AssignmentDetail,
+  AssignmentAttemptDetail,
+  AssignmentQuestionAnalytics,
+  AssignmentDraftInput,
+  AssignmentProgress,
+  AssignmentRosterEntry,
+  AssignmentStatus,
+  AssignmentSummary,
+  CreateAssignmentInput,
+  IssuedCredential,
+  RevealPolicy,
+  StudentAnswer,
+  StudentAssignmentState,
+} from "./types";
+import { describeStudentAssignmentError } from "./student-access";
 
 type ErrorLike = { code?: string; message?: string } | null | undefined;
 
@@ -95,4 +110,134 @@ export async function getAssignmentDetail(supabase: SupabaseClient, id: string):
   if (error || !data || typeof data !== "object") return fail(error ?? { message: "assignment_not_found" });
   const row = data as Record<string, unknown>;
   return { ok: true, assignment: { ...mapSummary(row), description: row.description as string, snapshot: row.snapshot as AssignmentDetail["snapshot"] } };
+}
+
+function studentFail(error: ErrorLike): { ok: false; message: string } {
+  return { ok: false, message: describeStudentAssignmentError(error) };
+}
+
+export async function getAssignmentProgress(supabase: SupabaseClient, id: string): Promise<Result<{ progress: AssignmentProgress }>> {
+  if (!isUuid(id)) return { ok: false, message: "Không tìm thấy bài đã giao này. Có thể bài đã bị xoá." };
+  const { data, error } = await supabase.rpc("assignment_progress", { p_assignment: id });
+  if (error || !data || typeof data !== "object") return fail(error ?? { message: "assignment_not_found" });
+  const row = data as Record<string, unknown>;
+  return {
+    ok: true,
+    progress: {
+      notStarted: Number(row.not_started) || 0,
+      inProgress: Number(row.in_progress) || 0,
+      submitted: Number(row.submitted) || 0,
+    },
+  };
+}
+
+export async function getAssignmentRoster(supabase: SupabaseClient, id: string): Promise<Result<{ roster: AssignmentRosterEntry[] }>> {
+  if (!isUuid(id)) return { ok: false, message: "Không tìm thấy bài đã giao này. Có thể bài đã bị xoá." };
+  const { data, error } = await supabase.rpc("assignment_roster_results", { p_assignment: id });
+  if (error || !Array.isArray(data)) return fail(error ?? { message: "assignment_not_found" });
+  return {
+    ok: true,
+    roster: (data as Record<string, unknown>[]).map((row) => ({
+      studentId: row.student_id as string,
+      name: row.name as string,
+      attemptStatus: (row.attempt_status as AssignmentRosterEntry["attemptStatus"]) ?? null,
+      startedAt: (row.started_at as string | null) ?? null,
+      submittedAt: (row.submitted_at as string | null) ?? null,
+      score: typeof row.score === "number" ? row.score : null,
+      correct: typeof row.correct === "number" ? row.correct : null,
+      total: typeof row.total === "number" ? row.total : null,
+    })),
+  };
+}
+
+export async function getAssignmentQuestionAnalytics(supabase: SupabaseClient, id: string): Promise<Result<{ questions: AssignmentQuestionAnalytics[] }>> {
+  if (!isUuid(id)) return { ok: false, message: "Không tìm thấy bài đã giao này. Có thể bài đã bị xoá." };
+  const { data, error } = await supabase.rpc("assignment_question_analytics", { p_assignment: id });
+  if (error || !Array.isArray(data)) return fail(error ?? { message: "assignment_not_found" });
+  return { ok: true, questions: (data as Record<string, unknown>[]).map((row) => ({ position: Number(row.position) || 0, answered: Number(row.answered) || 0, correct: Number(row.correct) || 0, unanswered: Number(row.unanswered) || 0 })) };
+}
+
+export async function getAssignmentAttemptDetail(supabase: SupabaseClient, assignmentId: string, studentId: string): Promise<Result<{ attempt: AssignmentAttemptDetail }>> {
+  if (!isUuid(assignmentId) || !isUuid(studentId)) return { ok: false, message: "Không tìm thấy lượt làm bài này." };
+  const { data, error } = await supabase.rpc("assignment_attempt_detail", { p_assignment: assignmentId, p_student: studentId });
+  if (error || !data || typeof data !== "object") return fail(error ?? { message: "assignment_not_found" });
+  const row = data as Record<string, unknown>;
+  return { ok: true, attempt: {
+    studentId: row.student_id as string, name: row.name as string, status: (row.status as AssignmentAttemptDetail["status"]) ?? null,
+    startedAt: (row.started_at as string | null) ?? null, submittedAt: (row.submitted_at as string | null) ?? null,
+    score: typeof row.score === "number" ? row.score : null, correct: typeof row.correct === "number" ? row.correct : null, total: typeof row.total === "number" ? row.total : null,
+    answers: Array.isArray(row.answers) ? (row.answers as Record<string, unknown>[]).map((answer) => ({ position: Number(answer.position) || 0, answer: answer.answer as StudentAnswer, isCorrect: typeof answer.is_correct === "boolean" ? answer.is_correct : null })) : [],
+  } };
+}
+
+export async function issueStudentCredential(supabase: SupabaseClient, studentId: string): Promise<Result<{ credential: IssuedCredential }>> {
+  if (!isUuid(studentId)) return { ok: false, message: "Không tìm thấy học sinh trong lớp này." };
+  const { data, error } = await supabase.rpc("issue_student_credential", { p_student: studentId });
+  if (error || !data || typeof data !== "object") return fail(error ?? { message: "student_not_found" });
+  const row = data as Record<string, unknown>;
+  if (typeof row.credential !== "string" || typeof row.hint !== "string" || typeof row.version !== "number") return fail({ message: "student_not_found" });
+  return { ok: true, credential: { studentId: row.student_id as string, credential: row.credential, hint: row.hint, version: row.version } };
+}
+
+export async function revokeStudentCredential(supabase: SupabaseClient, studentId: string): Promise<Result<object>> {
+  if (!isUuid(studentId)) return { ok: false, message: "Không tìm thấy học sinh trong lớp này." };
+  const { error } = await supabase.rpc("revoke_student_credential", { p_student: studentId });
+  return error ? fail(error) : { ok: true };
+}
+
+export async function resetAssignmentAttempt(supabase: SupabaseClient, assignmentId: string, studentId: string): Promise<Result<object>> {
+  if (!isUuid(assignmentId) || !isUuid(studentId)) return { ok: false, message: "Không tìm thấy lượt làm bài cần đặt lại." };
+  const { error } = await supabase.rpc("reset_assignment_attempt", { p_assignment: assignmentId, p_student: studentId });
+  return error ? fail(error) : { ok: true };
+}
+
+export async function exchangeAssignmentAccess(supabase: SupabaseClient, code: string, credential: string): Promise<Result<{ token: string }>> {
+  const { data, error } = await supabase.rpc("exchange_assignment_access", { p_code: code.trim().toUpperCase(), p_credential: credential.trim().toUpperCase() });
+  if (error || !data || typeof data !== "object") return studentFail(error);
+  const row = data as Record<string, unknown>;
+  return row.result === "ok" && typeof row.token === "string"
+    ? { ok: true, token: row.token }
+    : studentFail({ message: "invalid_assignment_access" });
+}
+
+function mapStudentState(row: Record<string, unknown>): StudentAssignmentState | null {
+  if (!Array.isArray(row.questions) || typeof row.phase !== "string" || typeof row.title !== "string" || typeof row.attempt_id !== "string" || typeof row.expires_at !== "string") return null;
+  const allowed = ["in_progress", "submitted", "invalidated", "unavailable"];
+  if (!allowed.includes(row.phase)) return null;
+  const result = row.result as Record<string, unknown> | null;
+  return {
+    phase: row.phase as StudentAssignmentState["phase"],
+    title: row.title,
+    description: typeof row.description === "string" ? row.description : "",
+    attemptId: row.attempt_id,
+    expiresAt: row.expires_at,
+    questions: (row.questions as Record<string, unknown>[]).map((question) => ({
+      index: Number(question.index),
+      kind: question.kind as StudentAssignmentState["questions"][number]["kind"],
+      prompt: question.prompt as string,
+      timeLimitSeconds: Number(question.time_limit_seconds) || 0,
+      options: Array.isArray(question.options) ? question.options.filter((option): option is string => typeof option === "string") : [],
+    })),
+    answers: (row.answers && typeof row.answers === "object" ? row.answers : {}) as Record<string, StudentAnswer>,
+    submittedAt: (row.submitted_at as string | null) ?? null,
+    result: result && typeof result.score === "number" && typeof result.correct === "number" && typeof result.total === "number"
+      ? { score: result.score, correct: result.correct, total: result.total }
+      : null,
+  };
+}
+
+export async function getStudentAssignmentState(supabase: SupabaseClient, token: string): Promise<Result<{ state: StudentAssignmentState }>> {
+  const { data, error } = await supabase.rpc("assignment_student_state", { p_token: token });
+  const state = !error && data && typeof data === "object" ? mapStudentState(data as Record<string, unknown>) : null;
+  return state ? { ok: true, state } : studentFail(error);
+}
+
+export async function saveStudentAssignmentAnswer(supabase: SupabaseClient, token: string, position: number, answer: StudentAnswer): Promise<Result<object>> {
+  const { error } = await supabase.rpc("save_assignment_answer", { p_token: token, p_position: position, p_answer: answer });
+  return error ? studentFail(error) : { ok: true };
+}
+
+export async function submitStudentAssignment(supabase: SupabaseClient, token: string): Promise<Result<object>> {
+  const { error } = await supabase.rpc("submit_assignment", { p_token: token });
+  return error ? studentFail(error) : { ok: true };
 }

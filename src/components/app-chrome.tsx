@@ -10,7 +10,7 @@ function isLiveCanvas(pathname: string) {
 }
 
 function usesTeacherShell(pathname: string) {
-  return ["/dashboard", "/my-classes", "/my-quizzes", "/games", "/tools"].some(
+  return ["/dashboard", "/assignments", "/my-classes", "/my-quizzes", "/library", "/games", "/tools"].some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 }

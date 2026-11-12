@@ -175,6 +175,7 @@ export function ClassEditor({ classId }: { classId: string }) {
         {students.length} / {MAX_STUDENTS_PER_CLASS} học sinh. Dùng danh sách này trong{" "}
         <Link href="/tools/draw">Bốc thăm tên</Link> và <Link href="/tools/groups">Chia nhóm</Link> bằng cách chọn lớp đã lưu.
       </p>
+      {students.length > 0 ? <ButtonLink href={`/assignments/new?class=${classId}`} variant="secondary">Giao bài cho lớp này</ButtonLink> : null}
 
       {message ? (
         <p role={message.kind === "error" ? "alert" : "status"} className={message.kind === "error" ? styles.error : styles.notice}>

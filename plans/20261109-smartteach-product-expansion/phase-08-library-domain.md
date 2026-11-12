@@ -26,19 +26,19 @@ approved mới browse/preview/clone được.
 
 ## Tasks
 
-- [ ] Snapshot transaction từ quiz hợp lệ; publication không đổi khi quiz gốc
+- [x] Snapshot transaction từ quiz hợp lệ; publication không đổi khi quiz gốc
   sửa/xóa và không lộ answer key qua browse/preview.
-- [ ] State transition rõ: draft/pending → approved/rejected; approved → hidden;
+- [x] State transition rõ: draft/pending → approved/rejected; approved → hidden;
   owner withdraw; resubmit tạo review mới hoặc version mới theo audit đã định.
-- [ ] RLS/grants deny default; owner chỉ thấy/mutate của mình trong state cho
+- [x] RLS/grants deny default; owner chỉ thấy/mutate của mình trong state cho
   phép; anon chỉ gọi public approved RPC.
-- [ ] Browse trả metadata bounded, deterministic cursor/page và total/has-more
+- [x] Browse trả metadata bounded, deterministic cursor/page và total/has-more
   nếu cần; query/filter validate subject/grade/search length/page size.
-- [ ] Preview trả public question text/options nhưng không accepted answers/
+- [x] Preview trả public question text/options nhưng không accepted answers/
   `is_correct`; clone server-side kiểm approved rồi tạo quiz/câu/options atomically.
-- [ ] Report chỉ từ authenticated teacher, generic success khi gọi lặp, reason
+- [x] Report chỉ từ authenticated teacher, generic success khi gọi lặp, reason
   enum/note bounded; moderator hide lập tức loại khỏi browse/preview/clone mới.
-- [ ] Index search/filter/order dựa trên query thật; dùng EXPLAIN/load probe trước
+- [x] Index search/filter/order dựa trên query thật; dùng EXPLAIN/load probe trước
   khi thêm extension/caching ngoài convention.
 
 ## Acceptance criteria
@@ -64,3 +64,17 @@ approved mới browse/preview/clone được.
   browser admin client hoặc lưu key trong script/config được commit.
 - Bật public browse production là release action riêng sau khi moderation path
   và privacy được duyệt; plan không cấp quyền deploy.
+
+## Verification — 2026-11-12
+
+- `npx supabase db reset` đã áp migration `20261112100000_quiz_publications.sql`.
+- DB library: **5/5 đạt** — moderation boundary, approved-only browse/preview,
+  answer-key leakage, clone snapshot, report idempotency và owner resubmit.
+- `EXPLAIN` trên browse approved theo subject/grade có `LIMIT 24` dùng
+  `quiz_publications_browse_idx`; chưa cần extension/cache ở dataset local.
+- Unit library **2/2**, `typecheck`, `lint`, `scan:bundle`, `diff --check`: đạt.
+
+## Kết luận
+
+- Phase 08 hoàn thành trên local. Phase 09 mới được phép dùng các RPC này để
+  xây bề mặt thư viện; không có UI moderation hoặc service secret ở client.

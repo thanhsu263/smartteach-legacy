@@ -19,8 +19,10 @@ test.describe("trang Quyền riêng tư", () => {
     await page.goto("/privacy");
     const toc = page.getByRole("navigation", { name: "Mục lục quyền riêng tư" });
     await expect(toc).toBeVisible();
-    await expect(toc.getByRole("link")).toHaveCount(9);
+    await expect(toc.getByRole("link")).toHaveCount(11);
     await expect(toc.getByRole("link", { name: "Quiz chơi trực tiếp" })).toHaveAttribute("href", "#quiz");
+    await expect(toc.getByRole("link", { name: "Bài được giao" })).toHaveAttribute("href", "#assignment");
+    await expect(toc.getByRole("link", { name: "Kho học liệu" })).toHaveAttribute("href", "#library");
     await expect(toc.getByRole("link", { name: "Xoá dữ liệu" })).toHaveAttribute("href", "#delete");
   });
 
@@ -31,6 +33,8 @@ test.describe("trang Quyền riêng tư", () => {
       "Giáo viên có tài khoản",
       "Tên học sinh",
       "Quiz chơi trực tiếp",
+      "Bài được giao",
+      "Kho học liệu",
       "Nhập quiz từ tệp",
       "Dữ liệu được lưu ở đâu",
       "Cookie và theo dõi",
@@ -40,6 +44,18 @@ test.describe("trang Quyền riêng tư", () => {
       await expect(page.getByRole("heading", { level: 2, name: heading })).toBeVisible();
     }
     await expect(page.getByText("không lưu ngày sinh, ảnh hay thông tin nào khác")).toBeVisible();
+  });
+
+  test("mô tả đúng boundary, thời hạn và quyền riêng tư của bài được giao và kho học liệu", async ({ page }) => {
+    await page.goto("/privacy");
+    const assignment = page.locator("section", { has: page.getByRole("heading", { level: 2, name: "Bài được giao" }) });
+    await expect(assignment).toContainText("không cần tài khoản");
+    await expect(assignment).toContainText("mã truy cập riêng");
+    await expect(assignment).toContainText("365 ngày");
+    await expect(assignment).toContainText("học sinh không xem dữ liệu của bạn khác");
+    const library = page.locator("section", { has: page.getByRole("heading", { level: 2, name: "Kho học liệu" }) });
+    await expect(library).toContainText("đã duyệt");
+    await expect(library).toContainText("không có đáp án đúng");
   });
 
   test("mục quiz chơi trực tiếp nêu đủ dữ liệu lưu, mục đích, ai xem, thời hạn 90 ngày và cách xoá", async ({ page }) => {

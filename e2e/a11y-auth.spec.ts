@@ -28,10 +28,12 @@ async function registerAndSeed(page: Page) {
   await page.getByLabel("Email").fill(`a11y-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}@example.test`);
   await page.getByLabel("Mật khẩu").fill("e2e-password-123");
   await page.getByRole("button", { name: "Tạo tài khoản" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await page.goto("/my-classes");
   await expect(page).toHaveURL(/\/my-classes$/);
 
   await page.getByLabel("Tên lớp").filter({ visible: true }).fill("10A1");
-  await page.getByLabel(/Danh sách học sinh/).fill("Minh Anh\nGia Huy\nThảo My");
+  await page.getByLabel(/Danh sách học sinh/).filter({ visible: true }).fill("Minh Anh\nGia Huy\nThảo My");
   await page.getByRole("button", { name: "Tạo lớp" }).click();
   await expect(page.getByRole("link", { name: "10A1" })).toBeVisible();
 }

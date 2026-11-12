@@ -7,6 +7,8 @@ const sections = [
   { id: "teacher", label: "Giáo viên có tài khoản" },
   { id: "students", label: "Tên học sinh" },
   { id: "quiz", label: "Quiz chơi trực tiếp" },
+  { id: "assignment", label: "Bài được giao" },
+  { id: "library", label: "Kho học liệu" },
   { id: "import", label: "Nhập quiz từ tệp" },
   { id: "where", label: "Dữ liệu được lưu ở đâu" },
   { id: "cookies", label: "Cookie và theo dõi" },
@@ -82,11 +84,23 @@ export default function PrivacyPage() {
               <strong>Quiz</strong> thầy cô soạn (tên, câu hỏi, lựa chọn, đáp án) và <strong>các buổi đã chơi</strong> kèm kết quả, xem
               mục “Quiz chơi trực tiếp”.
             </li>
+            <li><strong>Bài được giao</strong>, tiến độ và kết quả của học sinh trong lớp, xem mục “Bài được giao”.</li>
           </ul>
           <p>
             Chỉ tài khoản đã tạo ra dữ liệu mới xem và sửa được dữ liệu đó. Cơ sở dữ liệu có quy tắc riêng chặn tài khoản khác đọc hay
             sửa, không chỉ ẩn trên giao diện.
           </p>
+        </section>
+
+        <section aria-labelledby="assignment" className={styles.section}>
+          <h2 id="assignment" className={styles.heading}>Bài được giao</h2>
+          <p>Để học sinh làm bài không cần tài khoản, SmartTeach lưu tên trong roster lớp, mã truy cập riêng, câu trả lời, điểm và bản sao đề. Mã truy cập chỉ hiển thị cho thầy cô lúc tạo; liên kết QR đặt mã sau dấu <code>#</code> và xoá khỏi thanh địa chỉ ngay khi mở bài.</p>
+          <p>Chỉ giáo viên tạo bài xem roster, tiến độ và kết quả; học sinh không xem dữ liệu của bạn khác. Thầy cô có thể đổi/thu hồi mã hoặc đặt lại lượt làm. Bài đã đóng cùng lượt làm được tự xoá sau tối đa <strong>365 ngày</strong>; xoá lớp hoặc bài cũng xoá dữ liệu liên quan.</p>
+        </section>
+
+        <section aria-labelledby="library" className={styles.section}>
+          <h2 id="library" className={styles.heading}>Kho học liệu</h2>
+          <p>Thầy cô có thể gửi bản sao quiz để duyệt. Chỉ học liệu đã duyệt mới xuất hiện công khai; nội dung xem trước không có đáp án đúng. Báo cáo học liệu chỉ dành cho giáo viên đăng nhập và được giới hạn một báo cáo cho mỗi học liệu.</p>
         </section>
 
         <section aria-labelledby="students" className={styles.section}>
@@ -194,6 +208,7 @@ export default function PrivacyPage() {
             sinh của lớp cũng bị xoá. Quiz xoá ở mục Quiz của tôi; từng buổi chơi (kèm biệt danh, câu trả lời, điểm của học sinh) xoá ở
             trang “Các buổi đã chơi”, nếu không xoá thì tự mất sau khoảng 90 ngày.
           </p>
+          <p>Ở Bài đã giao, thầy cô có thể thu hồi mã truy cập, đặt lại lượt làm hoặc đóng bài; dữ liệu bài đã đóng tự xoá sau tối đa 365 ngày.</p>
           <p>
             {siteConfig.contactEmail ? (
               <>

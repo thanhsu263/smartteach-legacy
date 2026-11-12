@@ -7,12 +7,14 @@ import { useAuth } from "@/components/auth-provider";
 import { BlocksIcon, ClipboardListIcon, CloseIcon, DashboardIcon, GamepadIcon, LogoMark, MenuIcon, PanelLeftIcon, SchoolIcon } from "@/components/icons";
 import styles from "./teacher-shell.module.css";
 
-type NavigationItem = { href: "/dashboard" | "/my-classes" | "/my-quizzes" | "/games" | "/tools"; label: string; Icon: typeof SchoolIcon };
+type NavigationItem = { href: "/dashboard" | "/assignments" | "/my-classes" | "/my-quizzes" | "/library" | "/games" | "/tools"; label: string; Icon: typeof SchoolIcon };
 
 const navigation: readonly NavigationItem[] = [
   { href: "/dashboard", label: "Tổng quan", Icon: DashboardIcon },
+  { href: "/assignments", label: "Bài đã giao", Icon: ClipboardListIcon },
   { href: "/my-classes", label: "Lớp của tôi", Icon: SchoolIcon },
   { href: "/my-quizzes", label: "Quiz của tôi", Icon: ClipboardListIcon },
+  { href: "/library", label: "Kho học liệu", Icon: BlocksIcon },
   { href: "/games", label: "Kho game", Icon: GamepadIcon },
   { href: "/tools", label: "Tiện ích", Icon: BlocksIcon },
 ];

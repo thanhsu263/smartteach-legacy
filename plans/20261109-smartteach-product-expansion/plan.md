@@ -102,10 +102,10 @@ quality gate hiện có.
 | 04 | [Dashboard giáo viên và điều hướng](./phase-04-teacher-dashboard.md) | Done — kiểm chứng local đạt |
 | 05 | [Assignment core và API giáo viên](./phase-05-assignment-core.md) | Done — kiểm chứng local đạt |
 | 06 | [Truy cập không tài khoản và attempt engine](./phase-06-student-access-and-attempts.md) | Done — kiểm chứng local đạt |
-| 07 | [UI giao bài, làm bài và phân tích](./phase-07-assignment-experience.md) | Pending |
-| 08 | [Kho học liệu và kiểm duyệt ở backend](./phase-08-library-domain.md) | Pending |
-| 09 | [UI kho học liệu và tích hợp sản phẩm](./phase-09-library-experience.md) | Pending |
-| 10 | [Privacy, retention và kiểm chứng toàn hệ thống](./phase-10-final-verification.md) | Pending |
+| 07 | [UI giao bài, làm bài và phân tích](./phase-07-assignment-experience.md) | Done — kiểm chứng local đạt |
+| 08 | [Kho học liệu và kiểm duyệt ở backend](./phase-08-library-domain.md) | Done — kiểm chứng local đạt |
+| 09 | [UI kho học liệu và tích hợp sản phẩm](./phase-09-library-experience.md) | Done — kiểm chứng local đạt |
+| 10 | [Privacy, retention và kiểm chứng toàn hệ thống](./phase-10-final-verification.md) | Done — quality matrix local đạt |
 
 ## Thứ tự và dependency
 

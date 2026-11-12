@@ -144,3 +144,84 @@
 
 - Phase 05 hoàn thành. Phase 06 vẫn Pending; chưa tạo credential, attempt,
   answer hoặc bề mặt học sinh.
+
+## Phase 07 — UI giao bài, làm bài và phân tích
+
+- Thêm bề mặt giáo viên `/assignments`, `/assignments/new`,
+  `/assignments/[id]` và bề mặt học sinh công khai `/learn`, `/learn/[code]`.
+  Token attempt chỉ nằm trong `sessionStorage`; credential QR đặt sau fragment
+  và bị xoá bằng `history.replaceState` ngay sau exchange, không đưa vào query
+  hay referrer.
+- Bổ sung migration `20261112090000_assignment_analytics.sql`: hai RPC
+  teacher-only cho correct/unanswered theo câu và detail lượt làm. Đây là phần
+  dữ liệu tối thiểu cần có để UI analytics trong contract không dựng số liệu
+  giả; anon và giáo viên không sở hữu assignment bị từ chối.
+- Dùng bề mặt panel đặc, native dialog cho close/delete/reset/revoke, và layout
+  roster/analytics co về một cột trên mobile. Teacher shell, proxy và protected
+  paths đã nhận `/assignments`; `/learn` tiếp tục public cho học sinh.
+- Migration analytics đã chạy qua `npx supabase db reset`. DB targeted assignment
+  đạt **15/15**, gồm ownership/anon negative path cho hai RPC mới.
+- Playwright production build đạt **1/1**: teacher + hai context học sinh, save,
+  refresh/resume, submit, privacy, analytics/detail, axe và overflow 375/1280.
+  `typecheck`, `lint`, `scan:bundle` và `diff --check` đều đạt.
+
+### Kết luận
+
+- Phase 07 hoàn thành. Chưa bắt đầu Phase 08 trong thay đổi này.
+
+## Phase 08 — Kho học liệu và kiểm duyệt ở backend
+
+- `quiz_publications` giữ snapshot JSONB độc lập với quiz gốc; `quiz_id` được
+  phép null sau khi quiz nguồn bị xoá. Public RPC luôn dựng payload preview từ
+  snapshot đã lọc, không trả `is_correct` hay `accepted_answers`.
+- Browse/preview chỉ đọc `approved`; approve/reject/hide kiểm tra `auth.role()`
+  là `service_role` và không được grant cho anon/authenticated. Không có secret
+  hoặc moderation client trong bundle.
+- Clone chỉ đọc snapshot approved trong `security definer` transaction, sau đó
+  tạo quiz/câu/lựa chọn mới thuộc giáo viên gọi. Report có unique
+  `(publication_id, reporter_id)` để retry an toàn.
+- DB library đạt **5/5** và EXPLAIN browse theo subject/grade dùng index
+  `quiz_publications_browse_idx` dưới `LIMIT 24`; không thêm extension/cache.
+
+### Kết luận
+
+- Phase 08 hoàn thành. Phase 09 có thể bắt đầu từ contract library này.
+
+## Phase 09 — UI kho học liệu và tích hợp sản phẩm
+
+- Thêm `/library` và `/library/[id]` với browse/filter URL-backed, preview
+  approved không có answer key, clone cho giáo viên đăng nhập và trạng thái
+  publication của chủ sở hữu. Navigation và landing đã trỏ tới route thật.
+- Next 16 route động `/library/[id]` chủ động opt-out instant navigation bằng
+  `instant = false`, theo guide cục bộ, vì page đọc `params` ngoài boundary
+  streaming. Không đổi contract dữ liệu.
+- E2E public/auth library đạt: browse, preview, clone, axe và overflow 375px.
+
+## Phase 10 — Privacy, retention và quality gate
+
+- Privacy được cập nhật để mô tả chính xác assignment không tài khoản và kho học
+  liệu kiểm duyệt; test privacy bảo vệ 11 mục, text retention/boundary và link
+  neo tương ứng.
+- Thêm migration local `20261112110000_assignment_retention_schedule.sql`.
+  Lịch `pg_cron` dọn assignment closed quá 365 ngày theo mẻ 500, idempotent;
+  fallback vẫn là purge cơ hội có sẵn khi tạo assignment.
+- DB assignment mở rộng: ranh giới 364/366 ngày, batch=1, cascade attempt/answer
+  và xoá lớp, ACL private và nhánh scheduler thiếu/lỗi `pg_cron`.
+- Sửa ba expectation E2E stale để phản ánh redirect `/dashboard` đã được chốt
+  trong Phase 04 và TOC privacy mở rộng; không thay production behavior.
+
+### Verification
+
+- `npm run typecheck`, `npm run lint`, `npm test`: **294 unit đạt**.
+- `npm run test:db -- --reporter=dot`: **195 DB đạt**; targeted assignment:
+  **10/10**.
+- `npm run test:load`: **1/1 đạt**, profile 40×5, p95 mở câu 59ms, 0 HTTP/submit
+  lỗi.
+- `npm run build`: đạt production; `npm run scan:bundle`: 472 tệp sạch;
+  `git diff --check`: đạt.
+- `npm run test:e2e -- --reporter=dot`: hai lượt liên tiếp **254/254 đạt**.
+
+### Handoff
+
+- Không commit/push/deploy hay `db push`. Migrations Phase 07–10 vẫn chỉ được áp
+  trên Supabase local; service-role moderation không có client implementation.

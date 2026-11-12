@@ -28,7 +28,7 @@ async function register(page: Page) {
   await page.getByLabel("Email").fill(`quiz-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}@example.test`);
   await page.getByLabel("Mật khẩu").fill(password);
   await page.getByRole("button", { name: "Tạo tài khoản" }).click();
-  await expect(page).toHaveURL(/\/my-classes$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
 }
 
 async function newTeacher(browser: Browser, viewport = { width: 1280, height: 800 }) {

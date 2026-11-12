@@ -1,5 +1,8 @@
+import { readFileSync } from "node:fs";
+import { join as joinPath } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { admin, anon, buildQuiz, cleanupUsers, signUp, simpleQuestion, type TestUser } from "./helpers";
+import { psql } from "./live-helpers";
 
 let teacher: TestUser;
 let assignmentId = "";
@@ -55,6 +58,25 @@ describe("assignment attempt boundary", () => {
 
     const afterSubmitExchange = await anon.rpc("exchange_assignment_access", { p_code: code, p_credential: credential });
     expect((afterSubmitExchange.data as { attempt_id: string }).attempt_id).toBe(submittedAttemptId);
+  });
+
+  it("analytics và chi tiết lượt làm chỉ thuộc về giáo viên sở hữu bài", async () => {
+    const analytics = await teacher.client.rpc("assignment_question_analytics", { p_assignment: assignmentId });
+    expect(analytics.error).toBeNull();
+    expect(analytics.data).toMatchObject([
+      { position: 0, answered: 1, correct: 1, unanswered: 1 },
+      { position: 1, answered: 1, correct: 1, unanswered: 1 },
+    ]);
+    const detail = await teacher.client.rpc("assignment_attempt_detail", { p_assignment: assignmentId, p_student: studentId });
+    expect(detail.error).toBeNull();
+    expect(detail.data).toMatchObject({ student_id: studentId, status: "submitted", score: 2 });
+    expect((detail.data as { answers: unknown[] }).answers).toMatchObject([
+      { position: 0, answer: 0, is_correct: true },
+      { position: 1, answer: 0, is_correct: true },
+    ]);
+    expect((await anon.rpc("assignment_question_analytics", { p_assignment: assignmentId })).error?.code).toBe("42501");
+    const other = await signUp("analytics-other");
+    expect((await other.client.rpc("assignment_attempt_detail", { p_assignment: assignmentId, p_student: studentId })).error?.code).toBe("PT404");
   });
 
   it("rotate credential vô hiệu token in-progress nhưng không làm hỏng bài đã nộp", async () => {
@@ -124,15 +146,57 @@ describe("assignment attempt boundary", () => {
     expect((await anon.rpc("exchange_assignment_access", { p_code: code, p_credential: credential })).data).toEqual({ result: "invalid" });
   });
 
-  it("purge chỉ xoá assignment closed quá 365 ngày, kéo attempt/answer theo cascade", async () => {
+  it("purge private giữ ranh giới 364/366 ngày, có giới hạn mẻ và kéo attempt/answer theo cascade", async () => {
     const old = await teacher.client.rpc("create_assignment", { p_class_id: classId, p_quiz_id: quizId, p_title: "Bài retention cũ", p_description: "", p_reveal_policy: "immediate" });
+    const older = await teacher.client.rpc("create_assignment", { p_class_id: classId, p_quiz_id: quizId, p_title: "Bài retention cũ hơn", p_description: "", p_reveal_policy: "immediate" });
     const recent = await teacher.client.rpc("create_assignment", { p_class_id: classId, p_quiz_id: quizId, p_title: "Bài retention mới", p_description: "", p_reveal_policy: "immediate" });
-    for (const id of [old.data, recent.data]) { await teacher.client.rpc("publish_assignment", { p_assignment: id }); await teacher.client.rpc("close_assignment", { p_assignment: id }); }
+    for (const id of [old.data, older.data, recent.data]) { await teacher.client.rpc("publish_assignment", { p_assignment: id }); }
+    const issued = await teacher.client.rpc("issue_student_credential", { p_student: studentId });
+    const code = ((await teacher.client.rpc("assignment_detail", { p_assignment: old.data as string })).data as { public_code: string }).public_code;
+    const exchange = await anon.rpc("exchange_assignment_access", { p_code: code, p_credential: (issued.data as { credential: string }).credential });
+    const attemptId = (exchange.data as { attempt_id: string; token: string }).attempt_id;
+    expect((await anon.rpc("save_assignment_answer", { p_token: (exchange.data as { token: string }).token, p_position: 0, p_answer: 0 })).error).toBeNull();
+    for (const id of [old.data, older.data, recent.data]) { await teacher.client.rpc("close_assignment", { p_assignment: id }); }
     const now = Date.now();
     await admin.from("assignments").update({ closed_at: new Date(now - 366 * 86_400_000).toISOString() }).eq("id", old.data as string);
+    await admin.from("assignments").update({ closed_at: new Date(now - 367 * 86_400_000).toISOString() }).eq("id", older.data as string);
     await admin.from("assignments").update({ closed_at: new Date(now - 364 * 86_400_000).toISOString() }).eq("id", recent.data as string);
-    await teacher.client.rpc("create_assignment", { p_class_id: classId, p_quiz_id: quizId, p_title: "Bài kích purge", p_description: "", p_reveal_policy: "immediate" });
+    expect(Number(psql(`select private.purge_old_assignments(365, '${teacher.id}'::uuid, 1);`))).toBe(1);
+    const oldIdsAfterFirstBatch = (await admin.from("assignments").select("id").in("id", [old.data as string, older.data as string])).data ?? [];
+    expect(oldIdsAfterFirstBatch).toHaveLength(1);
+    expect(Number(psql(`select private.purge_old_assignments(365, '${teacher.id}'::uuid, 1);`))).toBe(1);
     expect((await admin.from("assignments").select("id").eq("id", old.data as string)).data).toEqual([]);
+    expect((await admin.from("assignments").select("id").eq("id", older.data as string)).data).toEqual([]);
     expect((await admin.from("assignments").select("id").eq("id", recent.data as string)).data).toHaveLength(1);
+    expect((await admin.from("assignment_attempts").select("id").eq("id", attemptId)).data).toEqual([]);
+    expect((await admin.from("assignment_answers").select("attempt_id").eq("attempt_id", attemptId)).data).toEqual([]);
+    expect(() => psql("select private.purge_old_assignments(0);")).toThrow();
+    expect(() => psql("select private.purge_old_assignments(-1);")).toThrow();
+  });
+
+  it("API không gọi được private purge và migration lịch chịu được pg_cron vắng hoặc lỗi", async () => {
+    for (const client of [anon, teacher.client]) {
+      expect((await client.rpc("purge_old_assignments", {})).error).not.toBeNull();
+    }
+    expect(psql("select has_function_privilege('anon', 'private.purge_old_assignments(integer,uuid,integer)', 'execute'), has_function_privilege('authenticated', 'private.purge_old_assignments(integer,uuid,integer)', 'execute');")).toBe("f|f");
+    const file = readFileSync(joinPath(process.cwd(), "supabase/migrations/20261112110000_assignment_retention_schedule.sql"), "utf8").replace(/\r\n/g, "\n");
+    const block = /do \$cron\$[\s\S]*?\$cron\$;/.exec(file)?.[0];
+    expect(block, "không tìm thấy khối lập lịch assignment").toBeTruthy();
+    expect(() => psql(block!)).not.toThrow();
+    expect(() => psql(block!.replace("name = 'pg_cron'", "name = 'pg_cron_khong_co'"))).not.toThrow();
+    expect(() => psql(block!.replace("cron.schedule(", "cron.khong_co_ham("))).not.toThrow();
+    expect(["0", "1"]).toContain(psql("select count(*) from cron.job where jobname = 'smartteach-purge-old-assignments';"));
+  });
+
+  it("xoá lớp kéo credential, assignment, attempt và answer, không để orphan", async () => {
+    const assignment = await teacher.client.rpc("create_assignment", { p_class_id: classId, p_quiz_id: quizId, p_title: "Bài cascade lớp", p_description: "", p_reveal_policy: "immediate" });
+    expect(assignment.error).toBeNull();
+    expect((await teacher.client.from("classes").delete().eq("id", classId)).error).toBeNull();
+    expect((await admin.from("classes").select("id").eq("id", classId)).data).toEqual([]);
+    expect((await admin.from("students").select("id").eq("id", studentId)).data).toEqual([]);
+    expect((await admin.from("student_access_credentials").select("id").eq("student_id", studentId)).data).toEqual([]);
+    expect((await admin.from("assignments").select("id").eq("class_id", classId)).data).toEqual([]);
+    expect((await admin.from("assignment_attempts").select("id").eq("id", submittedAttemptId)).data).toEqual([]);
+    expect((await admin.from("assignment_answers").select("attempt_id").eq("attempt_id", submittedAttemptId)).data).toEqual([]);
   });
 });

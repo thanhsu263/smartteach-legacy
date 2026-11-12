@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ButtonLink } from "@/components/button";
+import { listAssignments } from "@/lib/assignments/api";
+import type { AssignmentSummary } from "@/lib/assignments/types";
 import { listClasses, type ClassSummary } from "@/lib/classes/api";
 import { host } from "@/lib/live/rpc";
 import { formatDateTime, type HistoryRow } from "@/lib/live/results";
@@ -17,12 +19,14 @@ type DashboardState = {
   classes: Block<ClassSummary>;
   quizzes: Block<QuizSummary>;
   sessions: Block<HistoryRow>;
+  assignments: Block<AssignmentSummary>;
 };
 
 const LOADING: DashboardState = {
   classes: { status: "loading" },
   quizzes: { status: "loading" },
   sessions: { status: "loading" },
+  assignments: { status: "loading" },
 };
 
 function toBlock<T>(result: { ok: true; items: T[] } | { ok: false; message: string }): Block<T> {
@@ -79,6 +83,13 @@ export function TeacherDashboard() {
         sessions: result.ok ? toBlock({ ok: true, items: result.rows }) : toBlock(result),
       }));
     });
+    void listAssignments(supabase, { limit: 5 }).then((result) => {
+      if (cancelled) return;
+      setData((current) => ({
+        ...current,
+        assignments: result.ok ? toBlock({ ok: true, items: result.assignments }) : toBlock(result),
+      }));
+    });
 
     return () => {
       cancelled = true;
@@ -89,6 +100,7 @@ export function TeacherDashboard() {
     data.classes.status === "ready" &&
     data.quizzes.status === "ready" &&
     data.sessions.status === "ready" &&
+    data.assignments.status === "ready" &&
     data.classes.items.length === 0 &&
     data.quizzes.items.length === 0 &&
     data.sessions.items.length === 0;
@@ -179,6 +191,27 @@ export function TeacherDashboard() {
                         <small>
                           {formatDateTime(item.created_at)} · {item.player_count} bạn chơi{item.ended_at ? "" : " · Đang diễn ra"}
                         </small>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </BlockState>
+          </section>
+
+          <section className={`${styles.section} ${styles.sessions}`} aria-labelledby="dashboard-assignments">
+            <div className={styles.sectionHeading}>
+              <h2 id="dashboard-assignments">Bài đã giao</h2>
+              <Link href="/assignments">Xem tất cả</Link>
+            </div>
+            <BlockState block={data.assignments} empty="Chưa có bài nào được giao." onRetry={reload}>
+              {() => (
+                <ul className={styles.list}>
+                  {(data.assignments as Extract<Block<AssignmentSummary>, { status: "ready" }>).items.map((item) => (
+                    <li key={item.id}>
+                      <Link href={`/assignments/${item.id}`}>
+                        <span>{item.title}</span>
+                        <small>{item.className} · {item.status === "published" ? "Đang giao" : item.status === "draft" ? "Bản nháp" : "Đã đóng"}</small>
                       </Link>
                     </li>
                   ))}
