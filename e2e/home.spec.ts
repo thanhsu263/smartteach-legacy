@@ -166,10 +166,17 @@ for (const width of [375, 768]) {
     try {
       const page = await context.newPage();
       await page.goto("/");
-      const video = page.locator("video");
-      await expect(video).toBeVisible();
-      await expect(video).not.toHaveAttribute("src");
-      await expect(video).toHaveJSProperty("paused", true);
+      const stage = page.locator("[data-hero-classroom]");
+      await expect(stage).toBeVisible();
+      await expect(stage).toHaveAttribute("data-scene", "poster");
+      await expect(stage.locator("canvas")).toBeHidden();
+      await page.getByRole("button", { name: "Thử một câu quiz" }).tap();
+      const quiz = page.getByRole("dialog", { name: "Thử một câu quiz" });
+      await quiz.getByRole("button", { name: "5/6" }).tap();
+      await expect(quiz.getByRole("status")).toContainText("Chính xác");
+      await quiz.getByRole("button", { name: "Đóng" }).tap();
+      await expect(quiz).toBeHidden();
+      await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
       const menu = page.getByLabel("Menu", { exact: true });
       expect((await menu.boundingBox())!.height).toBeGreaterThanOrEqual(44);
       await menu.tap();
@@ -190,8 +197,8 @@ test("landing vẫn hiển thị hero và dùng được menu khi tắt JavaScri
   try {
     const page = await context.newPage();
     await page.goto("/");
-    await expect(page.locator("video[poster]")).toBeVisible();
-    await expect(page.locator("video")).not.toHaveAttribute("src");
+    await expect(page.locator("[data-hero-classroom]")).toHaveAttribute("data-scene", "poster");
+    await expect(page.locator("[data-hero-classroom]")).toBeVisible();
     await page.getByLabel("Menu", { exact: true }).click();
     await page.getByRole("navigation", { name: "Điều hướng landing trên điện thoại" }).getByRole("link", { name: "Kho học liệu" }).click();
     await expect(page).toHaveURL(/#hoc-lieu$/);

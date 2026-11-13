@@ -13,13 +13,12 @@ type ButtonLinkProps = CommonProps &
   Omit<ComponentPropsWithoutRef<typeof Link>, "children">;
 
 type ButtonProps = CommonProps &
-  Omit<ComponentPropsWithoutRef<"button">, "children">;
+  Omit<ComponentPropsWithoutRef<"button">, "children"> & { ref?: Ref<HTMLButtonElement> };
 
 type IconButtonProps = Omit<ButtonProps, "children" | "aria-label"> & {
   /** Tên thao tác là bắt buộc vì biểu tượng không tự truyền đạt đủ ngữ cảnh cho trình đọc màn hình. */
   "aria-label": string;
   children: ReactNode;
-  ref?: Ref<HTMLButtonElement>;
   /** Gợi ý ngắn cho người dùng chuột/bàn phím; mặc định dùng nhãn truy cập. */
   tooltip?: string | null;
   tone?: "default" | "danger";

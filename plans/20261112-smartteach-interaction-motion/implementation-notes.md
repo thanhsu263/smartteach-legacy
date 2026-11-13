@@ -28,3 +28,9 @@ JavaScript gzip tăng 3,11 KiB ở landing, 1,47 KiB ở trang đồng hồ và 
 - `npm run lint`, `npm run typecheck`, `npm test` (294/294), `npm run build`, `npm run scan:bundle` và `git diff --check` đạt. Baseline primitive/contrast đạt 43/43 và hai spec Playwright baseline đạt 41/41.
 - Lượt toàn bộ trên production build cuối với Chromium và Supabase local có 272 đạt, 1 lỗi môi trường, 0 skip. Chromium báo `ERR_NO_BUFFER_SPACE` khi mở `/login` trước assertion của ca WCAG 375 px. Chạy riêng `e2e/a11y-auth.spec.ts` bằng một worker đạt 2/2, gồm ca đó. Giữ cả hai báo cáo trong thư mục evidence.
 - Lượt lặp `e2e/home.spec.ts`, `e2e/apple-interface.spec.ts`, `e2e/teacher-sidebar.spec.ts` trên cùng build đạt 37/37. Có ảnh các viewport 320/375/768/1280, drawer, sidebar mở tạm, anchor, tooltip, dashboard đang tải và đồng hồ trình chiếu.
+
+## Hero lớp học 3D tương tác
+
+Hero dùng hình học Three.js dựng theo bố cục video đã duyệt. Camera nhận vận tốc chuột theo px/giây, giới hạn ở 1.500 px/giây và hãm về vị trí ban đầu. Khi nắm vật thể, camera giữ góc nhìn để phép kéo và xoay ổn định. Bút chì và thước di chuyển theo chuột. Cuốn vở, quả địa cầu và Rubik xoay. Hai thẻ mở cùng một câu hỏi mẫu bằng dialog. Màn hình hẹp, thiết bị cảm ứng và tùy chọn giảm chuyển động dùng ảnh lớp học tĩnh cùng nút thử quiz. Three.js được nạp động khi hero đủ điều kiện hiển thị.
+
+Build production, ESLint các tệp sửa, Vitest 296/296 và hai spec Playwright landing 35/35 đã đạt. Playwright kiểm thao tác kéo, mở thẻ, trả lời và đóng quiz, chế độ tĩnh, mất WebGL, tạm dừng và các viewport 320/375/768/1280 trên Chromium.

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CheckIcon, ClockIcon, ExternalLinkIcon, GamepadIcon, LogoMark, PencilIcon, UsersIcon } from "@/components/icons";
 import { LandingHeader } from "@/components/landing-header";
-import { LandingHeroVideo } from "@/components/landing-hero-video";
+import { LandingHeroClassroom } from "@/components/landing-hero-classroom";
 import { siteConfig } from "@/config/site";
 import { tools } from "@/data/tools";
 import styles from "./page.module.css";
@@ -49,7 +49,7 @@ export default function HomePage() {
           <span><CheckIcon size={14} /> Sẵn sàng trong 2 phút</span>
         </div>
       </div>
-      <LandingHeroVideo />
+      <LandingHeroClassroom />
     </section>
 
     <section className={styles.trust} aria-label="Lợi ích nền tảng"><div><b>Ít thao tác. Nhiều cảm hứng.</b><span>Được tạo ra cho nhịp lớp học.</span></div><div><span className={styles.trustIcon}>▦</span><p><b>4 công cụ, 1 nền tảng</b><span>Mọi thứ cần thiết</span></p></div><div><span className={styles.trustIcon}>A</span><p><b>100% tiếng Việt</b><span>Thân thiện, dễ làm quen</span></p></div><div><span className={styles.trustIcon}>▣</span><p><b>Học ở mọi nơi</b><span>Máy tính, tablet, điện thoại</span></p></div></section>

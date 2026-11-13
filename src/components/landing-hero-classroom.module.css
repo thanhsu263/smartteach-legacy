@@ -1,0 +1,90 @@
+.stage {
+  position: absolute;
+  inset: 0;
+  background: var(--pale) url('/hero/classroom-poster.webp') center / cover no-repeat;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+}
+
+.stage:not([data-scene='poster']) .canvas { visibility: visible; }
+
+.stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgb(240 245 255 / .82), rgb(240 245 255 / .91) 18%, rgb(240 245 255 / .76) 34%, rgb(240 245 255 / .48) 44%, transparent 59%);
+  mask-image: linear-gradient(180deg, rgb(0 0 0 / .3), #000 29%, #000 76%, rgb(0 0 0 / .32));
+}
+
+.controls {
+  position: absolute;
+  z-index: 1;
+  inset-inline-end: max(20px, env(safe-area-inset-right, 0px));
+  inset-block-end: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quizButton span { margin-inline-start: 5px; }
+
+.motionButton {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--navy);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.motionButton:hover, .motionButton:active { background: var(--color-primary-tint); }
+.pauseIcon { width: 12px; height: 14px; border-inline: 3px solid currentColor; }
+.playIcon {
+  width: 0;
+  height: 0;
+  margin-inline-start: 2px;
+  border-block: 7px solid transparent;
+  border-inline-start: 11px solid currentColor;
+}
+
+.dialog {
+  position: fixed;
+  inset: 0;
+  width: min(480px, calc(100% - 32px));
+  margin: auto;
+  padding: clamp(16px, 5vw, 30px);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--navy);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-raised);
+}
+
+.dialog::backdrop { background: rgb(16 43 104 / .32); }
+.quizHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.quizHeader h2 { font-size: clamp(20px, 5vw, 26px); line-height: 1.2; }
+.question { margin-block: 16px; font-size: 18px; font-weight: 600; }
+.answers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.answers button[aria-pressed='true'] {
+  background: var(--color-primary-tint);
+  border-color: var(--blue);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+.feedback { margin-top: 16px; min-height: 3em; }
+
+@media (width <= 1000px) {
+  .stage { position: relative; aspect-ratio: 16 / 9; margin-top: 28px; }
+  .stage::after { background: linear-gradient(180deg, var(--pale), transparent 22%); mask-image: none; }
+  .controls { inset-inline-end: max(12px, env(safe-area-inset-right, 0px)); inset-block-end: 12px; }
+}
