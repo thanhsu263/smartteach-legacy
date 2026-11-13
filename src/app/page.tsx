@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CheckIcon, ClockIcon, ExternalLinkIcon, GamepadIcon, LogoMark, PencilIcon, UsersIcon } from "@/components/icons";
 import { LandingHeader } from "@/components/landing-header";
-import { LandingHeroMotion } from "@/components/landing-hero-motion";
+import { LandingHeroVideo } from "@/components/landing-hero-video";
 import { siteConfig } from "@/config/site";
 import { tools } from "@/data/tools";
 import styles from "./page.module.css";
@@ -28,20 +28,6 @@ const faqs = [
 
 function Arrow() { return <span aria-hidden="true">→</span>; }
 
-function HeroDemo() {
-  return <LandingHeroMotion>
-    <div className={`${styles.backSheet} ${styles.examSheet}`}>Bộ đề thi · Toán học 6</div>
-    <div className={`${styles.backSheet} ${styles.gameSheet}`}>Đấu trường tri thức</div>
-    <div className={styles.quizDepth} />
-    <div className={styles.quizWindow}>
-      <div className={styles.quizBar}><span><i /> Quiz trực tiếp</span><span>Câu 08 / 15</span></div>
-      <div className={styles.quizBody}><div className={styles.quizMeta}><span>TOÁN HỌC 6 · SỐ NGUYÊN TỐ</span><b>00:24</b></div><strong>Số nào sau đây là số nguyên tố?</strong><div className={styles.answers}>{["12", "17", "21", "27"].map((answer, index) => <span key={answer} data-correct={index === 1}><b>{String.fromCharCode(65 + index)}</b>{answer}</span>)}</div><div className={styles.response}><span>28 / 32 đã trả lời</span><span>Cả lớp đang rất tập trung!</span></div><div className={styles.progress}><i /></div></div>
-    </div>
-    <div className={styles.joinCode}><UsersIcon size={20} /><span>Mã tham gia<b>683 946</b></span></div>
-    <div className={styles.achievement}><span>★</span><div><b>Đội xanh bứt phá!</b><small>5 câu đúng liên tiếp</small></div></div>
-  </LandingHeroMotion>;
-}
-
 export default function HomePage() {
   return <div className={styles.landing}>
     <LandingHeader
@@ -49,7 +35,22 @@ export default function HomePage() {
       account={<div className={styles.accountActions}><Link href="/login">Đăng nhập</Link><Link className={styles.primarySmall} href="/login">Bắt đầu miễn phí</Link></div>}
     />
 
-    <section className={styles.hero}><div className={styles.heroCopy}><p className={styles.pill}>✦ Một không gian. Muôn cách học hay.</p><h1>Bật hứng khởi.<span>Mở tri thức.</span></h1><p className={styles.heroLead}>Từ quản lý lớp học, tạo quiz đến trò chơi và tiện ích — biến mỗi tiết học thành một trải nghiệm đáng mong chờ.</p><div className={styles.actions}><Link className={styles.primary} href="/my-classes">Tạo lớp học miễn phí <Arrow /></Link><a className={styles.secondary} href="#tinh-nang">Khám phá bản demo</a></div><div className={styles.reassurance}><span><CheckIcon size={14} /> Không cần thẻ tín dụng</span><span><CheckIcon size={14} /> Sẵn sàng trong 2 phút</span></div></div><HeroDemo /></section>
+    <section className={styles.hero}>
+      <div className={styles.heroCopy}>
+        <p className={styles.pill}>✦ Một không gian. Muôn cách học hay.</p>
+        <h1>Bật hứng khởi.<span>Mở tri thức.</span></h1>
+        <p className={styles.heroLead}>Từ quản lý lớp học, tạo quiz đến trò chơi và tiện ích — biến mỗi tiết học thành một trải nghiệm đáng mong chờ.</p>
+        <div className={styles.actions}>
+          <Link className={styles.primary} href="/my-classes">Tạo lớp học miễn phí <Arrow /></Link>
+          <a className={styles.secondary} href="#tinh-nang">Khám phá bản demo</a>
+        </div>
+        <div className={styles.reassurance}>
+          <span><CheckIcon size={14} /> Không cần thẻ tín dụng</span>
+          <span><CheckIcon size={14} /> Sẵn sàng trong 2 phút</span>
+        </div>
+      </div>
+      <LandingHeroVideo />
+    </section>
 
     <section className={styles.trust} aria-label="Lợi ích nền tảng"><div><b>Ít thao tác. Nhiều cảm hứng.</b><span>Được tạo ra cho nhịp lớp học.</span></div><div><span className={styles.trustIcon}>▦</span><p><b>4 công cụ, 1 nền tảng</b><span>Mọi thứ cần thiết</span></p></div><div><span className={styles.trustIcon}>A</span><p><b>100% tiếng Việt</b><span>Thân thiện, dễ làm quen</span></p></div><div><span className={styles.trustIcon}>▣</span><p><b>Học ở mọi nơi</b><span>Máy tính, tablet, điện thoại</span></p></div></section>
 

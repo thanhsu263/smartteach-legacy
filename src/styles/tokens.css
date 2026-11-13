@@ -31,8 +31,6 @@
   --motion-press: 100ms;
   --motion-state: 180ms;
   --motion-layer: 260ms;
-  /* Signature transition chỉ dành cho Quiz Sheets ở landing. */
-  --motion-hero: 420ms;
 
   /* Bo góc theo cấp độ bề mặt. */
   --r-frame: var(--radius-lg);

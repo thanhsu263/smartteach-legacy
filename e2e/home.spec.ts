@@ -166,10 +166,10 @@ for (const width of [375, 768]) {
     try {
       const page = await context.newPage();
       await page.goto("/");
-      const demo = page.getByRole("img", { name: "Minh họa quiz trực tiếp" });
-      await demo.tap();
-      await expect(demo).not.toHaveAttribute("data-hero-wash");
-      await expect(demo).not.toHaveAttribute("data-quiz-tracking");
+      const video = page.locator("video");
+      await expect(video).toBeVisible();
+      await expect(video).not.toHaveAttribute("src");
+      await expect(video).toHaveJSProperty("paused", true);
       const menu = page.getByLabel("Menu", { exact: true });
       expect((await menu.boundingBox())!.height).toBeGreaterThanOrEqual(44);
       await menu.tap();
@@ -190,7 +190,8 @@ test("landing vẫn hiển thị hero và dùng được menu khi tắt JavaScri
   try {
     const page = await context.newPage();
     await page.goto("/");
-    await expect(page.getByRole("img", { name: "Minh họa quiz trực tiếp" })).toBeVisible();
+    await expect(page.locator("video[poster]")).toBeVisible();
+    await expect(page.locator("video")).not.toHaveAttribute("src");
     await page.getByLabel("Menu", { exact: true }).click();
     await page.getByRole("navigation", { name: "Điều hướng landing trên điện thoại" }).getByRole("link", { name: "Kho học liệu" }).click();
     await expect(page).toHaveURL(/#hoc-lieu$/);

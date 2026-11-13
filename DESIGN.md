@@ -104,7 +104,7 @@ Hệ thống từ chối: phần mềm hành chính hay cổng thông tin nhà t
 - Nền sáng, tương phản cao, đọc được từ cuối lớp khi chiếu lên màn lớn.
 - Một họ chữ (Be Vietnam Pro), thang cỡ chữ cố định theo rem, không co giãn theo viewport.
 - Vùng làm việc dùng bề mặt gần đặc; vật liệu trong chỉ xuất hiện ở chrome nổi có nội dung thật sự đi bên dưới (header, menu, popover, sheet).
-- Chuyển động giao diện 100–260 ms, tăng tốc và hãm tự nhiên để báo press, đổi trạng thái hoặc quan hệ không gian. Chữ và CTA hiện ngay khi trang tải. Hero landing có hai hiệu ứng cục bộ theo mục 7.
+- Chuyển động giao diện 100–260 ms, tăng tốc và hãm tự nhiên để báo press, đổi trạng thái hoặc quan hệ không gian. Chữ và CTA hiện ngay khi trang tải. Hero landing dùng video nền cục bộ theo mục 7.
 
 ## 2. Colors
 
@@ -210,7 +210,7 @@ Chiều sâu đến từ phân cấp vật liệu, không phải trang trí. Car
 - **Don't** sao chép logo, hình ảnh hay câu chữ của ezthi.com.
 - **Don't** dùng `border-left` hay `border-right` dày hơn 1px làm vạch màu trên thẻ.
 - **Don't** dùng chữ gradient, kính mờ chỉ để trang trí, hay lưới thẻ giống hệt nhau lặp vô tận.
-- **Don't** dùng nền chuyển động toàn màn hình, choreography trang trí theo scroll/route hoặc magnetic. Giới hạn chuyển động nền vào wash cục bộ trong hero theo mục 7. Chuyển động header phục vụ điều hướng.
+- **Don't** dùng nền chuyển động toàn màn hình, choreography trang trí theo scroll/route hoặc magnetic. Giới hạn video nền vào hero landing theo mục 7. Chuyển động header phục vụ điều hướng.
 - **Don't** phủ kính, thêm nền động, parallax hoặc tilt vào màn hình chiếu của quiz trực tiếp, đồng hồ fullscreen, canvas bảng trắng, khung game hoặc vùng nhập liệu quan trọng.
 - **Don't** dùng nhãn nhỏ viết hoa cách chữ (eyebrow) trên đầu mọi khu vực.
 - **Don't** dùng màu làm tín hiệu duy nhất cho trạng thái lỗi hoặc thành công.
@@ -219,7 +219,7 @@ Chiều sâu đến từ phân cấp vật liệu, không phải trang trí. Car
 
 Hệ vật liệu theo tinh thần Apple: phản hồi trực tiếp, chuyển động liên tục về không gian và dùng translucency có mục đích. Không mô phỏng giao diện hệ điều hành; vẫn giữ màu, chữ và mô hình thao tác riêng của SmartTeach.
 
-**Tệp:** `src/styles/tokens.css` chứa vai trò màu, thời lượng, easing, bo góc và vật liệu. `src/styles/glass.css` chứa thành phần dùng chung và các trạng thái. `src/components/ambient-background.tsx` chỉ tạo nền tĩnh toàn app. Listener con trỏ điều khiển minh họa chỉ gắn vào cụm Quiz Sheets. Các giá trị theo frame ghi vào CSS, ngoài state React.
+**Tệp:** `src/styles/tokens.css` chứa vai trò màu, thời lượng, easing, bo góc và vật liệu. `src/styles/glass.css` chứa thành phần dùng chung và các trạng thái. `src/components/ambient-background.tsx` chỉ tạo nền tĩnh toàn app.
 
 **Đổi tông:** `--accent` / `--accent-2` ánh xạ sang Xanh bảng và Xanh đậm; `--cta` / `--cta-2` dành riêng cho nút chính vàng. Mọi màu còn lại đi qua `--color-*` trong `globals.css`.
 
@@ -227,6 +227,6 @@ Hệ vật liệu theo tinh thần Apple: phản hồi trực tiếp, chuyển �
 
 **Motion grammar:** press 100 ms, đổi trạng thái 180 ms, mở menu/sheet 260 ms. Exit tối đa 180 ms khi giữ được focus và ngữ nghĩa. Nếu browser thiếu hỗ trợ, dùng mở/đóng tức thì. Tooltip hiện khi hover ổn định hoặc focus, đóng bằng Escape hoặc khi rời. Loading phản ánh request thật. Skeleton trong vùng làm việc có thể shimmer tối đa 4,2 giây rồi giữ tĩnh. Feedback xuất hiện ở đúng tác vụ, có chữ và thông báo hỗ trợ trình đọc màn hình. Reduced motion dùng trạng thái tức thì, skeleton tĩnh và cuộn theo hành vi mặc định của trình duyệt.
 
-**Ngoại lệ hero landing:** Quiz Sheets phản ứng nhẹ với chuột bằng một `requestAnimationFrame` cục bộ. Lớp giấy về vị trí nghỉ trong 420 ms khi chuột rời. Lớp wash riêng phía sau minh họa dịch nhẹ một lần tối đa 2400 ms rồi về vị trí nghỉ. Hai hiệu ứng dừng khi rời viewport, tab ẩn hoặc đổi media. Touch, reduced motion và trình duyệt thiếu API dùng bố cục tĩnh. Copy, CTA và vùng bấm giữ nguyên vị trí.
+**Ngoại lệ hero landing:** video lớp học 3D chạy lặp 8 giây, tắt tiếng, từ 1001 px với con trỏ fine có hover và cho phép chuyển động. Người dùng có thể tạm dừng hoặc phát lại bằng nút điều khiển. Video dừng khi hero khuất hoặc tab ẩn. Ảnh khung đầu dùng khi video đang tải, khi tắt JavaScript, trên touch, ở màn hẹp và khi bật giảm chuyển động. Chữ và CTA hiển thị phía trên video với lớp phủ sáng để giữ độ tương phản.
 
 **Khả năng thích ứng:** `prefers-reduced-transparency` đổi lớp nổi sang nền đặc; `prefers-contrast` tăng viền; fallback không có `backdrop-filter` vẫn đọc và dùng được. Khung game, màn hình quiz và canvas bảng trắng luôn tránh blur.

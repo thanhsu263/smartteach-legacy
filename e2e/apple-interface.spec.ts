@@ -6,17 +6,19 @@ const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 test.describe("landing theo Figma", () => {
   test.use({ reducedMotion: "no-preference", viewport: { width: 1280, height: 800 } });
 
-  test("dùng chrome riêng và không có chuyển động nền vô hạn", async ({ page }) => {
+  test("dùng chrome riêng và giới hạn video nền vào hero", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("navigation", { name: "Điều hướng landing" })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Điều hướng chính" })).toHaveCount(0);
     await expect(page.locator("[data-parallax-stage], [data-magnetic], [data-tilt]")).toHaveCount(0);
+    await expect(page.locator("section:has(h1) video")).toHaveCount(1);
+    await expect(page.locator("video")).toHaveCount(1);
     expect(await page.evaluate(() => document.getAnimations().some((item) => item.effect?.getComputedTiming().iterations === Infinity))).toBe(false);
   });
 
   test("hero, học liệu, game và FAQ đều hiện nội dung thật", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByLabel("Minh họa quiz trực tiếp")).toBeVisible();
+    await expect(page.locator("section:has(h1) video")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Một ý tưởng hay, ngàn cách bắt đầu." })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Cả lớp cùng bật mood/ })).toBeVisible();
     const question = page.getByText("Tôi có thể dùng SmartTeach miễn phí không?");
@@ -56,34 +58,48 @@ test.describe("landing theo Figma", () => {
     await expect(page).toHaveURL(/\/(my-classes|login)(\?|$)/);
   });
 
-  test("Quiz Sheets theo chuột và về nghỉ, wash chỉ chạy một lần", async ({ page }) => {
+  test("video hero phát lặp, hỗ trợ tạm dừng và dừng khi cuộn ra ngoài", async ({ page }) => {
     await page.goto("/");
-    const demo = page.getByRole("img", { name: "Minh họa quiz trực tiếp" });
-    const sheet = demo.getByText("Quiz trực tiếp", { exact: true });
+    const video = page.locator("video");
     const cta = page.getByRole("link", { name: /Tạo lớp học miễn phí/ });
     await page.evaluate(() => document.fonts.ready);
-    const resting = (await sheet.boundingBox())!.x;
     const ctaResting = await cta.boundingBox();
-    const { x, y, width } = (await demo.boundingBox())!;
-    await expect(demo).toHaveAttribute("data-hero-wash", "");
-    await page.mouse.move(x + width * 0.2, y + 150);
-    await expect.poll(async () => (await sheet.boundingBox())!.x).toBeLessThan(resting - 1);
-    await page.mouse.move(x + width * 0.8, y + 150);
-    await expect.poll(async () => (await sheet.boundingBox())!.x).toBeGreaterThan(resting + 1);
+    await expect(video).toHaveJSProperty("loop", true);
+    await expect(video).toHaveJSProperty("muted", true);
+    await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.currentTime)).toBeGreaterThan(0);
     expect(await cta.boundingBox()).toEqual(ctaResting);
-    await page.mouse.move(30, 200);
-    await expect.poll(async () => Math.abs((await sheet.boundingBox())!.x - resting)).toBeLessThan(0.5);
-    await page.evaluate(() => scrollTo({ top: 1000, behavior: "instant" }));
-    await expect(demo).not.toHaveAttribute("data-hero-wash");
+
+    await page.getByRole("button", { name: "Tạm dừng video nền" }).press("Enter");
+    await expect(video).toHaveJSProperty("paused", true);
+    const scrollPastHero = () => video.evaluate((el) => {
+      const bottom = el.getBoundingClientRect().bottom + scrollY;
+      scrollTo({ top: bottom + 200, behavior: "instant" });
+    });
+    await scrollPastHero();
+    await expect(video).not.toBeInViewport();
     await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
-    await expect.poll(async () => {
-      await page.mouse.move(x + width * 0.7, y + 150);
-      await page.mouse.move(x + width * 0.8, y + 151);
-      return (await sheet.boundingBox())!.x;
-    }).toBeGreaterThan(resting + 1);
-    await expect(demo).not.toHaveAttribute("data-hero-wash");
+    await expect(video).toBeInViewport({ ratio: 0.25 });
+    await expect(video).toHaveJSProperty("paused", true);
+    await page.getByRole("button", { name: "Phát video nền" }).press("Enter");
+    await expect(video).toHaveJSProperty("paused", false);
+
+    await scrollPastHero();
+    await expect(video).not.toBeInViewport();
+    await expect(video).toHaveJSProperty("paused", true);
+    await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+    await expect(video).toHaveJSProperty("paused", false);
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await expect.poll(async () => Math.abs((await sheet.boundingBox())!.x - resting)).toBeLessThan(0.5);
+    await expect(video).not.toHaveAttribute("src");
+    await expect(video).toHaveJSProperty("paused", true);
+  });
+
+  test("lỗi tải video giữ ảnh lớp học và CTA", async ({ page }) => {
+    await page.route("**/hero/classroom-loop.mp4", (route) => route.abort());
+    const poster = page.waitForResponse((response) => response.url().endsWith("/hero/classroom-poster.webp"));
+    await page.goto("/");
+    expect((await poster).ok()).toBe(true);
+    await expect(page.locator("video")).toBeHidden();
+    await expect(page.getByRole("link", { name: /Tạo lớp học miễn phí/ })).toBeVisible();
   });
 
   test("header ẩn khi cuộn xuống và hiện bằng cuộn lên, chuột hoặc bàn phím", async ({ page }, testInfo) => {
@@ -132,7 +148,7 @@ test.describe("landing responsive", () => {
       await page.goto("/");
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-      const demo = (await page.getByRole("img", { name: "Minh họa quiz trực tiếp" }).boundingBox())!;
+      const demo = (await page.locator("video").boundingBox())!;
       expect(demo.x).toBeGreaterThanOrEqual(0);
       expect(demo.x + demo.width).toBeLessThanOrEqual(viewport.width);
       await page.evaluate(() => document.fonts.ready);
@@ -146,9 +162,9 @@ test.describe("giảm chuyển động", () => {
 
   test("không giữ animation đang chạy", async ({ page }) => {
     await page.goto("/");
-    const demo = page.getByRole("img", { name: "Minh họa quiz trực tiếp" });
-    await demo.hover();
-    await expect(demo).not.toHaveAttribute("data-quiz-tracking");
+    const video = page.locator("video");
+    await expect(video).not.toHaveAttribute("src");
+    await expect(video).toHaveJSProperty("paused", true);
     expect(await page.evaluate(() => document.getAnimations().filter((item) => item.playState === "running").length)).toBe(0);
     const cta = page.getByRole("link", { name: /Tạo lớp học miễn phí/ });
     const durations = await cta.evaluate((el) => getComputedStyle(el).transitionDuration.split(",").map(Number.parseFloat));
