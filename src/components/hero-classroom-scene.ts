@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { addClassroom, disposeClassroom, makeClassroomObjects } from "./hero-classroom-models";
-import { pointerImpulse } from "./hero-pointer-motion";
+import { classroomPose, pointerImpulse } from "./hero-pointer-motion";
 
 type ClassroomOptions = {
   canvas: HTMLCanvasElement;
@@ -20,17 +20,18 @@ export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOpt
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0xeaf1fc, 12, 25);
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 45);
-  const neutralCamera = camera.clone();
-  neutralCamera.position.copy(homeCamera);
-  neutralCamera.lookAt(cameraFocus);
-  neutralCamera.updateMatrixWorld();
+  camera.position.copy(homeCamera);
+  camera.lookAt(cameraFocus);
+  camera.updateMatrixWorld();
+  const roomView = camera.clone();
 
   const daylight = new THREE.DirectionalLight(0xfff5e3, 2.35);
   daylight.position.set(-4, 8, 5);
   const fill = new THREE.DirectionalLight(0xdce9ff, 1.15);
   fill.position.set(6, 4, -2);
   scene.add(new THREE.HemisphereLight(0xf5f9ff, 0xa1b5dd, 2.25), daylight, fill);
-  addClassroom(scene);
+  const room = addClassroom(scene);
+  room.matrixAutoUpdate = false;
 
   const models = makeClassroomObjects();
   const hitMaterial = new THREE.MeshBasicMaterial({ visible: false });
@@ -38,9 +39,9 @@ export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOpt
     { model: models.pencil, action: "move", x: 0.14, y: 0.14, z: 3.4, scale: 0.55, tilt: [0.10, -0.08, -0.52], drift: 0.12, phase: 1.2 },
     { model: models.extraQuiz, action: "quiz", x: 0.373, y: 0.15, z: 2.3, scale: 0.54, tilt: [-0.13, 0.23, -0.14], drift: 0.10, phase: 2.8 },
     { model: models.quiz, action: "quiz", x: 0.738, y: 0.46, z: 4.3, scale: 0.99, tilt: [0.04, -0.24, 0.10], drift: 0.20, phase: 0.2 },
-    { model: models.globe.model, action: "rotate", x: 0.89, y: 0.145, z: 3.3, scale: 0.83, tilt: [0.06, 0.12, -0.27], drift: 0.13, phase: 4.8 },
+    { model: models.globe.model, action: "rotate", x: 0.925, y: 0.15, z: 3.3, scale: 0.71, tilt: [0.06, 0.12, -0.27], drift: 0.10, phase: 4.8 },
     { model: models.notebook, action: "rotate", x: 0.238, y: 0.87, z: 3.9, scale: 0.73, tilt: [-0.24, -0.22, -0.08], drift: 0.17, phase: 3.8 },
-    { model: models.cube, action: "rotate", x: 0.57, y: 0.83, z: 3.0, scale: 0.76, tilt: [0.34, -0.37, -0.22], drift: 0.11, phase: 5.7 },
+    { model: models.cube, action: "rotate", x: 0.57, y: 0.83, z: 3.0, scale: 0.76, tilt: [0.55, -0.55, -0.18], drift: 0.11, phase: 5.7 },
     { model: models.ruler, action: "move", x: 0.89, y: 0.79, z: 3.4, scale: 0.78, tilt: [-0.13, -0.11, 0.21], drift: 0.13, phase: 1.9 },
   ] as const;
   const objects = placements.map((placement) => {
@@ -73,8 +74,9 @@ export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOpt
   let running = false;
   let lost = false;
   let lastFrame = 0;
+  let roomTime = 0;
 
-  function trackCamera(event: PointerEvent) {
+  function trackRoomPointer(event: PointerEvent) {
     if (!running || gesture || event.pointerType !== "mouse" || event.buttons !== 0) return;
     if (event.target instanceof Element && event.target.closest("button, a, dialog")) {
       lastPointer = undefined;
@@ -87,19 +89,22 @@ export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOpt
   }
 
   function draw(now: number) {
-    const delta = lastFrame && running ? Math.min(0.05, (now - lastFrame) / 1000) : 0;
+    const elapsed = lastFrame && running ? (now - lastFrame) / 1000 : 0;
+    const delta = Math.min(0.05, elapsed);
     lastFrame = now;
+    roomTime += elapsed;
     if (!lastPointer || now - lastPointer.at > 55) velocity.multiplyScalar(Math.exp(-delta * 8));
-    if (!gesture) {
-      orbit.x = THREE.MathUtils.damp(orbit.x, velocity.x, 12, delta);
-      orbit.y = THREE.MathUtils.damp(orbit.y, velocity.y, 12, delta);
-    }
-    camera.position.set(homeCamera.x + orbit.x * 0.70, homeCamera.y - orbit.y * 0.40, homeCamera.z);
-    aim.copy(cameraFocus);
-    aim.x += orbit.x * 0.16;
-    aim.y -= orbit.y * 0.10;
-    camera.lookAt(aim);
-    camera.rotateZ(-orbit.x * 0.023);
+    orbit.x = THREE.MathUtils.damp(orbit.x, velocity.x, 12, delta);
+    orbit.y = THREE.MathUtils.damp(orbit.y, velocity.y, 12, delta);
+    const pose = classroomPose(roomTime, orbit);
+    roomView.position.set(homeCamera.x + pose.x, homeCamera.y + pose.y, homeCamera.z + pose.z);
+    aim.set(cameraFocus.x + pose.lookX, cameraFocus.y + pose.lookY, cameraFocus.z);
+    roomView.lookAt(aim);
+    roomView.rotateZ(pose.roll);
+    roomView.updateMatrixWorld();
+    // Apply the moving viewpoint to the room alone. Foreground rendering and picking share the fixed camera.
+    room.matrix.multiplyMatrices(camera.matrixWorld, roomView.matrixWorldInverse);
+    room.matrixWorldNeedsUpdate = true;
 
     for (const object of objects) {
       if (gesture?.object !== object) {
@@ -128,12 +133,11 @@ export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOpt
     if (!width || !height) return;
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5, Math.sqrt(2_300_000 / (width * height))));
     renderer.setSize(width, height, false);
-    camera.aspect = neutralCamera.aspect = width / height;
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    neutralCamera.updateProjectionMatrix();
     for (const object of objects) {
       cursor.set(object.x * 2 - 1, 1 - object.y * 2);
-      raycaster.setFromCamera(cursor, neutralCamera);
+      raycaster.setFromCamera(cursor, camera);
       plane.constant = -object.z;
       raycaster.ray.intersectPlane(plane, object.home);
     }
@@ -239,7 +243,7 @@ export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOpt
   resize();
   const observer = new ResizeObserver(resize);
   observer.observe(canvas);
-  hero.addEventListener("pointermove", trackCamera);
+  hero.addEventListener("pointermove", trackRoomPointer);
   hero.addEventListener("pointerleave", resetCursor);
   canvas.addEventListener("pointerdown", pointerDown);
   canvas.addEventListener("pointermove", pointerMove);
@@ -261,7 +265,7 @@ export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOpt
     dispose() {
       stop();
       observer.disconnect();
-      hero.removeEventListener("pointermove", trackCamera);
+      hero.removeEventListener("pointermove", trackRoomPointer);
       hero.removeEventListener("pointerleave", resetCursor);
       canvas.removeEventListener("pointerdown", pointerDown);
       canvas.removeEventListener("pointermove", pointerMove);

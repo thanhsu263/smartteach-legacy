@@ -132,6 +132,7 @@ export function addClassroom(scene: THREE.Scene) {
     });
     room.add(copies);
   }
+  return room;
 }
 
 function quizCard() {
@@ -207,8 +208,9 @@ function ruler() {
 
 function cube() {
   const model = new THREE.Group();
-  const frame = material(navy);
-  const palette = [0x5793ff, 0xffd453, 0xf0f5ff, 0xffa586, 0x6dbce0, 0x2259ed].map(material);
+  const frame = material(0x17171b);
+  // Right/left, up/down, front/back. White up and green front put red on the right.
+  const palette = [0xda1e29, 0xff7209, 0xffffff, 0xffd500, 0x009e55, 0x0059c8].map(material);
   box(model, frame, 1, 1, 1, 0, 0, 0, 0.065);
   const normals = [new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)];
   for (const [i, normal] of normals.entries()) {
@@ -251,12 +253,21 @@ function globe() {
   map.colorSpace = THREE.SRGBColorSpace;
   const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.57, 32, 24), new THREE.MeshStandardMaterial({ map, roughness: 0.72 }));
   model.add(sphere);
-  const meridian = new THREE.Mesh(new THREE.TorusGeometry(0.66, 0.025, 12, 48), material(navy));
-  meridian.rotation.y = 0.42;
+  const stand = material(navy);
+  const meridian = new THREE.Mesh(new THREE.TorusGeometry(0.64, 0.025, 12, 40, Math.PI), stand);
+  meridian.rotation.z = Math.PI / 2;
+  meridian.rotation.y = 0.26;
   model.add(meridian);
   const pins = material(yellow);
   cylinder(model, pins, 0.065, 0.065, 0.10, 0.645);
   cylinder(model, pins, 0.065, 0.065, 0.10, -0.645);
+  const pedestal = new THREE.Group();
+  pedestal.rotation.z = 0.27;
+  cylinder(pedestal, stand, 0.048, 0.079, 0.205, -0.70);
+  cylinder(pedestal, stand, 0.10, 0.22, 0.082, -0.82);
+  cylinder(pedestal, stand, 0.265, 0.285, 0.085, -0.89, 40);
+  cylinder(pedestal, pins, 0.268, 0.271, 0.017, -0.86, 40);
+  model.add(pedestal);
   return { model, sphere };
 }
 

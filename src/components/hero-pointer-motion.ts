@@ -11,3 +11,19 @@ export function pointerImpulse(previous: PointerSample, current: PointerSample) 
   const scale = 1 / Math.max(1, Math.hypot(x, y), maxPointerSpeed * Math.max(8, elapsed) / 1000);
   return { x: x * scale, y: y * scale };
 }
+
+export function classroomPose(seconds: number, pointer: { x: number; y: number }) {
+  const phase = seconds / 8 * Math.PI * 2;
+  const pan = Math.sin(phase);
+  const drift = 1 - Math.cos(phase);
+  const shake = 0.2;
+
+  return {
+    x: pan * 0.10 + pointer.x * 0.70 * shake,
+    y: -drift * 0.025 - pointer.y * 0.40 * shake,
+    z: -drift * 0.09,
+    lookX: pan * 0.018 + pointer.x * 0.16 * shake,
+    lookY: -pointer.y * 0.10 * shake,
+    roll: -pointer.x * 0.023 * shake,
+  };
+}

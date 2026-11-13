@@ -34,3 +34,5 @@ JavaScript gzip tăng 3,11 KiB ở landing, 1,47 KiB ở trang đồng hồ và 
 Hero dùng hình học Three.js dựng theo bố cục video đã duyệt. Camera nhận vận tốc chuột theo px/giây, giới hạn ở 1.500 px/giây và hãm về vị trí ban đầu. Khi nắm vật thể, camera giữ góc nhìn để phép kéo và xoay ổn định. Bút chì và thước di chuyển theo chuột. Cuốn vở, quả địa cầu và Rubik xoay. Hai thẻ mở cùng một câu hỏi mẫu bằng dialog. Màn hình hẹp, thiết bị cảm ứng và tùy chọn giảm chuyển động dùng ảnh lớp học tĩnh cùng nút thử quiz. Three.js được nạp động khi hero đủ điều kiện hiển thị.
 
 Build production, ESLint các tệp sửa, Vitest 296/296 và hai spec Playwright landing 35/35 đã đạt. Playwright kiểm thao tác kéo, mở thẻ, trả lời và đóng quiz, chế độ tĩnh, mất WebGL, tạm dừng và các viewport 320/375/768/1280 trên Chromium.
+
+Lớp học hiện lia ngang và tiến lùi theo chu kỳ 8 giây, dựa trên nhịp nền Arena3. Phần phản hồi theo chuột còn 20% biên độ ban đầu. Cảnh lớp học nhận biến đổi riêng, còn vật thể nổi và phép chọn bằng chuột dùng camera cố định. Rubik dùng sáu màu chuẩn, quả địa cầu có chân đế và ảnh tĩnh được chụp lại từ cảnh mới.
