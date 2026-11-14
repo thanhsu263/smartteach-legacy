@@ -36,3 +36,15 @@ Hero dùng hình học Three.js dựng theo bố cục video đã duyệt. Camer
 Build production, ESLint các tệp sửa, Vitest 296/296 và hai spec Playwright landing 35/35 đã đạt. Playwright kiểm thao tác kéo, mở thẻ, trả lời và đóng quiz, chế độ tĩnh, mất WebGL, tạm dừng và các viewport 320/375/768/1280 trên Chromium.
 
 Lớp học hiện lia ngang và tiến lùi theo chu kỳ 8 giây, dựa trên nhịp nền Arena3. Phần phản hồi theo chuột còn 20% biên độ ban đầu. Cảnh lớp học nhận biến đổi riêng, còn vật thể nổi và phép chọn bằng chuột dùng camera cố định. Rubik dùng sáu màu chuẩn, quả địa cầu có chân đế và ảnh tĩnh được chụp lại từ cảnh mới.
+
+## Viền nút và hiệu ứng xuất hiện trên landing
+
+Viền sáng nhận chuột trong 100 px từ mép nút. Khi chuột ở xa, vùng sáng quay một vòng trong 3,2 giây trên các nút đang trong khung nhìn. Nút kính dùng nền trắng 10%, tăng lên 20% khi hover, và làm mờ hậu cảnh 8 px theo mẫu Arena3. Viền và chữ đổi theo màu nền để giữ khả năng đọc.
+
+FoldText áp dụng cho tiêu đề section và tiêu đề thẻ bên dưới hero chưa có hiệu ứng. ScrollFloat giữ thời lượng 1,5 giây mỗi từ. ScrollFloat, FoldText và CountUp phát lại khi cuộn quay về và hiển thị nội dung tĩnh với tùy chọn Giảm chuyển động.
+
+Hai spec Playwright landing đạt 40/40 trên production build local. Ảnh đối chiếu nút và thông số trình duyệt nằm trong `artifacts/landing-motion-polish/`.
+
+Ở lượt tinh chỉnh tiếp theo, lớp trắng của nút kính còn 5% khi nghỉ và 10% khi hover. Nút demo bỏ viền trang trí và giữ chỉ báo focus. “Mở tri thức.” dùng GradientText xanh navy, cobalt và tím. Khi cuộn lên, các tiêu đề và số chạy ngược hiệu ứng lúc chúng lùi về mép dưới khung nhìn. Điều hướng trong landing giữ địa chỉ sạch, lưu vị trí trong history và vẫn mở được liên kết cũ có fragment.
+
+Toàn bộ 19 tiêu đề chuyển sang ScrollFloat 1,3 giây mỗi từ. Biên độ dịch dọc còn 44,8% chiều cao chữ và độ kéo giãn còn 14%, cùng giảm 30% so với ScrollFloat trước đó. Nút demo có lại viền sáng chuyển động. Nhãn “Một không gian. Muôn cách học hay.” dùng cùng hiệu ứng viền và giữ vị trí cố định. “Bật hứng khởi.” dùng gradient navy và xanh lam đậm.

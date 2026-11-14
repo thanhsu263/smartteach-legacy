@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "./button";
+import { LandingButtonEffects } from "./landing-button-effects";
 import type { mountClassroom } from "./hero-classroom-scene";
 import styles from "./landing-hero-classroom.module.css";
 
-const motionPreference = "(width > 1000px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)";
+const motionPreference = "(prefers-reduced-motion: no-preference)";
 const answers = ["2/9", "1/2", "3/6", "5/6"];
 
 export function LandingHeroClassroom() {
@@ -14,7 +15,6 @@ export function LandingHeroClassroom() {
   const quizButton = useRef<HTMLButtonElement>(null);
   const [answer, setAnswer] = useState<string | null>(null);
   const [sceneState, setSceneState] = useState<"poster" | "running" | "paused">("poster");
-  const pausedByUser = useRef(false);
   const syncScene = useRef<() => void>(null);
 
   function openQuiz() {
@@ -43,20 +43,17 @@ export function LandingHeroClassroom() {
     }
 
     function sync() {
-      if (!media.matches || failed) {
-        scene?.setRunning(false);
-        setSceneState("poster");
-        return;
-      }
-      const active = inView && !document.hidden && !pausedByUser.current && !dialogRef.current?.open;
+      if (failed) return;
+      const visible = inView && !document.hidden;
       if (scene) {
-        scene.setRunning(active);
-        setSceneState(active ? "running" : "paused");
-      } else if (active && !loading) {
+        const running = visible && media.matches && !dialogRef.current?.open;
+        scene.setRunning(running, !media.matches);
+        setSceneState(running ? "running" : "paused");
+      } else if (visible && !loading) {
         loading = true;
         void import("./hero-classroom-scene").then(({ mountClassroom }) => {
           loading = false;
-          if (disposed || !media.matches || !inView || document.hidden || !canvas || !hero) return;
+          if (disposed || !inView || document.hidden || !canvas || !hero) return;
           scene = mountClassroom({ canvas, hero, onQuiz: openQuiz, onFailure: failScene });
           sync();
         }).catch(() => {
@@ -84,23 +81,15 @@ export function LandingHeroClassroom() {
     };
   }, []);
 
-  const running = sceneState === "running";
-  const motionAction = running ? "Tạm dừng chuyển động lớp học" : "Bật chuyển động lớp học";
   return (
     <div className={styles.stage} data-hero-classroom data-scene={sceneState}>
-      <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />
+      <div className={styles.scenery} data-hero-scenery aria-hidden="true">
+        <canvas ref={canvasRef} className={styles.canvas} />
+      </div>
       <div className={styles.controls}>
-        <Button ref={quizButton} className={styles.quizButton} aria-haspopup="dialog" onClick={openQuiz}>
-          Thử một câu quiz <span aria-hidden="true">↗</span>
+        <Button ref={quizButton} aria-haspopup="dialog" onClick={openQuiz}>
+          <LandingButtonEffects tone="glass">Thử một câu quiz <span aria-hidden="true">↗</span></LandingButtonEffects>
         </Button>
-        {sceneState !== "poster" && (
-          <button type="button" className={styles.motionButton} aria-label={motionAction} title={motionAction} onClick={() => {
-            pausedByUser.current = running;
-            syncScene.current?.();
-          }}>
-            <span aria-hidden="true" className={running ? styles.pauseIcon : styles.playIcon} />
-          </button>
-        )}
       </div>
       <dialog ref={dialogRef} className={styles.dialog} aria-labelledby="hero-quiz-title" onClose={() => {
         quizButton.current?.focus({ preventScroll: true });

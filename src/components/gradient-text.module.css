@@ -1,0 +1,37 @@
+.text {
+  width: fit-content;
+  max-width: 100%;
+  color: var(--gradient-ink, var(--blue));
+}
+
+.text[data-gradient-text='navy'] {
+  --gradient-ink: var(--ink);
+  --gradient-middle: #243f72;
+  --gradient-accent: #31528c;
+}
+
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  @media (forced-colors: none) {
+    .text {
+      background-image: linear-gradient(
+        105deg,
+        var(--gradient-ink, var(--navy)),
+        var(--gradient-middle, var(--blue)) 34%,
+        var(--gradient-accent, #633cbe) 68%,
+        var(--gradient-ink, var(--navy))
+      );
+      background-size: 180% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+  .text { animation: flow 4s ease-in-out infinite alternate; }
+}
+
+@keyframes flow {
+  to { background-position: 100% 50%; }
+}

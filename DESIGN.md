@@ -141,7 +141,7 @@ Xanh dương làm màu chủ đạo, vàng chỉ cho nút kêu gọi hành độ
 **Character:** Một họ chữ sans hình học thân thiện, thiết kế cho tiếng Việt nên dấu không bị chen. Tất cả vai trò dùng cùng họ chữ, khác nhau ở cỡ và đậm.
 
 ### Hierarchy
-- **Display** (800, 2.75rem trên màn rộng và 2.25rem trên điện thoại, 1.15): chỉ tiêu đề hero trang chủ.
+- **Display** (800, cỡ chữ theo chiều ngang vùng nội dung, tối đa 6rem trên màn rộng và 4rem trên điện thoại, line-height 1.12): chỉ tiêu đề hero trang chủ.
 - **Headline** (700, 1.875rem, 1.25): tiêu đề từng khu vực của trang.
 - **Title** (600, 1.25rem, 1.35): tiêu đề thẻ, tên tiện ích.
 - **Body** (400, 1rem, 1.6): đoạn mô tả; dòng dài tối đa 65-75ch.
@@ -210,7 +210,7 @@ Chiều sâu đến từ phân cấp vật liệu, không phải trang trí. Car
 - **Don't** sao chép logo, hình ảnh hay câu chữ của ezthi.com.
 - **Don't** dùng `border-left` hay `border-right` dày hơn 1px làm vạch màu trên thẻ.
 - **Don't** dùng chữ gradient, kính mờ chỉ để trang trí, hay lưới thẻ giống hệt nhau lặp vô tận.
-- **Don't** dùng nền chuyển động toàn màn hình, choreography trang trí theo scroll/route hoặc magnetic. Giới hạn phản hồi 3D theo con trỏ vào hero landing theo mục 7. Chuyển động header phục vụ điều hướng.
+- **Don't** dùng nền chuyển động toàn màn hình, choreography trang trí theo scroll/route hoặc magnetic ngoài ngoại lệ hero landing ở mục 7. Chuyển động header phục vụ điều hướng.
 - **Don't** phủ kính, thêm nền động, parallax hoặc tilt vào màn hình chiếu của quiz trực tiếp, đồng hồ fullscreen, canvas bảng trắng, khung game hoặc vùng nhập liệu quan trọng.
 - **Don't** dùng nhãn nhỏ viết hoa cách chữ (eyebrow) trên đầu mọi khu vực.
 - **Don't** dùng màu làm tín hiệu duy nhất cho trạng thái lỗi hoặc thành công.
@@ -227,6 +227,12 @@ Hệ vật liệu theo tinh thần Apple: phản hồi trực tiếp, chuyển �
 
 **Motion grammar:** press 100 ms, đổi trạng thái 180 ms, mở menu/sheet 260 ms. Exit tối đa 180 ms khi giữ được focus và ngữ nghĩa. Nếu browser thiếu hỗ trợ, dùng mở/đóng tức thì. Tooltip hiện khi hover ổn định hoặc focus, đóng bằng Escape hoặc khi rời. Loading phản ánh request thật. Skeleton trong vùng làm việc có thể shimmer tối đa 4,2 giây rồi giữ tĩnh. Feedback xuất hiện ở đúng tác vụ, có chữ và thông báo hỗ trợ trình đọc màn hình. Reduced motion dùng trạng thái tức thì, skeleton tĩnh và cuộn theo hành vi mặc định của trình duyệt.
 
-**Ngoại lệ hero landing:** cảnh lớp học 3D tải khi hero vào vùng nhìn, ở màn rộng hơn 1000 px với con trỏ fine có hover và cho phép chuyển động. Nền lớp học lia ngang và tiến lùi nhẹ theo chu kỳ 8 giây, với phản hồi nhỏ theo hướng và tốc độ chuột. Vật thể nổi dùng góc nhìn cố định để quỹ đạo, vùng bấm và thao tác kéo độc lập với nền. Người dùng có thể kéo dụng cụ, xoay vật thể hoặc mở thẻ quiz. Chuyển động dừng khi người dùng tạm dừng, mở quiz, cuộn khỏi hero hoặc ẩn tab. Ảnh tĩnh dùng trong khi tải, trên touch, ở màn hẹp, khi giảm chuyển động hoặc WebGL không khả dụng. Nút thử quiz hỗ trợ chuột, chạm và bàn phím. Lớp phủ sáng giữ độ tương phản của chữ và CTA.
+**Ngoại lệ hero landing:** cảnh lớp học 3D phủ toàn bộ hero, từ dưới header đến hết màn hình đầu tiên, và tự chạy khi hero vào vùng nhìn. Lớp học có hai tường bên, cửa sổ, trần và các dãy bàn ở nhiều độ sâu. Nền lia ngang và tiến lùi theo chu kỳ 8 giây, với phản hồi nhỏ theo hướng và tốc độ chuột. Vật thể nổi dùng góc nhìn cố định để quỹ đạo, vùng bấm và thao tác kéo độc lập với nền. Chuyển động dừng khi mở quiz, cuộn khỏi hero hoặc ẩn tab. Tùy chọn Giảm chuyển động giữ cảnh 3D đứng yên. Ảnh tĩnh dùng trong khi tải hoặc khi WebGL không khả dụng. Nút thử quiz hỗ trợ chuột, chạm và bàn phím. Lớp phủ sáng giữ độ tương phản của chữ và CTA.
+
+Khi cuộn qua hero, CSS scroll-driven animation bù 60% quãng cuộn cho lớp hình ảnh lớp học. Nền dịch 40 px khi tiêu đề và các nút dịch 100 px. Giảm chuyển động tắt parallax và giữ cảnh 3D đứng yên. Trình duyệt thiếu hỗ trợ parallax dùng cuộn thông thường.
+
+Trên landing, Lenis hãm cuộn dọc bằng con lăn theo nhịp 1,1 giây khi thiết bị dùng chuột và cho phép chuyển động. Cuộn cảm ứng và điều hướng bằng bàn phím dùng hành vi trình duyệt. Giảm chuyển động tắt quán tính và mở liên kết đến các phần trong trang tức thì.
+
+Menu ngang dùng hiệu ứng Rubber Segment cho nền mục hiện tại. Nền co giãn theo mục được chọn hoặc theo phần đang đọc. Người dùng chuột có thể kéo nền sang mục khác. Giảm chuyển động chuyển nền tức thì. Các mục dùng liên kết anchor và giữ ngữ nghĩa điều hướng.
 
 **Khả năng thích ứng:** `prefers-reduced-transparency` đổi lớp nổi sang nền đặc; `prefers-contrast` tăng viền; fallback không có `backdrop-filter` vẫn đọc và dùng được. Khung game, màn hình quiz và canvas bảng trắng luôn tránh blur.

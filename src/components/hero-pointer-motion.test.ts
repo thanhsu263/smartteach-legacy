@@ -33,13 +33,13 @@ describe("chu kỳ lớp học", () => {
     }
   });
 
-  it("giữ 20% biên độ rung chuột trên từng trục", () => {
+  it("giảm một nửa biên độ rung chuột trên từng trục", () => {
     const resting = classroomPose(2, restingPointer);
     const moving = classroomPose(2, { x: 1, y: 1 });
-    expect(moving.x - resting.x).toBeCloseTo(0.14);
-    expect(moving.y - resting.y).toBeCloseTo(-0.08);
-    expect(moving.lookX - resting.lookX).toBeCloseTo(0.032);
-    expect(moving.lookY - resting.lookY).toBeCloseTo(-0.02);
-    expect(moving.roll - resting.roll).toBeCloseTo(-0.0046);
+    expect(moving.x - resting.x).toBeCloseTo(0.07);
+    expect(moving.y - resting.y).toBeCloseTo(-0.04);
+    expect(moving.lookX - resting.lookX).toBeCloseTo(0.016);
+    expect(moving.lookY - resting.lookY).toBeCloseTo(-0.01);
+    expect(moving.roll - resting.roll).toBeCloseTo(-0.0023);
   });
 });

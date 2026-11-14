@@ -63,10 +63,17 @@ export function addClassroom(scene: THREE.Scene) {
   const seat = material(0xbbcce7);
   const book = material(0x91abd4);
 
-  box(room, plaster, 35, 10, 0.25, 0, 5, -5.8);
-  box(room, floor, 36, 0.15, 23, 0, -0.09, 0);
-  box(room, trim, 35, 0.18, 0.13, 0, 0.11, -5.6, 0.02);
-  box(room, trim, 35, 0.08, 0.14, 0, 5.9, -5.61, 0.02);
+  const roomWidth = 19.8;
+  const roomDepth = 21.6;
+  const roomHeight = 6.85;
+  const roomCenterZ = 5;
+  const sidePlaster = material(0xd6e3f7);
+  const ceiling = material(0xeaf1fc);
+  box(room, plaster, roomWidth, roomHeight, 0.25, 0, roomHeight / 2, -5.8);
+  box(room, floor, roomWidth, 0.15, roomDepth, 0, -0.09, roomCenterZ);
+  box(room, ceiling, roomWidth, 0.18, roomDepth, 0, roomHeight, roomCenterZ);
+  box(room, trim, roomWidth, 0.18, 0.13, 0, 0.11, -5.6, 0.02);
+  box(room, trim, roomWidth, 0.08, 0.14, 0, 5.9, -5.61, 0.02);
 
   const grid = new THREE.GridHelper(34, 17, 0xc7d6ee, 0xc7d6ee);
   grid.position.y = -0.012;
@@ -74,9 +81,10 @@ export function addClassroom(scene: THREE.Scene) {
   grid.material.opacity = 0.48;
   room.add(grid);
 
-  for (const center of [-6.25, 6.25]) {
+  function addWindow(x: number, y: number, z: number, angle = 0) {
     const window = new THREE.Group();
-    window.position.set(center, 4.95, -5.55);
+    window.position.set(x, y, z);
+    window.rotation.y = angle;
     room.add(window);
     box(window, trim, 3.75, 2.77, 0.17, 0, 0, 0, 0.05);
     box(window, glass, 3.48, 2.50, 0.09, 0, 0, 0.10, 0.02);
@@ -84,6 +92,34 @@ export function addClassroom(scene: THREE.Scene) {
     box(window, trim, 0.08, 2.57, 0.13, 0, 0, 0.16);
     box(window, trim, 3.54, 0.08, 0.13, 0, 0.19, 0.16);
     box(window, trim, 3.98, 0.12, 0.47, 0, -1.4, 0.15, 0.03);
+  }
+
+  addWindow(-6.25, 4.77, -5.55);
+  addWindow(6.25, 4.77, -5.55);
+
+  for (const side of [-1, 1]) {
+    const wallX = side * roomWidth / 2;
+    box(room, sidePlaster, 0.24, roomHeight, roomDepth, wallX, roomHeight / 2, roomCenterZ);
+    box(room, trim, 0.15, 0.18, roomDepth, wallX - side * 0.17, 0.11, roomCenterZ);
+    box(room, trim, 0.15, 0.08, roomDepth, wallX - side * 0.17, 5.9, roomCenterZ);
+    for (const z of [-2.3, 2.4]) addWindow(wallX - side * 0.15, 3.75, z, -side * Math.PI / 2);
+
+    const cabinet = new THREE.Group();
+    cabinet.position.set(side * 8.6, 0, -5.14);
+    room.add(cabinet);
+    box(cabinet, seat, 1.62, 1.25, 0.65, 0, 0.66, 0, 0.045);
+    box(cabinet, top, 1.70, 0.09, 0.72, 0, 1.32, 0, 0.032);
+    for (const x of [-0.39, 0.39]) {
+      box(cabinet, trim, 0.74, 0.99, 0.08, x, 0.66, 0.34, 0.03);
+      box(cabinet, aluminum, 0.09, 0.19, 0.055, x * 0.37, 0.71, 0.40, 0.02);
+    }
+  }
+
+  for (const x of [-5, 0, 5]) {
+    for (const z of [-3.25, 0.85, 4.95]) {
+      box(room, aluminum, 1.42, 0.09, 2.12, x, 6.72, z, 0.035);
+      box(room, sunlitGlass, 1.32, 0.035, 2.01, x, 6.66, z, 0.02);
+    }
   }
 
   box(room, aluminum, 6.15, 2.48, 0.14, 0.05, 3.32, -5.56, 0.08);
@@ -110,9 +146,10 @@ export function addClassroom(scene: THREE.Scene) {
 
   const desks: THREE.Vector3[] = [];
   const positions = [-7.1, -4.8, -2.45, 0, 2.45, 4.8, 7.1];
-  for (const [row, z] of [-3.7, -1.7, 0.65].entries()) {
+  for (const [row, z] of [-3.7, -1.7, 0.65, 2.8].entries()) {
     for (const [column, x] of positions.entries()) {
       if (row === 2 && column % 3 === 1) continue;
+      if (row === 3 && Math.abs(x) < 4) continue;
       const center = new THREE.Vector3(x + (row === 1 ? 0.6 : 0), 0, z);
       desks.push(center);
       if ((column + row) % 3 === 0) {

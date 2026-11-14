@@ -85,12 +85,12 @@ test.describe("điều hướng", () => {
   });
 
   test("anchor đặt nội dung dưới header, giữ focus, mục hiện tại và history", async ({ page }) => {
-    await page.goto("/#hoc-lieu");
+    await page.goto("/?preview=1#hoc-lieu");
     const header = page.locator("header").first();
     const nav = header.getByRole("navigation", { name: "Điều hướng landing" });
     const assertAnchor = async (id: string) => {
       const section = page.locator(`#${id}`);
-      await expect(page).toHaveURL(new RegExp(`#${id}$`));
+      await expect(page).toHaveURL("/?preview=1");
       await expect.poll(async () => {
         const offset = (await section.boundingBox())!.y - (await header.boundingBox())!.height;
         return Math.abs(offset - 12);
@@ -111,7 +111,7 @@ test.describe("điều hướng", () => {
     const historyLength = await page.evaluate(() => history.length);
     await page.locator("#giao-vien").evaluate((el) => el.scrollIntoView());
     await expect(nav.locator('a[href="#giao-vien"]')).toHaveAttribute("aria-current", "location");
-    await expect(page).toHaveURL(/#hoc-lieu$/);
+    await expect(page).toHaveURL("/?preview=1");
     expect(await page.evaluate(() => history.length)).toBe(historyLength);
   });
 });
@@ -134,6 +134,8 @@ test.describe("landing trên điện thoại", () => {
 
   test("giữ CTA chính dễ chạm và ẩn navigation desktop", async ({ page }) => {
     await page.goto("/");
+    await expect(page.locator("header").filter({ has: page.getByLabel("Menu", { exact: true }) })).toHaveCSS("height", "46px");
+    await expect(page.getByLabel("Menu", { exact: true })).toHaveCSS("height", "44px");
     await expect(page.getByRole("navigation", { name: "Điều hướng landing" })).toBeHidden();
     const cta = page.getByRole("link", { name: /Tạo lớp học miễn phí/ });
     await expect(cta).toBeVisible();
@@ -161,15 +163,15 @@ test.describe("landing trên điện thoại", () => {
 });
 
 for (const width of [375, 768]) {
-  test(`landing ${width}px dùng được bằng tap và hero tĩnh`, async ({ browser, baseURL }) => {
+  test(`landing ${width}px dùng được bằng tap và nền 3D tự chạy`, async ({ browser, baseURL }) => {
     const context = await browser.newContext({ baseURL, viewport: { width, height: 812 }, hasTouch: true, reducedMotion: "no-preference" });
     try {
       const page = await context.newPage();
       await page.goto("/");
       const stage = page.locator("[data-hero-classroom]");
       await expect(stage).toBeVisible();
-      await expect(stage).toHaveAttribute("data-scene", "poster");
-      await expect(stage.locator("canvas")).toBeHidden();
+      await expect(stage).toHaveAttribute("data-scene", "running");
+      await expect(stage.locator("canvas")).toBeVisible();
       await page.getByRole("button", { name: "Thử một câu quiz" }).tap();
       const quiz = page.getByRole("dialog", { name: "Thử một câu quiz" });
       await quiz.getByRole("button", { name: "5/6" }).tap();
@@ -182,7 +184,7 @@ for (const width of [375, 768]) {
       await menu.tap();
       const mobile = page.getByRole("navigation", { name: "Điều hướng landing trên điện thoại" });
       await mobile.getByRole("link", { name: "Cách hoạt động" }).tap();
-      await expect(page).toHaveURL(/#cach-dung$/);
+      await expect(page).toHaveURL("/");
       await expect(page.locator("#cach-dung h2")).toBeFocused();
       await expect(mobile).toBeHidden();
       expect((await page.locator("header").first().boundingBox())!.y).toBe(0);

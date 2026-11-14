@@ -1,0 +1,25 @@
+.count {
+  position: relative;
+  display: inline-grid;
+  font-variant-numeric: tabular-nums;
+}
+
+.count > span {
+  grid-area: 1 / 1;
+}
+
+.count > span:first-child { opacity: 0; }
+
+.word {
+  display: inline-block;
+  transform-origin: center bottom;
+}
+
+.line {
+  display: block;
+}
+
+:focus > .float .word {
+  opacity: 1 !important;
+  transform: none !important;
+}

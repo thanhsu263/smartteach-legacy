@@ -16,13 +16,13 @@ export function classroomPose(seconds: number, pointer: { x: number; y: number }
   const phase = seconds / 8 * Math.PI * 2;
   const pan = Math.sin(phase);
   const drift = 1 - Math.cos(phase);
-  const shake = 0.2;
+  const shake = 0.1;
 
   return {
-    x: pan * 0.10 + pointer.x * 0.70 * shake,
+    x: pan * 0.32 + pointer.x * 0.70 * shake,
     y: -drift * 0.025 - pointer.y * 0.40 * shake,
     z: -drift * 0.09,
-    lookX: pan * 0.018 + pointer.x * 0.16 * shake,
+    lookX: pan * 0.22 + pointer.x * 0.16 * shake,
     lookY: -pointer.y * 0.10 * shake,
     roll: -pointer.x * 0.023 * shake,
   };

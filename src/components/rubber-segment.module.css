@@ -1,0 +1,26 @@
+nav.track {
+  position: relative;
+  gap: 0;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--color-surface-subtle, var(--pale));
+}
+
+.track a {
+  position: relative;
+  padding-inline: clamp(9px, 1.2vw, 18px);
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.thumb {
+  position: absolute;
+  inset: 4px 0;
+  background: var(--color-surface);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .track a[aria-current] { cursor: grab; user-select: none; }
+  .track a[aria-current]:active { cursor: grabbing; }
+}

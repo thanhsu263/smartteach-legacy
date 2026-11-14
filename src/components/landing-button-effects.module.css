@@ -1,0 +1,136 @@
+.label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: inherit;
+  text-align: inherit;
+}
+
+@keyframes orbitRim {
+  to { rotate: 1turn; }
+}
+
+.rim { display: none; }
+
+:is(a, button):has(> .label) { position: relative; }
+
+:has(> .label[data-button-surface='badge']) {
+  position: relative;
+  --button-rim: var(--blue);
+}
+
+:is(a, button):has(> .label[data-button-surface='blue']) { --button-shadow: #2259ed; --button-shadow-end: #8065ef; }
+:is(a, button):has(> .label[data-button-surface='yellow']) { --button-shadow: #f5b731; --button-shadow-end: #f48a54; }
+
+:is(a, button):has(> .label:is([data-button-surface='blue'], [data-button-surface='yellow'])) {
+  isolation: isolate;
+  box-shadow: 0 5px 11px color-mix(in srgb, var(--button-shadow) 24%, transparent);
+}
+
+:is(a, button):has(> .label:is([data-button-surface='blue'], [data-button-surface='yellow']))::before {
+  position: absolute;
+  z-index: -1;
+  inset: auto 8% -3px;
+  height: 30%;
+  border-radius: inherit;
+  background: linear-gradient(105deg, var(--button-shadow), var(--button-shadow-end));
+  filter: blur(8px);
+  opacity: 0.5;
+  content: '';
+  pointer-events: none;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  @media not (prefers-reduced-transparency: reduce) {
+    :is(a, button):has(> .label[data-button-surface='glass']) {
+      background: var(--button-glass-fill, rgb(255 255 255 / .05));
+      border-color: var(--button-glass-border, rgb(16 43 104 / .38));
+      color: var(--button-glass-ink, var(--ink));
+      -webkit-backdrop-filter: var(--landing-glass-blur, blur(8px));
+      backdrop-filter: var(--landing-glass-blur, blur(8px));
+      box-shadow: none;
+    }
+
+    @media (hover: hover) {
+      :is(a, button):has(> .label[data-button-surface='glass']):hover:not(:disabled, [aria-disabled='true']) {
+        background: var(--button-glass-hover, rgb(255 255 255 / .1));
+        border-color: var(--button-glass-border-hover, rgb(16 43 104 / .65));
+      }
+    }
+  }
+}
+
+@media (forced-colors: active) {
+  :is(a, button):has(> .label)::before { display: none; }
+  :is(a, button):has(> .label[data-button-surface='glass']) { backdrop-filter: none; }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  :is(a, button):has(> .label) {
+    translate: 0 0;
+    transition: translate 260ms var(--ease-fluid), background-color var(--motion-state) var(--ease-fluid), border-color var(--motion-state) var(--ease-fluid), box-shadow var(--motion-state) var(--ease-fluid);
+  }
+
+  :is(a, button)[data-magnet-active]:has(> .label):not(:focus-visible) {
+    translate: var(--button-pull-x, 0px) var(--button-pull-y, 0px);
+    transition-duration: 140ms;
+  }
+
+  :is(a, button):has(> .label):focus-visible { transition-duration: 0s; }
+}
+
+@media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+  [data-button-in-view]:not(:disabled, [aria-disabled='true'], :focus-visible, [data-header-hidden] *, [data-no-button-rim] *) > .rim {
+    display: block;
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .rim::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(145%, 96px);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: conic-gradient(
+      transparent 0deg 270deg,
+      color-mix(in srgb, var(--button-rim, #fff) 45%, transparent) 316deg,
+      var(--button-rim, #fff),
+      transparent 360deg
+    );
+    content: '';
+    opacity: .55;
+    animation: orbitRim 3.2s linear infinite;
+  }
+
+  .rim::after {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 82px 64px at var(--button-light-x, 50%) var(--button-light-y, 50%),
+      var(--button-rim, #fff),
+      transparent
+    );
+    content: '';
+    opacity: 0;
+  }
+
+  .rim::before, .rim::after { transition: opacity 160ms var(--ease-fluid); }
+
+  [data-magnet-active] > .rim::before {
+    opacity: 0;
+    animation-play-state: paused;
+  }
+
+  [data-magnet-active] > .rim::after { opacity: var(--button-shine, .55); }
+}
+
+:is(a, button):has(> .label[data-button-surface='glass']) {
+  --button-rim: var(--button-glass-rim, #2259ed);
+}

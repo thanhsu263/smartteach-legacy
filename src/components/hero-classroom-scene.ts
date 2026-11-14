@@ -11,9 +11,13 @@ type ClassroomOptions = {
 
 const homeCamera = new THREE.Vector3(0, 3.30, 12.4);
 const cameraFocus = new THREE.Vector3(0, 2.34, -0.8);
+const classroomLayer = 0;
+const floatingObjectsLayer = 1;
+const compactPositions = [[0.14, 0.10], [0.76, 0.11], [0.66, 0.77], [0.85, 0.62], [0.19, 0.81], [0.40, 0.92], [0.22, 0.66]];
 
 export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOptions) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "low-power" });
+  renderer.autoClear = false;
   renderer.setClearColor(0xf0f5ff);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.15;
@@ -29,7 +33,11 @@ export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOpt
   daylight.position.set(-4, 8, 5);
   const fill = new THREE.DirectionalLight(0xdce9ff, 1.15);
   fill.position.set(6, 4, -2);
-  scene.add(new THREE.HemisphereLight(0xf5f9ff, 0xa1b5dd, 2.25), daylight, fill);
+  const ambient = new THREE.HemisphereLight(0xf5f9ff, 0xa1b5dd, 2.25);
+  for (const light of [ambient, daylight, fill]) {
+    light.layers.enable(floatingObjectsLayer);
+    scene.add(light);
+  }
   const room = addClassroom(scene);
   room.matrixAutoUpdate = false;
 
@@ -51,6 +59,7 @@ export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOpt
     const hit = new THREE.Mesh(new THREE.BoxGeometry(size.x, size.y, size.z), hitMaterial);
     hit.position.copy(bounds.getCenter(new THREE.Vector3()));
     model.add(hit);
+    model.traverse((part) => part.layers.set(floatingObjectsLayer));
     model.scale.setScalar(placement.scale);
     model.rotation.set(placement.tilt[0], placement.tilt[1], placement.tilt[2]);
     scene.add(model);
@@ -60,6 +69,7 @@ export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOpt
   const targets = objects.map(({ hit }) => hit);
   const globe = objects.find(({ model }) => model === models.globe.model)!;
   const raycaster = new THREE.Raycaster();
+  raycaster.layers.set(floatingObjectsLayer);
   const cursor = new THREE.Vector2();
   const orbit = new THREE.Vector2();
   const velocity = new THREE.Vector2();
@@ -124,6 +134,12 @@ export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOpt
       );
     }
     models.globe.sphere.rotation.y = globe.time * 0.31;
+    renderer.clear();
+    camera.layers.set(classroomLayer);
+    renderer.render(scene, camera);
+    // Keep the classroom image, but let only floating objects occlude each other.
+    renderer.clearDepth();
+    camera.layers.set(floatingObjectsLayer);
     renderer.render(scene, camera);
   }
 
@@ -135,8 +151,12 @@ export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOpt
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    for (const object of objects) {
-      cursor.set(object.x * 2 - 1, 1 - object.y * 2);
+    const narrow = width <= 650;
+    const modelScale = narrow ? THREE.MathUtils.clamp(width / 950, 0.31, 0.67) : Math.min(1, width / 1040);
+    for (const [index, object] of objects.entries()) {
+      const [x, y] = narrow ? compactPositions[index] : [object.x, object.y];
+      object.model.scale.setScalar(object.scale * modelScale);
+      cursor.set(x * 2 - 1, 1 - y * 2);
       raycaster.setFromCamera(cursor, camera);
       plane.constant = -object.z;
       raycaster.ray.intersectPlane(plane, object.home);
@@ -254,10 +274,21 @@ export function mountClassroom({ canvas, hero, onQuiz, onFailure }: ClassroomOpt
   canvas.addEventListener("webglcontextlost", contextLost);
 
   return {
-    setRunning(active: boolean) {
+    setRunning(active: boolean, reducedMotion: boolean) {
       if (!active || lost) {
         stop();
+        if (reducedMotion && !lost) {
+          roomTime = 0;
+          orbit.set(0, 0);
+          for (const object of objects) {
+            object.time = 0;
+            object.offset.set(0, 0, 0);
+            object.spin.set(0, 0);
+          }
+          draw(performance.now());
+        }
       } else if (!running) {
+        lastFrame = 0;
         running = true;
         renderer.setAnimationLoop(draw);
       }

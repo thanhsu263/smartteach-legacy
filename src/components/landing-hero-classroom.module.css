@@ -1,7 +1,27 @@
 .stage {
   position: absolute;
   inset: 0;
+}
+
+.scenery {
+  position: absolute;
+  inset: 0;
   background: var(--pale) url('/hero/classroom-poster.webp') center / cover no-repeat;
+}
+
+@supports (animation-timeline: view()) and (animation-range: exit-crossing) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scenery {
+      animation: sceneryParallax 1s linear both;
+      animation-timeline: --landing-hero;
+      animation-range: exit-crossing;
+    }
+  }
+}
+
+@keyframes sceneryParallax {
+  from { transform: translateY(0); }
+  to { transform: translateY(60%); }
 }
 
 .canvas {
@@ -29,33 +49,6 @@
   z-index: 1;
   inset-inline-end: max(20px, env(safe-area-inset-right, 0px));
   inset-block-end: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.quizButton span { margin-inline-start: 5px; }
-
-.motionButton {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  color: var(--navy);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-}
-
-.motionButton:hover, .motionButton:active { background: var(--color-primary-tint); }
-.pauseIcon { width: 12px; height: 14px; border-inline: 3px solid currentColor; }
-.playIcon {
-  width: 0;
-  height: 0;
-  margin-inline-start: 2px;
-  border-block: 7px solid transparent;
-  border-inline-start: 11px solid currentColor;
 }
 
 .dialog {
@@ -84,7 +77,16 @@
 .feedback { margin-top: 16px; min-height: 3em; }
 
 @media (width <= 1000px) {
-  .stage { position: relative; aspect-ratio: 16 / 9; margin-top: 28px; }
-  .stage::after { background: linear-gradient(180deg, var(--pale), transparent 22%); mask-image: none; }
+  .stage::after {
+    background: linear-gradient(90deg, rgb(240 245 255 / .95) 25%, rgb(240 245 255 / .90) 49%, transparent 92%);
+  }
   .controls { inset-inline-end: max(12px, env(safe-area-inset-right, 0px)); inset-block-end: 12px; }
+}
+
+@media (width <= 650px) {
+  .scenery { background-position: 68% center; }
+  .stage::after {
+    background: linear-gradient(180deg, rgb(240 245 255 / .83), rgb(240 245 255 / .97) 18%, rgb(240 245 255 / .96) 48%, rgb(240 245 255 / .9) 68%, rgb(240 245 255 / .20) 100%);
+    mask-image: none;
+  }
 }

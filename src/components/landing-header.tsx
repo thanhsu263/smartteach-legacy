@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import styles from "@/app/page.module.css";
 import { LandingMobileMenu } from "./landing-mobile-menu";
+import RubberSegment from "./rubber-segment";
 
 const links = [
   ["tinh-nang", "Tính năng"],
@@ -11,10 +12,15 @@ const links = [
   ["giao-vien", "Dành cho giáo viên"],
 ] as const;
 
+function landingUrl() {
+  return location.pathname + location.search;
+}
+
 export function LandingHeader({ brand, account }: { brand: ReactNode; account: ReactNode }) {
   const headerRef = useRef<HTMLElement>(null);
   const menuRef = useRef<HTMLDetailsElement>(null);
   const [current, setCurrent] = useState<string>();
+  const [destination, setDestination] = useState<string>();
 
   useEffect(() => {
     const header = headerRef.current;
@@ -56,6 +62,7 @@ export function LandingHeader({ brand, account }: { brand: ReactNode; account: R
       if (!anchorPending) return;
       window.clearTimeout(anchorTimer);
       anchorPending = false;
+      setDestination(undefined);
       previousY = Math.max(0, scrollY);
       travel = 0;
     }
@@ -98,18 +105,29 @@ export function LandingHeader({ brand, account }: { brand: ReactNode; account: R
       schedule();
     }
 
+    function scrollToSection(target: HTMLElement, behavior: ScrollBehavior = "auto") {
+      window.dispatchEvent(new Event("landing:navigate"));
+      target.scrollIntoView({ block: "start", behavior });
+    }
+
     function onAnchor(event: MouseEvent) {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
       const anchor = (event.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
       const target = sections.find(({ id }) => anchor?.hash === `#${id}`);
-      if (!anchor || !target) return;
+      if (!anchor || !landing!.contains(anchor) || !target) return;
 
+      event.preventDefault();
       releaseAnchor();
       anchorPending = true;
+      setDestination(target.id);
       anchorTimer = window.setTimeout(releaseAnchor, 240);
       show();
       const inMenu = menu!.contains(anchor);
       if (inMenu) menu!.open = false;
+      if (history.state?.landingSection !== target.id) {
+        history.pushState({ landingSection: target.id }, "", landingUrl());
+      }
+      scrollToSection(target);
       if (inMenu || event.detail === 0) {
         cancelAnimationFrame(focusFrame);
         focusFrame = requestAnimationFrame(() => target.querySelector("h2")?.focus({ preventScroll: true }));
@@ -155,12 +173,18 @@ export function LandingHeader({ brand, account }: { brand: ReactNode; account: R
       if (header!.contains(target)) show();
     }
 
+    function onHash() {
+      const target = sections.find(({ id }) => location.hash === `#${id}`);
+      if (!target) return;
+      history.replaceState({ ...history.state, landingSection: target.id }, "", landingUrl());
+      scrollToSection(target, "instant");
+      show();
+      schedule();
+    }
+
     function onHistory() {
-      if (location.hash && sections.some(({ id }) => location.hash === `#${id}`)) {
-        anchorPending = true;
-        onScroll();
-        show();
-      }
+      if (location.hash) return;
+      show();
       schedule();
     }
 
@@ -177,13 +201,15 @@ export function LandingHeader({ brand, account }: { brand: ReactNode; account: R
     window.addEventListener("wheel", onWheel, { passive: true });
     window.addEventListener("pointerdown", onPointerDown, { passive: true });
     window.addEventListener("resize", onResize);
-    window.addEventListener("hashchange", onHistory);
+    window.addEventListener("hashchange", onHash);
+    window.addEventListener("popstate", onHistory);
     motion.addEventListener("change", onResize);
     document.addEventListener("visibilitychange", onVisibility);
-    landing.addEventListener("click", onAnchor);
+    window.addEventListener("click", onAnchor);
     document.addEventListener("focusin", onFocus);
     document.addEventListener("keydown", onKeyDown);
-    onHistory();
+    onHash();
+    schedule();
 
     return () => {
       cancelAnimationFrame(frame);
@@ -195,10 +221,11 @@ export function LandingHeader({ brand, account }: { brand: ReactNode; account: R
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("resize", onResize);
-      window.removeEventListener("hashchange", onHistory);
+      window.removeEventListener("hashchange", onHash);
+      window.removeEventListener("popstate", onHistory);
       motion.removeEventListener("change", onResize);
       document.removeEventListener("visibilitychange", onVisibility);
-      landing.removeEventListener("click", onAnchor);
+      window.removeEventListener("click", onAnchor);
       document.removeEventListener("focusin", onFocus);
       document.removeEventListener("keydown", onKeyDown);
     };
@@ -209,9 +236,9 @@ export function LandingHeader({ brand, account }: { brand: ReactNode; account: R
   ));
 
   return (
-    <header ref={headerRef} className={styles.header}>
+    <header ref={headerRef} className={styles.header} data-no-button-rim="">
       {brand}
-      <nav className={styles.nav} aria-label="Điều hướng landing">{items}</nav>
+      <RubberSegment className={styles.nav} items={links} current={current} destination={destination} />
       <LandingMobileMenu menuRef={menuRef}>{items}</LandingMobileMenu>
       {account}
     </header>

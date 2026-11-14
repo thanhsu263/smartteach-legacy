@@ -49,6 +49,19 @@ export function ButtonLink({
   );
 }
 
+export function ButtonAnchor({
+  variant = "secondary",
+  className,
+  children,
+  ...props
+}: CommonProps & Omit<ComponentPropsWithoutRef<"a">, "children">) {
+  return (
+    <a className={classes(className)} {...glass(variant)} {...props}>
+      {children}
+    </a>
+  );
+}
+
 export function Button({
   variant = "secondary",
   className,
