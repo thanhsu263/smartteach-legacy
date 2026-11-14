@@ -1,0 +1,20 @@
+{
+  "landing": {
+    "width": 640,
+    "scrollWidth": 640
+  },
+  "teacher": {
+    "width": 640,
+    "scrollWidth": 640
+  },
+  "play": {
+    "width": 640,
+    "scrollWidth": 640
+  },
+  "focus": {
+    "focus": "Từ ý tưởng đến tiết học hay, chỉ 3 bước.",
+    "top": 181.5,
+    "header": 72
+  },
+  "errors": []
+}

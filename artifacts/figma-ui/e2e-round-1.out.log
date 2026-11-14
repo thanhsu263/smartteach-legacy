@@ -1,0 +1,77 @@
+
+> smartteach@0.1.0 test:e2e
+> playwright test --reporter=dot
+
+
+Running 218 tests using 16 workers
+················································································
+················································································
+··············································T········T·T
+
+  1) e2e\games.spec.ts:114:7 › trang chơi › trang chủ hiện game nổi bật và dẫn tới trang chơi trong tối đa 2 lần bấm 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('link', { name: 'Gargamel bắt Xì Trum' })
+
+
+      115 |     await page.goto("/");
+      116 |     const featured = games.filter((g) => g.featured)[0];
+    > 117 |     await page.getByRole("link", { name: featured.title }).click();
+          |                                                            ^
+      118 |     await expect(page).toHaveURL(new RegExp(`/games/${featured.id}$`));
+      119 |   });
+      120 | });
+        at F:\smartTeach\e2e\games.spec.ts:117:60
+
+    Error Context: test-results\games-trang-chơi-trang-chủ-2400c-chơi-trong-tối-đa-2-lần-bấm\error-context.md
+
+  2) e2e\privacy.spec.ts:7:7 › trang Quyền riêng tư › mở được từ chân trang và từ trang đăng nhập ──
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('navigation', { name: 'Liên kết cuối trang' }).getByRole('link', { name: 'Quyền riêng tư' })
+
+
+       7 |   test("mở được từ chân trang và từ trang đăng nhập", async ({ page }) => {
+       8 |     await page.goto("/");
+    >  9 |     await page.getByRole("navigation", { name: "Liên kết cuối trang" }).getByRole("link", { name: "Quyền riêng tư" }).click();
+         |                                                                                                                       ^
+      10 |     await expect(page).toHaveURL(/\/privacy$/);
+      11 |     await expect(page.getByRole("heading", { level: 1, name: "Quyền riêng tư" })).toBeVisible();
+      12 |
+        at F:\smartTeach\e2e\privacy.spec.ts:9:119
+
+    Error Context: test-results\privacy-trang-Quyền-riêng--262e0-trang-và-từ-trang-đăng-nhập\error-context.md
+
+  3) e2e\results.spec.ts:155:7 › danh sách các buổi đã chơi › buổi của quiz đã xoá vẫn xem và xoá được ở trang Các buổi đã chơi; Xem thêm tải trang kế 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('link', { name: 'Xem kết quả và xoá các buổi đã chơi' })
+
+
+      166 |     await loginAs(page, teacher);
+      167 |     await page.goto("/my-quizzes");
+    > 168 |     await page.getByRole("link", { name: "Xem kết quả và xoá các buổi đã chơi" }).click();
+          |                                                                                   ^
+      169 |     await expect(page).toHaveURL(/\/host$/);
+      170 |     await expect(page.getByRole("heading", { level: 1, name: "Các buổi đã chơi" })).toBeVisible();
+      171 |     const list = page.getByRole("region", { name: "Các buổi đã chơi" });
+        at F:\smartTeach\e2e\results.spec.ts:168:83
+
+    Error Context: test-results\results-danh-sách-các-buổi-09bae--chơi-Xem-thêm-tải-trang-kế\error-context.md
+
+    Error Context: test-results\results-danh-sách-các-buổi-09bae--chơi-Xem-thêm-tải-trang-kế\error-context.md
+
+  3 failed
+    e2e\games.spec.ts:114:7 › trang chơi › trang chủ hiện game nổi bật và dẫn tới trang chơi trong tối đa 2 lần bấm 
+    e2e\privacy.spec.ts:7:7 › trang Quyền riêng tư › mở được từ chân trang và từ trang đăng nhập ───
+    e2e\results.spec.ts:155:7 › danh sách các buổi đã chơi › buổi của quiz đã xoá vẫn xem và xoá được ở trang Các buổi đã chơi; Xem thêm tải trang kế 
+  215 passed (1.2m)

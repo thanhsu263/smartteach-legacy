@@ -1,5 +1,5 @@
 Mode: local
-Status: active
+Status: archived
 
 # Kế hoạch triển khai UI SmartTeach theo Figma
 

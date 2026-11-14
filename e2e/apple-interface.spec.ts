@@ -48,8 +48,24 @@ test.describe("landing theo Figma", () => {
 
     await expect(features).toHaveAttribute("aria-current", "location");
     const libraryWidth = (await library.boundingBox())!.width;
-    await library.click();
-    await expect.poll(thumbWidth, { intervals: [30, 30, 50] }).toBeGreaterThan(libraryWidth + 12);
+    const peakWidth = await thumb.evaluate(async (element) => {
+      const widths: number[] = [];
+      const sample = () => {
+        const inset = getComputedStyle(element).clipPath.match(/^inset\(([^)]+)\)/)?.[1].split(" round ")[0];
+        if (inset) {
+          const [top, right = top, , left = right] = inset.split(" ").map(parseFloat);
+          widths.push(element.getBoundingClientRect().width - left - right);
+        }
+      };
+      element.parentElement!.querySelector<HTMLAnchorElement>('a[href="#hoc-lieu"]')!.click();
+      const end = performance.now() + 450;
+      do {
+        await new Promise(requestAnimationFrame);
+        sample();
+      } while (performance.now() < end);
+      return Math.max(...widths);
+    });
+    expect(peakWidth).toBeGreaterThan(libraryWidth + 12);
     await expect(library).toHaveAttribute("aria-current", "location");
     await expect(library).toHaveCSS("text-decoration-line", "none");
     await expect.poll(thumbWidth).toBeCloseTo(libraryWidth, 0);
@@ -124,6 +140,31 @@ test.describe("landing theo Figma", () => {
     await expect(count).toHaveText("100%");
   });
 
+  test("AnimatedContent trượt lên khi cuộn xuống và phát ngược khi cuộn lên", async ({ page }) => {
+    await page.goto("/");
+    const card = page.locator("article[data-animated-content]").filter({ hasText: "Lớp học gọn gàng" });
+    const moveCardTo = (fraction: number) => card.evaluate((element, fraction) => {
+      const offset = parseFloat(getComputedStyle(element).getPropertyValue("--content-y")) || 0;
+      const top = element.getBoundingClientRect().top + scrollY - offset;
+      scrollTo({ top: top - innerHeight * fraction, behavior: "instant" });
+    }, fraction);
+
+    await expect(card).toHaveCSS("opacity", "0");
+    await expect(card).toHaveCSS("translate", "0px 24px");
+    for (let pass = 0; pass < 2; pass++) {
+      await moveCardTo(0.75);
+      await expect(card).toHaveCSS("opacity", "1");
+      await expect(card).toHaveCSS("translate", "0px");
+      await moveCardTo(0.94);
+      await expect(card).toBeInViewport();
+      await expect(card).toHaveCSS("opacity", "0");
+      await expect(card).toHaveCSS("translate", "0px 24px");
+    }
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(card).toHaveCSS("opacity", "1");
+    await expect(card).toHaveCSS("translate", "none");
+  });
+
   test("CTA dịch chuyển cả nút và sáng viền khi chuột đến gần, với bề mặt theo màu", async ({ page }) => {
     await page.goto("/");
     const cta = page.getByRole("link", { name: /Tạo lớp học miễn phí/ });
@@ -156,7 +197,9 @@ test.describe("landing theo Figma", () => {
     await expect.poll(shine).toBeGreaterThan(0.5);
     await expect.poll(async () => (await cta.boundingBox())!.y).toBeLessThan(bounds.y - 2);
     expect(await cta.evaluate((element) => getComputedStyle(element, "::before").backgroundImage)).toContain("linear-gradient");
-    await expect(glass).toHaveCSS("backdrop-filter", "blur(8px)");
+    await expect(glass).toHaveCSS("backdrop-filter", /url\(.*#landing-glass-/);
+    await expect(glass.locator("feImage")).toHaveAttribute("href", /^data:image\/svg\+xml,/);
+    await expect(glass).toHaveCSS("background-image", /linear-gradient/);
     await expect(glass).toHaveCSS("background-color", "rgba(255, 255, 255, 0.05)");
     const readSurface = (control: typeof glass) => control.evaluate((element) => {
       const style = getComputedStyle(element);
@@ -190,8 +233,12 @@ test.describe("landing theo Figma", () => {
     await expect(glass).toHaveCSS("transform", "matrix(0.97, 0, 0, 0.97, 0, 0)");
     await page.mouse.move(5, 5);
     await page.mouse.up();
-    await page.keyboard.press("Shift+Tab");
-    await page.keyboard.press("Tab");
+  });
+
+  test("nút kính demo giữ focus và điều hướng bằng bàn phím", async ({ page }) => {
+    await page.goto("/");
+    const glass = page.getByRole("link", { name: "Khám phá bản demo" });
+    await glass.focus();
     await expect(glass).toBeFocused();
     await expect(glass).toHaveCSS("outline-style", "solid");
     await glass.press("Enter");
@@ -355,7 +402,7 @@ test.describe("landing theo Figma", () => {
     await page.goto("/");
     const header = page.locator("header").first();
     await expect(header).toHaveCSS("height", "56px");
-    await expect(header).toHaveCSS("backdrop-filter", "blur(8px)");
+    await expect(header).toHaveCSS("backdrop-filter", /url\(.*#landing-glass-/);
     await expect(header).toHaveCSS("background-color", "rgba(255, 255, 255, 0.72)");
     await expect(header.locator("[data-button-rim]")).toHaveCSS("display", "none");
     const heading = page.getByRole("heading", { level: 1 });

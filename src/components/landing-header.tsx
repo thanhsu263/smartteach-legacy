@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import styles from "@/app/page.module.css";
 import { LandingMobileMenu } from "./landing-mobile-menu";
+import { GlassSurfaceFilter } from "./glass-surface-filter";
 import RubberSegment from "./rubber-segment";
 
 const links = [
@@ -237,6 +238,7 @@ export function LandingHeader({ brand, account }: { brand: ReactNode; account: R
 
   return (
     <header ref={headerRef} className={styles.header} data-no-button-rim="">
+      <GlassSurfaceFilter strength={14} />
       {brand}
       <RubberSegment className={styles.nav} items={links} current={current} destination={destination} />
       <LandingMobileMenu menuRef={menuRef}>{items}</LandingMobileMenu>

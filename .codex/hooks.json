@@ -1,0 +1,58 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node 'F:\\smartTeach\\.codex\\hooks\\privacy-block.mjs' --platform claude",
+            "timeout": 10,
+            "statusMessage": "Checking harness-skills privacy guard"
+          },
+          {
+            "type": "command",
+            "command": "node 'F:\\smartTeach\\.codex\\hooks\\scout-block.mjs' --platform claude",
+            "timeout": 10,
+            "statusMessage": "Checking harness-skills scout guard"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node 'F:\\smartTeach\\.codex\\hooks\\descriptive-name.mjs'",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node 'F:\\smartTeach\\.codex\\hooks\\session-init.mjs'",
+            "timeout": 10,
+            "statusMessage": "Loading harness-skills session context"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node 'F:\\smartTeach\\.codex\\hooks\\language-prompt.mjs' --platform claude",
+            "timeout": 10,
+            "statusMessage": "Loading language preferences"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { GlassSurfaceFilter } from "./glass-surface-filter";
 import styles from "./landing-button-effects.module.css";
 
 const pointerMotion = "(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)";
@@ -118,6 +119,7 @@ export function LandingButtonEffects({ children, tone }: { children: ReactNode; 
   return (
     <>
       <span ref={label} className={styles.label} data-button-surface={tone}>{children}</span>
+      {tone === "glass" && <GlassSurfaceFilter />}
       <span className={styles.rim} aria-hidden="true" data-button-rim="" />
     </>
   );

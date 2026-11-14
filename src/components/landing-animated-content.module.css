@@ -1,0 +1,8 @@
+.content {
+  translate: 0 var(--content-y, 0px);
+}
+
+.content:focus-within {
+  translate: none;
+  opacity: 1 !important;
+}

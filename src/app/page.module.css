@@ -13,7 +13,6 @@
 
 .landing {
   --landing-header-size: calc(56px + env(safe-area-inset-top, 0px));
-  --landing-glass-blur: blur(8px);
 }
 
 .landing > section[id], .landing > section[id] h2 {
@@ -38,15 +37,15 @@
 
 .header[data-header-scrolled] { box-shadow: 0 1px 0 var(--line); }
 
-@supports ((backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px))) {
+@supports ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
   .header {
-    background: rgb(255 255 255 / .72);
-    -webkit-backdrop-filter: var(--landing-glass-blur);
-    backdrop-filter: var(--landing-glass-blur);
+    background: linear-gradient(135deg, rgb(255 255 255 / .34), transparent 46% 70%, rgb(255 255 255 / .18)), rgb(255 255 255 / .72);
+    -webkit-backdrop-filter: blur(12px) saturate(1.4) brightness(1.04);
+    backdrop-filter: var(--glass-surface-refraction, blur(12px) saturate(1.4) brightness(1.04));
   }
 }
 
-@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
   .header {
     background: var(--color-surface);
     -webkit-backdrop-filter: none;
@@ -150,8 +149,7 @@
   --button-glass-shade: rgb(16 43 104 / .24);
   --button-glass-ink: #fff;
   --button-glass-rim: #fff;
-  --button-glass-fill: linear-gradient(var(--button-glass-shade), var(--button-glass-shade)), rgb(255 255 255 / .05);
-  --button-glass-hover: linear-gradient(var(--button-glass-shade), var(--button-glass-shade)), rgb(255 255 255 / .1);
+  --button-glass-tint: linear-gradient(var(--button-glass-shade), var(--button-glass-shade));
   --button-glass-border: rgb(255 255 255 / .4);
   --button-glass-border-hover: rgb(255 255 255 / .7);
 }
