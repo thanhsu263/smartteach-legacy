@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/button";
 import { useAuth } from "@/components/auth-provider";
 import styles from "./feedback-manager.module.css";
+import { PageHeading, WorkspacePage, WorkspaceSection } from "@/components/workspace/workspace-layout";
 type Status = "new" | "in_progress" | "resolved";
 const labels: Record<Status, string> = { new: "Mới", in_progress: "Đang xử lý", resolved: "Đã xử lý" };
 type Item = { id: string; kind: string; body: string; status: Status; version: number; createdAt: string };
@@ -47,15 +48,17 @@ function FeedbackView({ admin }: { admin: boolean }) {
     try { await request(`/api/admin/feedback/${item.id}`, { version: item.version, status }, "PATCH"); setRevision(n => n + 1); }
     catch(e) { setError(e instanceof Error ? e.message : "Chưa cập nhật được trạng thái."); } finally { setBusy(false); }
   }
-  return <section className={styles.page}><h1>{admin ? "Góp ý của giáo viên" : "Góp ý cho SmartTeach"}</h1>
+  return <WorkspacePage className={styles.page}><PageHeading title={admin ? "Góp ý của giáo viên" : "Góp ý cho SmartTeach"} />
     {!admin && <form onSubmit={submit} className={styles.form}><p>Chỉ gửi thông tin cần thiết. Không nhập mật khẩu, mã học sinh, API key hoặc dữ liệu riêng của lớp.</p>
       <label className={styles.field}>Loại góp ý<select value={kind} onChange={e => setKind(e.target.value)}><option value="bug">Báo lỗi</option><option value="suggestion">Đề xuất</option></select></label>
       <label className={styles.field}>Nội dung<textarea required minLength={10} maxLength={2000} value={body} onChange={e => setBody(e.target.value)} /></label><p>{body.length}/2000 ký tự</p>
       <Button type="submit" variant="primary" disabled={busy} aria-busy={busy}>{busy ? "Đang gửi…" : "Gửi góp ý"}</Button></form>}
     {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
     {admin && <label className={styles.field}>Lọc trạng thái<select value={filter} onChange={e => { setFilter(e.target.value); setOffset(0); }}><option value="">Tất cả</option>{Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>}
+    <WorkspaceSection aria-label={admin ? "Danh sách góp ý" : "Góp ý đã gửi"}>
     <h2>{admin ? "Danh sách góp ý" : "Góp ý đã gửi"}</h2>
     {!data ? <p role="status">Đang tải…</p> : data.items.length === 0 ? <p>Chưa có góp ý trong danh sách này.</p> : <ul className={styles.list}>{data.items.map(item => <li className={styles.item} key={item.id}><strong>{item.kind === "bug" ? "Báo lỗi" : "Đề xuất"} · {labels[item.status]}</strong><p>{item.body}</p><p>{new Date(item.createdAt).toLocaleString("vi-VN")}</p>{admin && <div className={styles.actions}>{(Object.keys(labels) as Status[]).filter(s => s !== item.status).map(s => <Button key={s} disabled={busy} onClick={() => void update(item, s)}>{labels[s]}</Button>)}</div>}</li>)}</ul>}
     <div className={styles.actions}><Button disabled={busy || offset === 0} onClick={() => setOffset(n => Math.max(0, n - 20))}>Trang trước</Button><Button disabled={busy || !data?.nextOffset} onClick={() => setOffset(data!.nextOffset!)}>Trang sau</Button><Button disabled={busy} onClick={() => { setError(null); setRevision(n => n + 1); }}>Tải lại</Button></div>
-  </section>;
+    </WorkspaceSection>
+  </WorkspacePage>;
 }

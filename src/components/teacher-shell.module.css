@@ -51,6 +51,7 @@
 
 .navigation ul { display: grid; gap: var(--space-2); }
 .navigationAccount { margin-top: var(--space-4); }
+.navigationAccount { display: grid; gap: var(--space-2); }
 
 .navigationAccount a, .navigationAccount button, .account a, .account button {
   display: inline-flex;
@@ -138,8 +139,15 @@
   min-width: 0;
   min-height: 100dvh;
   margin-left: 240px;
-  padding: calc(104px + var(--space-7)) var(--space-7) var(--space-7);
+  padding: calc(104px + var(--space-7)) var(--space-7) calc(var(--space-7) + 80px);
   background: var(--color-bg);
+}
+
+/* Pages inside the app already receive their gutter from the shell. */
+.shell + :global(main#main) :global(.container) {
+  width: 100%;
+  max-width: 75rem;
+  padding-inline: 0;
 }
 
 .breadcrumb, .account span {
@@ -218,7 +226,7 @@
   .shell { --sidebar-offset: 152px; }
   .shell + :global(main#main) {
     margin-left: 152px;
-    padding-inline: var(--space-4);
+    padding-inline: var(--space-6);
   }
   .sidebar .brand, .sidebar .navigation, .topbar { padding-inline: var(--space-3); }
   .sidebar .brand { font-size: var(--text-sm); }
@@ -234,7 +242,7 @@
   .topbar { height: 64px; padding: 0 var(--space-4); }
   .shell + :global(main#main) {
     margin-left: 0;
-    padding: calc(64px + var(--space-4)) var(--space-4) var(--space-4);
+    padding: calc(64px + var(--space-4)) var(--space-4) calc(var(--space-4) + 80px);
   }
   .mobileMenuButton, .mobileDrawerTop button {
     display: grid;

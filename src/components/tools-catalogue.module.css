@@ -1,4 +1,5 @@
 .catalogue {
+  composes: section from "./workspace/workspace-layout.module.css";
   display: grid;
   gap: var(--space-4);
 }

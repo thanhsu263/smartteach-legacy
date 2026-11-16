@@ -1,4 +1,5 @@
 .editor {
+  composes: page from "./workspace/workspace-layout.module.css";
   display: grid;
   gap: var(--space-7);
   max-width: 75rem;

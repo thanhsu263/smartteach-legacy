@@ -1,4 +1,6 @@
 .editor {
+  composes: page from "../workspace/workspace-layout.module.css";
+  container: quiz-editor / inline-size;
   display: grid;
   gap: var(--space-7);
   max-width: 75rem;
@@ -50,6 +52,12 @@
   }
 }
 
+@container quiz-editor (min-width: 56rem) {
+  .workspace { grid-template-columns: 13rem minmax(0, 1fr); gap: var(--space-5); }
+  .workspace .questionsPanel { padding: var(--space-3); position: sticky; top: var(--space-4); max-height: calc(100dvh - 160px); overflow: auto; }
+  .workspace .formPanel { padding: var(--space-5); }
+}
+
 .panel {
   display: grid;
   gap: var(--space-3);
@@ -64,6 +72,9 @@
 }
 
 .questionsPanel { background: var(--color-surface); }
+.questionDisclosure { min-width: 0; }
+.questionDisclosure summary { min-height: 44px; cursor: pointer; align-content: center; margin-bottom: var(--space-3); }
+.questionDisclosure summary h2 { display: inline; }
 .formPanel { background: var(--color-surface); }
 
 .heading {

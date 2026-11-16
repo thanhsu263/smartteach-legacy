@@ -1,10 +1,10 @@
 import { SignOutAccount } from "@/components/admin/sign-out-account";
+import { WorkspacePage, PageHeading } from "@/components/workspace/workspace-layout";
 export default function AccountDisabledPage() {
   return (
-    <div className="container">
-      <h1>Tài khoản đã bị khóa</h1>
-      <p>Liên hệ quản trị viên nếu thầy cô cần hỗ trợ.</p>
+    <WorkspacePage className="container">
+      <PageHeading title="Tài khoản đã bị khóa" description="Liên hệ quản trị viên nếu thầy cô cần hỗ trợ." />
       <SignOutAccount />
-    </div>
+    </WorkspacePage>
   );
 }

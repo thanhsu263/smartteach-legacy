@@ -453,7 +453,8 @@ test.describe("landing theo Figma", () => {
     await expect(deck.getByLabel("Điều khiển bộ thẻ quiz")).toHaveCount(0);
     await expect(front).toHaveAttribute("data-swap-index", "0");
     await expect(front).toHaveAttribute("data-swap-index", "1", { timeout: 8000 });
-    await front.hover();
+    // The slot's box stays fixed while its card face swaps. Hover visible content.
+    await front.locator("p").hover();
     await page.waitForTimeout(5200);
     await expect(front).toHaveAttribute("data-swap-index", "1");
 
@@ -543,10 +544,20 @@ test.describe("landing responsive", () => {
       await page.evaluate(() => document.fonts.ready);
       const heading = page.getByRole("heading", { level: 1 });
       const titleFit = await heading.evaluate((element) => {
-        const lines = Array.from(element.querySelectorAll("span"), (line) => {
-          const range = document.createRange();
-          range.selectNodeContents(line);
-          return Array.from(range.getClientRects(), (rect) => rect.width);
+        const lines = Array.from(element.querySelectorAll(":scope > span"), (line) => {
+          const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
+          const rows = new Map<number, { left: number; right: number }>();
+          while (walker.nextNode()) {
+            if (!walker.currentNode.textContent?.trim()) continue;
+            const range = document.createRange();
+            range.selectNodeContents(walker.currentNode);
+            for (const rect of range.getClientRects()) {
+              const y = Math.round(rect.top);
+              const previous = rows.get(y);
+              rows.set(y, { left: Math.min(previous?.left ?? rect.left, rect.left), right: Math.max(previous?.right ?? rect.right, rect.right) });
+            }
+          }
+          return [...rows.values()].map(row => row.right - row.left);
         });
         return { lines, width: element.getBoundingClientRect().width };
       });

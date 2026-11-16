@@ -7,6 +7,13 @@ import { tools } from "../src/data/tools";
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
 async function expectNoViolations(page: Page, label: string) {
+  if (new URL(page.url()).pathname === "/") {
+    // The heading is server rendered before AnimatedContent reveals CTA labels.
+    // Audit the hydrated interface, and explicitly assert every CTA's name too.
+    for (const link of await page.locator("main a:has([data-button-surface])").all()) {
+      await expect(link).toHaveAccessibleName(/\S/);
+    }
+  }
   const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
   const summary = results.violations.map((violation) => ({
     rule: violation.id,

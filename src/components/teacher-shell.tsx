@@ -71,6 +71,9 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function TeacherShell() {
+  const pathname = usePathname();
+  const destination = navigation.find(item => current(pathname, item.href))?.label
+    ?? (pathname.startsWith("/membership") ? "Gói thành viên" : pathname.startsWith("/feedback") ? "Góp ý" : pathname.startsWith("/account") ? "Bảo mật tài khoản" : "Nguồn học liệu");
   const [collapsed, setCollapsed] = useState(false);
   const [peek, setPeek] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -185,7 +188,7 @@ export function TeacherShell() {
     <div className={styles.workspace}>
       <header className={styles.topbar}>
         <button ref={menuButtonRef} type="button" className={styles.mobileMenuButton} aria-label="Mở menu điều hướng" aria-expanded={mobileOpen} aria-controls="teacher-navigation" onClick={openMobileNavigation}><MenuIcon size={20} /></button>
-        <p className={styles.breadcrumb}>Không gian dạy học</p>
+        <p className={styles.breadcrumb}>Không gian dạy học <span aria-hidden="true"> / </span> {destination}</p>
         <div className={styles.account}>
           {status === "signed-in" && user?.email ? <span>{user.email}</span> : null}
           {status === "signed-in" ? <button type="button" aria-label="Thoát tài khoản" onClick={() => void signOut()}>Thoát</button> : <Link href="/login">Đăng nhập</Link>}

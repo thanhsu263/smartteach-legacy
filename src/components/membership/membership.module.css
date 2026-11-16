@@ -1,7 +1,7 @@
 .page { display: grid; gap: var(--space-5); width: min(100%, 1050px); margin-inline: auto; padding: var(--space-7) var(--gutter); }
 .intro { display: grid; gap: var(--space-3); }
 .intro > p { color: var(--color-primary); font-size: var(--text-sm); font-weight: 700; }
-.intro h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.25; }
+.intro h1 { font-size: var(--text-2xl); line-height: var(--line-height-heading); }
 .intro > span, .status p, .purchase > p, .order > p { color: var(--color-ink-muted); line-height: 1.65; }
 .status, .purchase, .order, .gate { padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
 .status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); }
@@ -26,3 +26,5 @@
 .gate { margin: var(--space-5) var(--gutter); }
 .gate p { color: var(--color-ink-muted); }
 @media (width < 650px) { .plans { grid-template-columns: 1fr; } .page { padding-block: var(--space-5); } .status, .purchase, .order { padding: var(--space-4); } .purchase > button { width: 100%; } }
+
+.page { composes: page from "../workspace/workspace-layout.module.css"; }

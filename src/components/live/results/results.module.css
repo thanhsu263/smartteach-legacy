@@ -206,3 +206,5 @@
 .historyDate {
   font-weight: 600;
 }
+
+.screen { composes: page from "../../workspace/workspace-layout.module.css"; }

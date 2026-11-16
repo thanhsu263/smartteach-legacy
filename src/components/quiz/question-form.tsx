@@ -19,6 +19,7 @@ import {
 import { KIND_LABELS, type QuestionInput, type TimeLimit } from "@/lib/quiz/types";
 import { checkDraft, toPayload } from "@/lib/quiz/validate";
 import styles from "./question-form.module.css";
+import { FieldLayout } from "@/components/workspace/workspace-layout";
 
 const LETTERS = ["A", "B", "C", "D", "E", "F"];
 
@@ -110,6 +111,7 @@ export function QuestionForm({ initial, isNew, onSave, onCancel, onDirtyChange, 
 
   return (
     <form onSubmit={submit} className={styles.form} noValidate>
+      <div className={styles.content}>
       {localDraft.message && <p role="status">{localDraft.message}</p>}
       <p className={styles.kind}>{KIND_LABELS[kind]}</p>
 
@@ -126,21 +128,6 @@ export function QuestionForm({ initial, isNew, onSave, onCancel, onDirtyChange, 
         <p id={`${baseId}-prompt-help`} className={showErrors && issues.prompt ? styles.error : styles.hint}>
           {showErrors && issues.prompt ? issues.prompt : `${draft.prompt.trim().length} / ${MAX_PROMPT_LENGTH} ký tự`}
         </p>
-      </div>
-
-      <div className={styles.field}>
-        <label htmlFor={`${baseId}-time`}>Thời gian trả lời</label>
-        <select
-          id={`${baseId}-time`}
-          value={draft.time_limit_seconds}
-          onChange={(event) => update({ time_limit_seconds: Number(event.target.value) as TimeLimit })}
-        >
-          {TIME_LIMITS.map((seconds) => (
-            <option key={seconds} value={seconds}>
-              {seconds} giây
-            </option>
-          ))}
-        </select>
       </div>
 
       {kind !== "short_text" ? (
@@ -318,6 +305,16 @@ export function QuestionForm({ initial, isNew, onSave, onCancel, onDirtyChange, 
           </Button>
         ) : null}
       </div>
+      </div>
+      <details className={styles.settings} open>
+        <summary>Cài đặt câu hỏi</summary>
+        <p className={styles.kind}>{KIND_LABELS[kind]}</p>
+        <FieldLayout htmlFor={`${baseId}-time`} label="Thời gian trả lời" className={styles.field}>
+          <select id={`${baseId}-time`} value={draft.time_limit_seconds} onChange={event => update({ time_limit_seconds: Number(event.target.value) as TimeLimit })}>
+            {TIME_LIMITS.map(seconds => <option key={seconds} value={seconds}>{seconds} giây</option>)}
+          </select>
+        </FieldLayout>
+      </details>
     </form>
   );
 }

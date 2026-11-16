@@ -1,4 +1,5 @@
 .manager {
+  composes: section from "./workspace/workspace-layout.module.css";
   display: grid;
   gap: var(--space-7);
 }
@@ -183,13 +184,15 @@
 
 .deleteDialog { width: min(100% - 2rem, 28rem); margin: auto; padding: 0; color: var(--color-ink); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-raised); }.deleteDialog::backdrop { background: rgb(20 43 80 / .36); backdrop-filter: blur(3px); }.deleteDialog .confirm { display: grid; gap: var(--space-4); padding: var(--space-6); }.deleteDialog h2 { margin: 0; font-size: var(--text-xl); letter-spacing: var(--letter-spacing-display); }.deleteDialog p { margin: 0; color: var(--color-ink-muted); }
 
-/* Trên màn hình rộng, tạo và quản lý là hai vùng làm việc song song. Ở điện
-   thoại vẫn giữ thứ tự thao tác: nhập lớp trước, xem danh sách sau. */
+/* Keep the creation toolbar above the full-width class list, as in Figma. */
 @media (min-width: 960px) {
   .manager {
-    grid-template-columns: minmax(18rem, .75fr) minmax(0, 1.25fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: start;
   }
+
+  .createPanel .form { max-width: none; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .createPanel .form > button { align-self: end; }
 
   .panel {
     min-width: 0;

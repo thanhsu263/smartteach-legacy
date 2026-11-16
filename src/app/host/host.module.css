@@ -53,3 +53,5 @@
     padding: var(--space-7);
   }
 }
+
+.page { composes: page from "../../components/workspace/workspace-layout.module.css"; }

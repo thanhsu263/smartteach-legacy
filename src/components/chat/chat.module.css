@@ -232,3 +232,12 @@
     display: none;
   }
 }
+
+/* App-only spacing; the root widget on the landing keeps its baseline material/layout. */
+.appPanel .tools { flex-wrap: wrap; padding: var(--space-4); gap: var(--space-2); }
+.appPanel .tools select { flex-basis: 100%; }
+.appPanel .tools :is(select, button) { min-height: 44px; }
+.appPanel .tools button { min-width: 44px; }
+.appPanel .composer { gap: var(--space-3); }
+.viewer { composes: page from "../workspace/workspace-layout.module.css"; max-width: 65ch; margin: var(--space-5) auto; padding: 0; }
+.viewer h1 { font-size: var(--text-2xl); line-height: var(--line-height-heading); overflow-wrap: anywhere; }

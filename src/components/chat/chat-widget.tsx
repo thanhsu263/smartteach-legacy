@@ -525,7 +525,7 @@ function ChatSession({ pathname }: { pathname: string }) {
           ref={dialog}
           data-chat-sheet
           id={heading + "-panel"}
-          className={s.sheet}
+          className={s.sheet + (pathname === "/" ? "" : " " + s.appPanel)}
           aria-labelledby={heading}
           onCancel={(e) => {
             e.preventDefault();
@@ -540,7 +540,7 @@ function ChatSession({ pathname }: { pathname: string }) {
           <section
             ref={panel}
             id={heading + "-panel"}
-            className={s.panel}
+            className={s.panel + (pathname === "/" ? "" : " " + s.appPanel)}
             role="dialog"
             aria-modal="false"
             aria-labelledby={heading}

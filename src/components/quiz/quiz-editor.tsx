@@ -290,7 +290,6 @@ export function QuizEditor({ quizId }: { quizId: string }) {
 
       <StartSession quizId={quizId} problems={problems} />
       {problems.length === 0 ? <ButtonLink href={`/assignments/new?quiz=${quizId}`} variant="secondary">Giao bài từ quiz này</ButtonLink> : null}
-      {problems.length === 0 ? <PublicationForm quizId={quizId} title={quiz.title} /> : null}
 
       <WorkspaceFeedback tone={message?.kind === "error" ? "error" : "success"}>{message?.text}</WorkspaceFeedback>
       <QuizDraftRecovery key={key} quizId={quizId} questions={questions} onRestore={row => {
@@ -302,9 +301,12 @@ export function QuizEditor({ quizId }: { quizId: string }) {
 
       <div className={styles.workspace}>
         <section aria-labelledby={`${baseId}-questions`} className={`${styles.panel} ${styles.questionsPanel}`}>
+          <details className={styles.questionDisclosure} open>
+          <summary>
           <h2 id={`${baseId}-questions`} className={styles.heading} tabIndex={-1}>
             Câu hỏi ({questions.length} / {MAX_QUESTIONS_PER_QUIZ})
           </h2>
+          </summary>
           {questions.length === 0 ? (
             <p className={styles.hint}>Quiz chưa có câu hỏi nào. Chọn một dạng câu hỏi ở bên dưới để bắt đầu.</p>
           ) : (
@@ -370,6 +372,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
             ))}
           </div>
           {atLimit ? <p className={styles.hint}>Quiz đã đủ {MAX_QUESTIONS_PER_QUIZ} câu, thầy cô xoá bớt câu cũ để thêm câu mới.</p> : null}
+          </details>
         </section>
 
         <section aria-labelledby={formHeadingId} className={`${styles.panel} ${styles.formPanel}`}>
@@ -434,6 +437,8 @@ export function QuizEditor({ quizId }: { quizId: string }) {
         token={shareToken}
         onChange={(token) => setTokenOverride({ key, token })}
       />
+
+      {problems.length === 0 ? <PublicationForm quizId={quizId} title={quiz.title} /> : null}
 
       <dialog
         data-work-dialog

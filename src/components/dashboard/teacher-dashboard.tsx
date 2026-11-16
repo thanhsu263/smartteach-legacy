@@ -12,6 +12,7 @@ import { listQuizzes } from "@/lib/quiz/api";
 import type { QuizSummary } from "@/lib/quiz/types";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import styles from "./teacher-dashboard.module.css";
+import { PageHeading, WorkspacePage, WorkspaceState } from "@/components/workspace/workspace-layout";
 
 type Block<T> = { status: "loading" } | { status: "error"; message: string } | { status: "ready"; items: T[] };
 
@@ -42,10 +43,10 @@ function BlockState({ block, empty, children, onRetry }: { block: Block<unknown>
   }
   if (block.status === "error") {
     return (
-      <div className={styles.blockError} role="alert">
+      <WorkspaceState className={styles.blockError} tone="error">
         <p>{block.message}</p>
         <Button onClick={onRetry}>Thử lại</Button>
-      </div>
+      </WorkspaceState>
     );
   }
   if (block.items.length === 0) return <p className={styles.emptyText}>{empty}</p>;
@@ -111,17 +112,11 @@ export function TeacherDashboard() {
     data.sessions.items.length === 0;
 
   return (
-    <div className={styles.page} data-workspace-controls>
-      <header className={styles.header}>
-        <div>
-          <h1>Tổng quan</h1>
-          <p>Tiếp tục việc dạy học của thầy cô từ nơi đã dừng.</p>
-        </div>
-        <div className={styles.quickActions} aria-label="Thao tác nhanh">
+    <WorkspacePage className={styles.page} data-workspace-controls>
+      <PageHeading title="Tổng quan" description="Tiếp tục việc dạy học của thầy cô từ nơi đã dừng." actions={<div className={styles.quickActions} aria-label="Thao tác nhanh">
           <ButtonLink href="/my-quizzes" variant="primary">Tạo quiz</ButtonLink>
           <ButtonLink href="/my-classes" variant="secondary">Tạo lớp</ButtonLink>
-        </div>
-      </header>
+        </div>} />
 
       {isNewAccount ? (
         <section className={styles.onboarding} aria-labelledby="dashboard-start-title">
@@ -226,6 +221,6 @@ export function TeacherDashboard() {
           </section>
         </div>
       )}
-    </div>
+    </WorkspacePage>
   );
 }

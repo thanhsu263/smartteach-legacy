@@ -85,3 +85,5 @@
 }
 
 @media (max-width: 719px) { .hero { grid-template-columns: 1fr; } }
+
+.page { composes: page from "../../components/workspace/workspace-layout.module.css"; }

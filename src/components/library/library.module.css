@@ -31,3 +31,13 @@
 .cloneAction { min-inline-size: min(100%, 16rem); }
 .previewActions > [data-work-feedback]:not(:empty) { width: 100%; }
 @media(min-width:720px){.publicationForm{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--space-4)}.publicationForm label{margin-top:var(--space-2)}.publicationForm input,.publicationForm textarea{grid-column:1/-1}.publicationSubmit{grid-column:1/-1}}
+
+.page { composes: page from "../workspace/workspace-layout.module.css"; }
+
+/* Filters respond to their workspace, not to a viewport occupied by a sidebar. */
+.page { container: library / inline-size; padding-block: 0; }
+.filters label, .filters input, .filters select { min-width: 0; max-width: 100%; }
+@container library (max-width: 56rem) {
+  .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .filters label:first-child { grid-column: 1 / -1; }
+}

@@ -1,4 +1,5 @@
 .root {
+  composes: page from "../workspace/workspace-layout.module.css";
   display: grid;
   /* Một cột co được: không cho nội dung rộng (ô chọn tệp, khối ví dụ) đẩy cả trang tràn ngang trên điện thoại. */
   grid-template-columns: minmax(0, 1fr);
