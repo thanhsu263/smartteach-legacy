@@ -75,8 +75,12 @@ export function LandingHeader({ brand, account }: { brand: ReactNode; account: R
       previousY = y;
       const height = header!.offsetHeight;
       const active = sections.find((section) => {
-        const rect = section.getBoundingClientRect();
-        return rect.top <= height + 13 && rect.bottom > height + 13;
+        // Scroll reveals translate ancestors. Read layout coordinates so the
+        // selected link doesn't depend on an animation's current frame.
+        let top = 0;
+        for (let box: HTMLElement | null = section; box; box = box.offsetParent as HTMLElement | null) top += box.offsetTop;
+        top -= y;
+        return top <= height + 13 && top + section.offsetHeight > height + 13;
       })?.id;
 
       if (active !== lastSection) {

@@ -12,6 +12,12 @@ const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
 async function expectNoViolations(page: Page, label: string) {
+  // Visibility alone includes the first transparent frame of feedback/dialog
+  // entrances. Audit their settled colors without disabling the motion.
+  await page.evaluate(async () => {
+    const entrances = document.getAnimations().filter(item => item.playState === "running" && Number.isFinite(Number(item.effect?.getComputedTiming().endTime)));
+    await Promise.all(entrances.map(item => item.finished.catch(() => undefined)));
+  });
   const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
   const summary = results.violations.map((violation) => ({
     rule: violation.id,

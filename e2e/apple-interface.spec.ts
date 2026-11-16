@@ -48,6 +48,16 @@ test.describe("landing theo Figma", () => {
     });
 
     await expect(features).toHaveAttribute("aria-current", "location");
+    await expect(page).toHaveURL("/");
+    // A reveal is allowed to translate a section; its layout position still
+    // determines the current navigation item, even without another scroll.
+    await page.locator("#tinh-nang").evaluate(element => {
+      element.style.transform = "translateY(100px)";
+      window.dispatchEvent(new Event("scroll"));
+    });
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expect(features).toHaveAttribute("aria-current", "location");
+    await page.locator("#tinh-nang").evaluate(element => { element.style.removeProperty("transform"); });
     const libraryWidth = (await library.boundingBox())!.width;
     const peakWidth = await thumb.evaluate(async (element) => {
       const widths: number[] = [];
@@ -572,16 +582,31 @@ test.describe("landing responsive", () => {
 test.describe("giảm chuyển động", () => {
   test.use({ reducedMotion: "reduce", viewport: { width: 1280, height: 800 } });
 
-  test("không giữ animation đang chạy", async ({ page }) => {
+  test("không giữ animation kéo dài, chỉ cho phép fallback tức thời", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("[data-hero-classroom]")).toHaveAttribute("data-scene", "paused");
     await expect(page.locator("[data-hero-classroom] canvas")).toBeVisible();
-    expect(await page.evaluate(() => document.getAnimations().filter((item) => item.playState === "running").length)).toBe(0);
+    // The global reduced-motion contract uses 0.01ms rather than animation:none
+    // so transition/animation completion events can still run. Such a transition
+    // may be reported as running until the next rendering update.
+    const lastingMotion = () => page.evaluate(async () => {
+      const violations: { duration: number; target: string | null }[] = [];
+      for (let frame = 0; frame < 10; frame += 1) {
+        for (const item of document.getAnimations().filter(item => item.playState === "running")) {
+          const duration = Number(item.effect?.getComputedTiming().endTime ?? 0);
+          if (!Number.isFinite(duration) || duration > 1) violations.push({ duration, target: item.effect instanceof KeyframeEffect ? item.effect.target?.tagName ?? null : null });
+        }
+        await new Promise(requestAnimationFrame);
+      }
+      return violations;
+    });
+    expect(await lastingMotion()).toEqual([]);
     const cta = page.getByRole("link", { name: /Tạo lớp học miễn phí/ });
     const durations = await cta.evaluate((el) => getComputedStyle(el).transitionDuration.split(",").map(Number.parseFloat));
     expect(Math.max(...durations)).toBeLessThan(0.001);
     await page.mouse.wheel(0, 520);
     await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100);
     expect((await page.locator("header").first().boundingBox())!.y).toBe(0);
+    expect(await lastingMotion()).toEqual([]);
   });
 });
