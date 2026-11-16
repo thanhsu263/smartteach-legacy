@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/config/site";
 import styles from "./privacy.module.css";
+import { getPublicSettings } from "@/lib/site/settings";
 
 const sections = [
   { id: "who", label: "Học sinh và khách" },
@@ -21,7 +22,8 @@ export const metadata: Metadata = {
   description: "SmartTeach lưu những dữ liệu nào, để làm gì, ở đâu và cách xoá.",
 };
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const {contactEmail} = await getPublicSettings();
   return (
     <div className={`container ${styles.page}`}>
       <div className={styles.card} data-surface="panel">
@@ -96,6 +98,12 @@ export default function PrivacyPage() {
           <h2 id="assignment" className={styles.heading}>Bài được giao</h2>
           <p>Để học sinh làm bài không cần tài khoản, SmartTeach lưu tên trong roster lớp, mã truy cập riêng, câu trả lời, điểm và bản sao đề. Mã truy cập chỉ hiển thị cho thầy cô lúc tạo; liên kết QR đặt mã sau dấu <code>#</code> và xoá khỏi thanh địa chỉ ngay khi mở bài.</p>
           <p>Chỉ giáo viên tạo bài xem roster, tiến độ và kết quả; học sinh không xem dữ liệu của bạn khác. Thầy cô có thể đổi/thu hồi mã hoặc đặt lại lượt làm. Bài đã đóng cùng lượt làm được tự xoá sau tối đa <strong>365 ngày</strong>; xoá lớp hoặc bài cũng xoá dữ liệu liên quan.</p>
+        </section>
+
+        <section aria-labelledby="membership" className={styles.section}>
+          <h2 id="membership" className={styles.heading}>Gói thành viên và thanh toán</h2>
+          <p>SmartTeach lưu mã đơn, gói đã chọn, số tiền, trạng thái thanh toán, thời điểm xác nhận và hạn Premium gắn với tài khoản giáo viên. Chỉ chủ tài khoản xem được thông tin thành viên và đơn của mình.</p>
+          <p>Thanh toán được thực hiện trên payOS. SmartTeach gửi mã đơn, tên gói, số tiền và địa chỉ quay lại; ứng dụng không yêu cầu hoặc lưu thông tin đăng nhập ngân hàng. Premium chỉ được kích hoạt sau khi máy chủ xác minh thanh toán. Gói không tự động gia hạn.</p>
         </section>
 
         <section aria-labelledby="library" className={styles.section}>
@@ -210,10 +218,10 @@ export default function PrivacyPage() {
           </p>
           <p>Ở Bài đã giao, thầy cô có thể thu hồi mã truy cập, đặt lại lượt làm hoặc đóng bài; dữ liệu bài đã đóng tự xoá sau tối đa 365 ngày.</p>
           <p>
-            {siteConfig.contactEmail ? (
+            {contactEmail ? (
               <>
                 Muốn xoá toàn bộ tài khoản, thầy cô gửi yêu cầu tới{" "}
-                <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a>.
+                <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
               </>
             ) : (
               "Hiện chưa có chức năng tự xoá tài khoản trong ứng dụng; địa chỉ liên hệ để yêu cầu xoá tài khoản sẽ được cập nhật ở đây."
@@ -221,7 +229,14 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <p className={styles.updated}>Cập nhật lần cuối: 20/10/2026.</p>
+        <section className={styles.section} aria-labelledby="ai-chat">
+          <h2 id="ai-chat" className={styles.heading}>Trợ lý AI và tài liệu tham khảo</h2>
+          <p>Khi bật trợ lý, câu hỏi, một phần lịch sử liên quan và các đoạn tài liệu đã công bố được gửi tới Google Gemini để tạo câu trả lời. Dịch vụ Free Tier của Google có thể dùng dữ liệu để cải thiện sản phẩm theo điều khoản của họ. Không gửi dữ liệu học sinh, điểm số hoặc thông tin nhạy cảm vào hội thoại.</p>
+          <p>Trợ lý chỉ tìm trong tài liệu quản trị đã công bố và học liệu đã được duyệt; không được đọc danh sách lớp, kết quả học sinh hay quiz riêng. Câu trả lời có thể sai và cần được kiểm tra theo nguồn trích dẫn.</p>
+          <p>Lịch sử gắn với tài khoản của thầy cô, mỗi tin nhắn hết hạn sau 30 ngày. Thầy cô có thể xóa ngay hội thoại; quản trị viên không có chức năng đọc hội thoại riêng. Việc xóa trong SmartTeach không thay thế thời hạn lưu của nhà cung cấp AI hoặc bản sao lưu hạ tầng.</p>
+          <p><a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer">Điều khoản Gemini API</a></p>
+        </section>
+        <p className={styles.updated}>Cập nhật lần cuối: 15/11/2026.</p>
       </div>
     </div>
   );

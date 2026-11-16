@@ -27,6 +27,17 @@ beforeEach(() => {
 });
 
 describe("GET /auth/callback", () => {
+  it("recovery lỗi về đúng màn hình gửi lại, không loop qua login có phiên", async () => {
+    exchangeCodeForSession.mockResolvedValue({ error: { code: "bad_code" } });
+    const response = await call("?code=used&next=%2Freset-password");
+    expect(location(response)).toBe(`${origin}/reset-password?error=recovery`);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+  });
+  it("không lộ lỗi provider khi network throw", async () => {
+    exchangeCodeForSession.mockRejectedValue(new Error("sensitive provider error"));
+    expect(location(await call("?code=bad&next=%2Freset-password"))).toBe(`${origin}/reset-password?error=recovery`);
+  });
   it("đổi mã lấy phiên thành công thì về trang đích nội bộ", async () => {
     exchangeCodeForSession.mockResolvedValue({ error: null });
     const response = await call("?code=abc&next=%2Fgames%2Fgargamel-bat-xi-trum");

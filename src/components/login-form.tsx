@@ -96,6 +96,7 @@ export function LoginForm() {
         Tiếp tục với Google
       </Button>
 
+      <Link href="/forgot-password">Quên mật khẩu?</Link>
       <p className={styles.divider}>
         <span>hoặc dùng email</span>
       </p>

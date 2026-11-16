@@ -8,6 +8,7 @@ import { AmbientBackground } from "@/components/ambient-background";
 import { AppFooter, AppHeader } from "@/components/app-chrome";
 import { AuthProvider } from "@/components/auth-provider";
 import { FavoritesProvider } from "@/components/favorites-provider";
+import { ChatWidget } from "@/components/chat/chat-widget";
 import { siteConfig } from "@/config/site";
 
 const beVietnamPro = Be_Vietnam_Pro({
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <AppHeader />
             </Suspense>
             <main id="main">{children}</main>
+            <Suspense fallback={null}><ChatWidget /></Suspense>
             <Suspense fallback={null}>
               <AppFooter />
             </Suspense>

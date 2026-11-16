@@ -24,6 +24,11 @@ const createdUsers: string[] = [];
 
 export type Teacher = { client: SupabaseClient; id: string; email: string; password: string };
 
+export async function grantPremiumForTest(teacher: Teacher) {
+  const result = await admin().from("membership_entitlements").upsert({ user_id: teacher.id, premium_until: new Date(Date.now() + 31 * 86400_000).toISOString() });
+  expect(result.error).toBeNull();
+}
+
 export async function newTeacher(label = "live-e2e"): Promise<Teacher> {
   const email = `${label}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}@example.test`;
   const password = "e2e-password-123";
@@ -42,7 +47,7 @@ export async function loginAs(page: Page, teacher: Teacher, next = "/my-quizzes"
   await page.getByLabel("Email").fill(teacher.email);
   await page.getByLabel("Mật khẩu").fill(teacher.password);
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).last().click();
-  await expect(page).toHaveURL((url) => url.pathname === next);
+  await expect(page).toHaveURL((url) => `${url.pathname}${url.search}` === next);
 }
 
 /** Học sinh mô phỏng qua hàm (không qua giao diện): vào phòng và trả lời bằng mã tham gia. */

@@ -11,6 +11,13 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  serverExternalPackages: ["pdfjs-dist", "mammoth", "@napi-rs/canvas", "pdfkit"],
+  outputFileTracingIncludes: {
+    "/api/exams/parse": ["./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs", "./node_modules/@napi-rs/canvas*/**/*"],
+    "/api/internal/exams/jobs/run": ["./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs", "./node_modules/@napi-rs/canvas*/**/*"],
+    "/api/exams/*/export": ["./src/assets/fonts/*.ttf", "./node_modules/pdfkit/js/data/**/*"],
+    "/api/internal/rag/jobs/run": ["./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs", "./node_modules/@napi-rs/canvas*/**/*"],
+  },
   // Tắt có chủ đích: khi bật, id game không có trong danh mục trả về HTTP 200 thay vì 404
   // (xem plans/.../implementation-notes.md, phase 2). Khai báo rõ để Next.js không cảnh báo.
   partialPrefetching: false,

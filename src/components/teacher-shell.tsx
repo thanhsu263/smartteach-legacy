@@ -7,13 +7,14 @@ import { useAuth } from "@/components/auth-provider";
 import { BlocksIcon, ClipboardListIcon, CloseIcon, DashboardIcon, GamepadIcon, LogoMark, MenuIcon, PanelLeftIcon, SchoolIcon } from "@/components/icons";
 import styles from "./teacher-shell.module.css";
 
-type NavigationItem = { href: "/dashboard" | "/assignments" | "/my-classes" | "/my-quizzes" | "/library" | "/games" | "/tools"; label: string; Icon: typeof SchoolIcon };
+type NavigationItem = { href: "/dashboard" | "/assignments" | "/my-classes" | "/my-quizzes" | "/my-exams" | "/library" | "/games" | "/tools"; label: string; Icon: typeof SchoolIcon };
 
 const navigation: readonly NavigationItem[] = [
   { href: "/dashboard", label: "Tổng quan", Icon: DashboardIcon },
   { href: "/assignments", label: "Bài đã giao", Icon: ClipboardListIcon },
   { href: "/my-classes", label: "Lớp của tôi", Icon: SchoolIcon },
   { href: "/my-quizzes", label: "Quiz của tôi", Icon: ClipboardListIcon },
+  { href: "/my-exams", label: "Đề kiểm tra", Icon: ClipboardListIcon },
   { href: "/library", label: "Kho học liệu", Icon: BlocksIcon },
   { href: "/games", label: "Kho game", Icon: GamepadIcon },
   { href: "/tools", label: "Tiện ích", Icon: BlocksIcon },
@@ -23,7 +24,9 @@ function current(pathname: string, href: string) { return pathname === href || p
 
 function Navigation({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { status, signOut } = useAuth();
+  const { status, user, signOut } = useAuth();
+  const [adminFor,setAdminFor] = useState<string|null>(null);
+  useEffect(()=>{if(!user)return;let live=true;fetch("/api/admin/session",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{if(live)setAdminFor(d?.role==="admin"?user.id:null);}).catch(()=>{if(live)setAdminFor(null);});return()=>{live=false;};},[user]);
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -54,6 +57,10 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
       </Link>
     </li>)}</ul>
     <div className={styles.navigationAccount}>
+      {user && adminFor===user.id && <Link href="/admin" onClick={onNavigate}>Quản trị hệ thống</Link>}
+      <Link href="/membership" aria-current={pathname === "/membership" ? "page" : undefined} onClick={onNavigate}>Gói thành viên</Link>
+      {status === "signed-in" && <Link href="/feedback" aria-current={pathname === "/feedback" ? "page" : undefined} onClick={onNavigate}>Góp ý</Link>}
+      {status === "signed-in" && <Link href="/account/security" aria-current={pathname === "/account/security" ? "page" : undefined} onClick={onNavigate}>Bảo mật tài khoản</Link>}
       {status === "signed-in" ? (
         <button type="button" onClick={() => { void signOut(); onNavigate?.(); }}>Đăng xuất</button>
       ) : (

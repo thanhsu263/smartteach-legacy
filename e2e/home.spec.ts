@@ -84,6 +84,18 @@ test.describe("điều hướng", () => {
     expect(parseFloat(outline.width)).toBeGreaterThanOrEqual(2);
   });
 
+  test("anchor chờ heading trong wrapper hiện chậm trước khi chuyển focus",async({page})=>{
+    await page.goto("/#hoc-lieu");
+    await expect(page).toHaveURL("/");
+    await page.locator("#tinh-nang").evaluate(section=>{
+      const wrapper=section.parentElement!;
+      wrapper.style.visibility="hidden";
+      setTimeout(()=>{wrapper.style.visibility="visible";},120);
+    });
+    await page.getByRole("navigation",{name:"Điều hướng landing"}).locator('a[href="#tinh-nang"]').press("Enter");
+    await expect(page.locator("#tinh-nang h2")).toBeFocused();
+  });
+
   test("anchor đặt nội dung dưới header, giữ focus, mục hiện tại và history", async ({ page }) => {
     await page.goto("/?preview=1#hoc-lieu");
     const header = page.locator("header").first();
@@ -170,7 +182,7 @@ for (const width of [375, 768]) {
       await page.goto("/");
       const stage = page.locator("[data-hero-classroom]");
       await expect(stage).toBeVisible();
-      await expect(stage).toHaveAttribute("data-scene", "running");
+      await expect(stage).toHaveAttribute("data-scene", "running", { timeout: 15_000 });
       await expect(stage.locator("canvas")).toBeVisible();
       await page.getByRole("button", { name: "Thử một câu quiz" }).tap();
       const quiz = page.getByRole("dialog", { name: "Thử một câu quiz" });

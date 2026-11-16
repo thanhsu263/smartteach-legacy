@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GameEmbed } from "@/components/game-embed";
-import { games } from "@/data/games";
+import {getPublicGames} from "@/lib/site/settings";
 import { findGame, gradeLabels, subjectLabels } from "@/lib/catalog";
 import styles from "./game-page.module.css";
 
 /** Phần phụ thuộc vào id trên URL, nằm trong ranh giới Suspense của trang. */
 export async function GameContent({ params }: Pick<PageProps<"/games/[id]">, "params">) {
   const { id } = await params;
-  const game = findGame(games, id);
+  const game = findGame(await getPublicGames(), id);
   if (!game) notFound();
 
   const tags = [...subjectLabels(game), ...gradeLabels(game)];

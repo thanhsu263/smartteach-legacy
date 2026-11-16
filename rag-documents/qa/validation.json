@@ -1,0 +1,82 @@
+{
+  "status": "passed",
+  "method": "production extractDocx + chunkSections; no Gemini calls",
+  "version": "2026-11-16.1",
+  "documents": [
+    {
+      "id": "01-bat-dau-va-tai-khoan",
+      "bytes": 39541,
+      "sections": 10,
+      "chunks": 10,
+      "answerBlocks": 7,
+      "maxChunkCharacters": 545
+    },
+    {
+      "id": "02-lop-hoc-va-danh-sach",
+      "bytes": 39194,
+      "sections": 9,
+      "chunks": 9,
+      "answerBlocks": 6,
+      "maxChunkCharacters": 515
+    },
+    {
+      "id": "03-soan-nhap-va-chia-se-quiz",
+      "bytes": 39786,
+      "sections": 11,
+      "chunks": 11,
+      "answerBlocks": 8,
+      "maxChunkCharacters": 544
+    },
+    {
+      "id": "04-to-chuc-quiz-truc-tiep",
+      "bytes": 39543,
+      "sections": 10,
+      "chunks": 10,
+      "answerBlocks": 7,
+      "maxChunkCharacters": 554
+    },
+    {
+      "id": "05-soan-de-va-giao-bai-online",
+      "bytes": 39751,
+      "sections": 11,
+      "chunks": 11,
+      "answerBlocks": 8,
+      "maxChunkCharacters": 547
+    },
+    {
+      "id": "06-tim-va-chia-se-hoc-lieu",
+      "bytes": 39540,
+      "sections": 10,
+      "chunks": 10,
+      "answerBlocks": 7,
+      "maxChunkCharacters": 527
+    },
+    {
+      "id": "07-tien-ich-va-kho-game",
+      "bytes": 39497,
+      "sections": 10,
+      "chunks": 10,
+      "answerBlocks": 7,
+      "maxChunkCharacters": 488
+    },
+    {
+      "id": "08-goi-thanh-vien-va-thanh-toan",
+      "bytes": 39389,
+      "sections": 9,
+      "chunks": 9,
+      "answerBlocks": 6,
+      "maxChunkCharacters": 549
+    },
+    {
+      "id": "09-tro-ly-rag-va-xu-ly-su-co",
+      "bytes": 40013,
+      "sections": 11,
+      "chunks": 11,
+      "answerBlocks": 8,
+      "maxChunkCharacters": 567
+    }
+  ],
+  "totalChunks": 91,
+  "evaluationCases": 30,
+  "liveGeminiEvaluation": "not_run"
+}

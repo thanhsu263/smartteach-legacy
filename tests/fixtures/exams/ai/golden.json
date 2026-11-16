@@ -1,0 +1,270 @@
+{
+  "status": "synthetic-draft-needs-teacher-review",
+  "corpusProviderVerified": false,
+  "cases": [
+    {
+      "file": "with-keys.csv",
+      "expectedQuestions": 4,
+      "kinds": [
+        "single",
+        "true_false",
+        "multi",
+        "short_text"
+      ],
+      "pointUnits": [
+        125,
+        75,
+        250,
+        null
+      ],
+      "correctOptions": [
+        [
+          1
+        ],
+        [
+          0
+        ],
+        [
+          0,
+          2,
+          4
+        ],
+        []
+      ],
+      "acceptedAnswers": [
+        "mèo",
+        "con mèo"
+      ],
+      "expectedWarnings": [
+        "Câu 4 chưa ghi điểm"
+      ],
+      "ignoreEmbeddedInstruction": true
+    },
+    {
+      "file": "with-keys.xlsx",
+      "expectedQuestions": 4,
+      "kinds": [
+        "single",
+        "true_false",
+        "multi",
+        "short_text"
+      ],
+      "pointUnits": [
+        125,
+        75,
+        250,
+        null
+      ],
+      "correctOptions": [
+        [
+          1
+        ],
+        [
+          0
+        ],
+        [
+          0,
+          2,
+          4
+        ],
+        []
+      ],
+      "acceptedAnswers": [
+        "mèo",
+        "con mèo"
+      ],
+      "expectedWarnings": [
+        "Câu 4 chưa ghi điểm"
+      ],
+      "ignoreEmbeddedInstruction": true
+    },
+    {
+      "file": "with-keys.docx",
+      "expectedQuestions": 4,
+      "kinds": [
+        "single",
+        "true_false",
+        "multi",
+        "short_text"
+      ],
+      "pointUnits": [
+        125,
+        75,
+        250,
+        null
+      ],
+      "correctOptions": [
+        [
+          1
+        ],
+        [
+          0
+        ],
+        [
+          0,
+          2,
+          4
+        ],
+        []
+      ],
+      "acceptedAnswers": [
+        "mèo",
+        "con mèo"
+      ],
+      "expectedWarnings": [
+        "Câu 4 chưa ghi điểm"
+      ],
+      "ignoreEmbeddedInstruction": true
+    },
+    {
+      "file": "with-keys.pdf",
+      "expectedQuestions": 4,
+      "kinds": [
+        "single",
+        "true_false",
+        "multi",
+        "short_text"
+      ],
+      "pointUnits": [
+        125,
+        75,
+        250,
+        null
+      ],
+      "correctOptions": [
+        [
+          1
+        ],
+        [
+          0
+        ],
+        [
+          0,
+          2,
+          4
+        ],
+        []
+      ],
+      "acceptedAnswers": [
+        "mèo",
+        "con mèo"
+      ],
+      "expectedWarnings": [
+        "Câu 4 chưa ghi điểm"
+      ],
+      "ignoreEmbeddedInstruction": true
+    },
+    {
+      "file": "missing-keys.csv",
+      "expectedQuestions": 4,
+      "kinds": [
+        "single",
+        "true_false",
+        "multi",
+        "short_text"
+      ],
+      "pointUnits": [
+        125,
+        75,
+        250,
+        null
+      ],
+      "correctOptions": [
+        [],
+        [],
+        [],
+        []
+      ],
+      "acceptedAnswers": [],
+      "expectedWarnings": [
+        "Bốn câu chưa có khóa đáp án",
+        "Câu 4 chưa ghi điểm"
+      ],
+      "ignoreEmbeddedInstruction": true
+    },
+    {
+      "file": "missing-keys.xlsx",
+      "expectedQuestions": 4,
+      "kinds": [
+        "single",
+        "true_false",
+        "multi",
+        "short_text"
+      ],
+      "pointUnits": [
+        125,
+        75,
+        250,
+        null
+      ],
+      "correctOptions": [
+        [],
+        [],
+        [],
+        []
+      ],
+      "acceptedAnswers": [],
+      "expectedWarnings": [
+        "Bốn câu chưa có khóa đáp án",
+        "Câu 4 chưa ghi điểm"
+      ],
+      "ignoreEmbeddedInstruction": true
+    },
+    {
+      "file": "missing-keys.docx",
+      "expectedQuestions": 4,
+      "kinds": [
+        "single",
+        "true_false",
+        "multi",
+        "short_text"
+      ],
+      "pointUnits": [
+        125,
+        75,
+        250,
+        null
+      ],
+      "correctOptions": [
+        [],
+        [],
+        [],
+        []
+      ],
+      "acceptedAnswers": [],
+      "expectedWarnings": [
+        "Bốn câu chưa có khóa đáp án",
+        "Câu 4 chưa ghi điểm"
+      ],
+      "ignoreEmbeddedInstruction": true
+    },
+    {
+      "file": "missing-keys.pdf",
+      "expectedQuestions": 4,
+      "kinds": [
+        "single",
+        "true_false",
+        "multi",
+        "short_text"
+      ],
+      "pointUnits": [
+        125,
+        75,
+        250,
+        null
+      ],
+      "correctOptions": [
+        [],
+        [],
+        [],
+        []
+      ],
+      "acceptedAnswers": [],
+      "expectedWarnings": [
+        "Bốn câu chưa có khóa đáp án",
+        "Câu 4 chưa ghi điểm"
+      ],
+      "ignoreEmbeddedInstruction": true
+    }
+  ]
+}

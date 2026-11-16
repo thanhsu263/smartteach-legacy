@@ -1,0 +1,779 @@
+{
+  "schemaVersion": 1,
+  "version": "2026-11-16.1",
+  "language": "vi-VN",
+  "authoredOn": "2026-11-16",
+  "codeSnapshotDate": "2026-11-15",
+  "scope": "Hướng dẫn sử dụng hệ thống từ mã nguồn local ngày 15/11/2026; chưa phải giáo trình môn học hoặc xác nhận dịch vụ production đã hoạt động.",
+  "corpusSourceSha256": "5049d643893268faac12fd4eefc26eb53ccbe78c868728183afa8ba00f1fa573",
+  "status": "authored_local_not_uploaded",
+  "containsSubjectTeachingMaterial": false,
+  "liveGeminiEvaluation": "not_run",
+  "documents": [
+    {
+      "id": "01-bat-dau-va-tai-khoan",
+      "title": "Bắt đầu sử dụng SmartTeach và quản lý tài khoản",
+      "version": "2026-11-16.1",
+      "uploadFile": "ready/01-bat-dau-va-tai-khoan.docx",
+      "editableFile": "source/01-bat-dau-va-tai-khoan.md",
+      "bytes": 39541,
+      "sha256": "dd55b79cb0b0190cdc2bb77018f16d2823460fe3f451eda9044bbbe752013f78",
+      "ragMetadata": {
+        "subject": null,
+        "grades": []
+      },
+      "blocks": [
+        {
+          "id": "chon-chuc-nang",
+          "question": "Tôi nên bắt đầu từ đâu khi dùng SmartTeach?",
+          "characters": 545
+        },
+        {
+          "id": "dang-ky",
+          "question": "Đăng ký tài khoản giáo viên bằng email như thế nào?",
+          "characters": 496
+        },
+        {
+          "id": "google-va-dang-nhap",
+          "question": "SmartTeach hỗ trợ những cách đăng nhập nào?",
+          "characters": 461
+        },
+        {
+          "id": "quyen-khach",
+          "question": "Học sinh hoặc khách có cần tài khoản không?",
+          "characters": 463
+        },
+        {
+          "id": "khong-thay-du-lieu",
+          "question": "Vì sao đăng nhập rồi nhưng không thấy lớp hoặc quiz của tôi?",
+          "characters": 464
+        },
+        {
+          "id": "tai-khoan-bi-khoa",
+          "question": "Tài khoản bị khóa hoặc không có quyền quản trị thì làm gì?",
+          "characters": 507
+        },
+        {
+          "id": "bao-mat-thong-tin",
+          "question": "Cần giữ riêng những thông tin nào khi dùng SmartTeach?",
+          "characters": 506
+        }
+      ],
+      "evidence": [
+        {
+          "path": "src/config/navigation.ts",
+          "sha256": "4bf0abc04bd97b709c9f4a232964a9dc9ad42cdd138f7942b9430d1b0e2e0aaf"
+        },
+        {
+          "path": "src/components/login-form.tsx",
+          "sha256": "79c55e3cd047944d33c8d7968d45d8c46ebd1225f4f758dcc9bf9a8c97e36f36"
+        },
+        {
+          "path": "src/components/require-user.tsx",
+          "sha256": "862e9ddd52d5d55edd9d3b853ec30833007ab11fbaef06c2abbeb5cb3824f114"
+        },
+        {
+          "path": "src/components/teacher-shell.tsx",
+          "sha256": "cdcfb5edf58adefb6c697d7b3d17ea0d0b8e42b042a6acdcad9dddc580ddb3bf"
+        },
+        {
+          "path": "src/lib/auth/protected-paths.ts",
+          "sha256": "3f6ca50e91f247d5be740f6d90253436b3969d7ef18f52d73a1fc60dee4ed6c3"
+        },
+        {
+          "path": "src/app/privacy/page.tsx",
+          "sha256": "4f8b44dc112b06c7c0d3081cd33ddc57afc58407bee1d6cbde2452cd00c1ff10"
+        }
+      ]
+    },
+    {
+      "id": "02-lop-hoc-va-danh-sach",
+      "title": "Quản lý lớp học và danh sách học sinh",
+      "version": "2026-11-16.1",
+      "uploadFile": "ready/02-lop-hoc-va-danh-sach.docx",
+      "editableFile": "source/02-lop-hoc-va-danh-sach.md",
+      "bytes": 39194,
+      "sha256": "4f08b4153c2e2e8d097e1ffe2f07cd9bf787755625367f64e21c16bd3bbbc3ec",
+      "ragMetadata": {
+        "subject": null,
+        "grades": []
+      },
+      "blocks": [
+        {
+          "id": "tao-lop",
+          "question": "Làm thế nào để tạo lớp và lưu danh sách học sinh?",
+          "characters": 429
+        },
+        {
+          "id": "gioi-han-lop",
+          "question": "Một tài khoản lưu được bao nhiêu lớp và học sinh?",
+          "characters": 467
+        },
+        {
+          "id": "doi-ten-va-them",
+          "question": "Tôi sửa tên lớp hoặc tên học sinh như thế nào?",
+          "characters": 431
+        },
+        {
+          "id": "dung-lop-trong-tien-ich",
+          "question": "Dùng danh sách lớp đã lưu cho bốc thăm và chia nhóm ra sao?",
+          "characters": 515
+        },
+        {
+          "id": "lop-va-bai-giao",
+          "question": "Vì sao lớp chưa chọn được khi tạo bài giao?",
+          "characters": 456
+        },
+        {
+          "id": "xoa-du-lieu-lop",
+          "question": "Cần kiểm tra gì trước khi xóa lớp hoặc học sinh?",
+          "characters": 469
+        }
+      ],
+      "evidence": [
+        {
+          "path": "src/components/classes-manager.tsx",
+          "sha256": "2fbd08efd3cfc4d0b960f8e4ae79f692156b36980327b7be12dcc7234588c31c"
+        },
+        {
+          "path": "src/components/class-editor.tsx",
+          "sha256": "398d9a25aeedf36f8bdc5abeb17db38fcd5ca5faeb577ccaa9742c357fb1e595"
+        },
+        {
+          "path": "src/components/saved-class-picker.tsx",
+          "sha256": "5f4bb206cbdeed3ea09e42a670a0eac14ee12c90cdbf7f034a0d91680b2cd0c2"
+        },
+        {
+          "path": "src/lib/classes/api.ts",
+          "sha256": "3233261776408a78e695815b2725ac55410b4023bad6d0a9a6aab9bb94122968"
+        },
+        {
+          "path": "src/lib/classes/limits.ts",
+          "sha256": "b1851698f247b5cd3a09dc44a4a6af28a2f3652c0d0125bcd4a873038ced6bc4"
+        }
+      ]
+    },
+    {
+      "id": "03-soan-nhap-va-chia-se-quiz",
+      "title": "Soạn nhập và chia sẻ quiz trong SmartTeach",
+      "version": "2026-11-16.1",
+      "uploadFile": "ready/03-soan-nhap-va-chia-se-quiz.docx",
+      "editableFile": "source/03-soan-nhap-va-chia-se-quiz.md",
+      "bytes": 39786,
+      "sha256": "60769b708f7a182a42d88638e8bd2b7e1e9b6bfdeba3fe149353e92b918ce36f",
+      "ragMetadata": {
+        "subject": null,
+        "grades": []
+      },
+      "blocks": [
+        {
+          "id": "tao-quiz",
+          "question": "Tạo một quiz mới và thêm câu hỏi thế nào?",
+          "characters": 433
+        },
+        {
+          "id": "bon-loai-cau",
+          "question": "SmartTeach hỗ trợ những loại câu hỏi quiz nào?",
+          "characters": 454
+        },
+        {
+          "id": "gioi-han-quiz",
+          "question": "Giới hạn quiz và thời gian trả lời mỗi câu là bao nhiêu?",
+          "characters": 449
+        },
+        {
+          "id": "dien-tu",
+          "question": "Thiết lập đáp án cho câu điền từ ngắn như thế nào?",
+          "characters": 477
+        },
+        {
+          "id": "nhap-tep",
+          "question": "Nhập quiz từ Excel hoặc CSV như thế nào?",
+          "characters": 497
+        },
+        {
+          "id": "dan-van-ban",
+          "question": "Cú pháp dán câu hỏi để tạo quiz là gì?",
+          "characters": 531
+        },
+        {
+          "id": "loi-nhap-va-chua-choi-duoc",
+          "question": "Quiz nhập xong nhưng không tạo hoặc không chơi được thì sửa gì?",
+          "characters": 540
+        },
+        {
+          "id": "chia-se-link",
+          "question": "Chia sẻ quiz bằng link khác gì với gửi vào kho học liệu?",
+          "characters": 544
+        }
+      ],
+      "evidence": [
+        {
+          "path": "src/components/quiz/quizzes-manager.tsx",
+          "sha256": "ab337bbba3393b88513a67aa599d808542faa326e9b45f53bb9cb4ccc87216cd"
+        },
+        {
+          "path": "src/components/quiz/quiz-editor.tsx",
+          "sha256": "737ce495a6e1c9afe5ad26e9a2909fb96dd0b8f17af35eccaa0edfc47c194665"
+        },
+        {
+          "path": "src/components/quiz/question-form.tsx",
+          "sha256": "cc6e8f6f8a004b809ead83f9d0c17024a71c304857bf6a833140d4ade1225dcc"
+        },
+        {
+          "path": "src/components/quiz/import-quiz.tsx",
+          "sha256": "b2ef21de56e9e5762d90667f40e14e0a758f76df0ba42a9129d6f9f9e2b8ae34"
+        },
+        {
+          "path": "src/components/quiz/share-panel.tsx",
+          "sha256": "6bd778937dad43c27ad7fca356972141b29b62dd9e7d5f36d3add11d64e1ce3a"
+        },
+        {
+          "path": "src/components/quiz/shared-quiz-view.tsx",
+          "sha256": "f462d1f393ca59a627a089e7d3a2f0b2e2ff4b599a6d68d12e2417d11f091826"
+        },
+        {
+          "path": "src/lib/quiz/limits.ts",
+          "sha256": "b0be8e09b96dac35b77f426d8b59193ed8e2e3f14f2a29280c507b253e753fad"
+        },
+        {
+          "path": "src/lib/quiz/types.ts",
+          "sha256": "cd863b896aba1fc41fee02e91ec0ab2581a19ae39b9009184ad728f5afef51e8"
+        },
+        {
+          "path": "src/lib/quiz/validate.ts",
+          "sha256": "5221b5f4cbb3a931cf5ed2c849007dc88893a7dadabfbc0a1c986113066ba78d"
+        },
+        {
+          "path": "src/lib/quiz/import/types.ts",
+          "sha256": "e0c244295fda9aa7a9cefb378571e6d40537d3a76dbc0a0e7eec81ff6fa6c3b7"
+        },
+        {
+          "path": "src/lib/quiz/import/template.ts",
+          "sha256": "b35fcab91a22170c818748014ec6245f990b25064ecaf3fa59560f99a48bed05"
+        }
+      ]
+    },
+    {
+      "id": "04-to-chuc-quiz-truc-tiep",
+      "title": "Tổ chức quiz trực tiếp bằng PIN",
+      "version": "2026-11-16.1",
+      "uploadFile": "ready/04-to-chuc-quiz-truc-tiep.docx",
+      "editableFile": "source/04-to-chuc-quiz-truc-tiep.md",
+      "bytes": 39543,
+      "sha256": "66bed80ec313a7e8bba97374bcb4e2d7e24029a4ebad3769c542fc5774b0e540",
+      "ragMetadata": {
+        "subject": null,
+        "grades": []
+      },
+      "blocks": [
+        {
+          "id": "mo-phien",
+          "question": "Giáo viên mở phiên quiz trực tiếp như thế nào?",
+          "characters": 428
+        },
+        {
+          "id": "hoc-sinh-vao-phong",
+          "question": "Học sinh vào phòng bằng PIN ra sao?",
+          "characters": 466
+        },
+        {
+          "id": "phien-dang-chay",
+          "question": "Không mở được phiên mới vì đã có phiên đang chạy thì làm gì?",
+          "characters": 430
+        },
+        {
+          "id": "diem-va-tu-dong",
+          "question": "Điểm tốc độ và tự động qua câu hoạt động thế nào?",
+          "characters": 495
+        },
+        {
+          "id": "kho-bau",
+          "question": "Chế độ kho báu trong quiz trực tiếp là gì?",
+          "characters": 486
+        },
+        {
+          "id": "dieu-khien-va-ket-qua",
+          "question": "Giáo viên tạm dừng và xem kết quả quiz trực tiếp ở đâu?",
+          "characters": 525
+        },
+        {
+          "id": "mat-ket-noi",
+          "question": "Đang chơi quiz mà mất mạng hoặc trả lời không được thì xử lý thế nào?",
+          "characters": 554
+        }
+      ],
+      "evidence": [
+        {
+          "path": "src/components/live/host/start-session.tsx",
+          "sha256": "1ba1b1e5ff2d5e1608b3c0ae0abeb0b4995fa8e2273c84ad7c0eb38ed820af3c"
+        },
+        {
+          "path": "src/components/live/host/host-screen.tsx",
+          "sha256": "fa4aa14475faf4c5b56f5986d3f7dbd2457990133ac7a53182230b39299ae610"
+        },
+        {
+          "path": "src/components/live/host/lobby.tsx",
+          "sha256": "921f1a32dab780ab61110e7b5e9420c5485348cacb3ffea9cf3242aa42040710"
+        },
+        {
+          "path": "src/components/live/player/join-form.tsx",
+          "sha256": "8c08674cbbe2712dc2932b132fe442e714098d4eae918a0dd3e22b954ef9ae85"
+        },
+        {
+          "path": "src/components/live/player/play-screen.tsx",
+          "sha256": "bd71b2e17698c9afe5f00395937d860d93dae1f367b1ea5d424ea41d8797e917"
+        },
+        {
+          "path": "src/components/live/results/session-history.tsx",
+          "sha256": "e75b7a5ba9216e8e290049c4fabca27fa8ae6b2f35aecc8062f7e97c21e03d62"
+        },
+        {
+          "path": "src/components/live/results/results-screen.tsx",
+          "sha256": "e315be711afc7f1c18c0eb38245e9ef6f9713ade7749be2546ec8eea59c99a1c"
+        },
+        {
+          "path": "src/lib/live/errors.ts",
+          "sha256": "5a6c378b0bef36cce7c235df35cf5e789741feacb73e8d946085f89beb27a885"
+        }
+      ]
+    },
+    {
+      "id": "05-soan-de-va-giao-bai-online",
+      "title": "Soạn đề giao bài online và theo dõi kết quả",
+      "version": "2026-11-16.1",
+      "uploadFile": "ready/05-soan-de-va-giao-bai-online.docx",
+      "editableFile": "source/05-soan-de-va-giao-bai-online.md",
+      "bytes": 39751,
+      "sha256": "3e8db0ff7f5c7904f27f41c3344e4b85ebc603b7485cf2f97d7d6cc9bb402417",
+      "ragMetadata": {
+        "subject": null,
+        "grades": []
+      },
+      "blocks": [
+        {
+          "id": "dieu-kien-giao-bai",
+          "question": "Soạn đề Premium có phải một trình soạn khác với quiz không?",
+          "characters": 477
+        },
+        {
+          "id": "tao-ban-nhap",
+          "question": "Các bước tạo và phát hành bài giao online là gì?",
+          "characters": 473
+        },
+        {
+          "id": "lich-va-ket-qua",
+          "question": "Mở bài hạn nộp và công bố đáp án được thiết lập thế nào?",
+          "characters": 509
+        },
+        {
+          "id": "ma-truy-cap",
+          "question": "Cấp mã và gửi liên kết bài giao cho học sinh như thế nào?",
+          "characters": 491
+        },
+        {
+          "id": "doi-thu-hoi-dat-lai",
+          "question": "Đổi mã thu hồi mã và đặt lại lượt khác nhau thế nào?",
+          "characters": 480
+        },
+        {
+          "id": "luu-va-nop",
+          "question": "Học sinh làm và nộp bài online theo cách nào?",
+          "characters": 495
+        },
+        {
+          "id": "theo-doi",
+          "question": "Giáo viên theo dõi tiến độ và xem chi tiết bài làm ở đâu?",
+          "characters": 547
+        },
+        {
+          "id": "snapshot-va-het-premium",
+          "question": "Sửa quiz gốc hoặc hết Premium có làm mất bài đã giao không?",
+          "characters": 520
+        }
+      ],
+      "evidence": [
+        {
+          "path": "src/components/assignments/assignment-compose.tsx",
+          "sha256": "374184cb8dac6c2c87cf9231d91b86cb6dc4d207c3c95c1315570191f76b06c3"
+        },
+        {
+          "path": "src/components/assignments/assignment-detail.tsx",
+          "sha256": "b7ee2b60a28a8345bd55e4e6c1c303f59bd6a67f863a7e4bcc45f1608d19bf8e"
+        },
+        {
+          "path": "src/components/assignments/assignments-manager.tsx",
+          "sha256": "2c2dc34f2cbb0bf612aa8328eea5b11b0d2bdd67e318fb10318f8ebf9f5a983e"
+        },
+        {
+          "path": "src/components/assignments/learn-start.tsx",
+          "sha256": "744b05df9d023192772fb8c8de89e1402659e1047aa603f174ad7f3830cc70b0"
+        },
+        {
+          "path": "src/components/assignments/student-assignment-runner.tsx",
+          "sha256": "e5331562173cb1095234f8a27a88a8e9d128d82a3fc0aefe47ddab21330c4fd3"
+        },
+        {
+          "path": "src/components/membership/require-premium.tsx",
+          "sha256": "aafa94191fe8311037b0c01fb350b3fcbc15f5995aa6df6ad45584cdc1d58325"
+        },
+        {
+          "path": "src/lib/assignments/limits.ts",
+          "sha256": "78d9a6708d1872fb30e5515f3c877d4fd2a23a9d22aecd46f05c306674d5ff87"
+        },
+        {
+          "path": "supabase/migrations/20261111090000_assignments.sql",
+          "sha256": "dd843774c165819330638288897fba84facb397943d05f1fc6163bfc94f12af6"
+        },
+        {
+          "path": "supabase/migrations/20261115090000_membership_payos.sql",
+          "sha256": "03d5c625c5acfdcc7aa74bb1afb0235f9bbb89bef801369e991b6fffa104e139"
+        }
+      ]
+    },
+    {
+      "id": "06-tim-va-chia-se-hoc-lieu",
+      "title": "Tìm sử dụng và gửi duyệt học liệu",
+      "version": "2026-11-16.1",
+      "uploadFile": "ready/06-tim-va-chia-se-hoc-lieu.docx",
+      "editableFile": "source/06-tim-va-chia-se-hoc-lieu.md",
+      "bytes": 39540,
+      "sha256": "07f768ec8eba1e0a11bb62bba30fe4378b601c802d8cc7a6bc5891ce5c40c375",
+      "ragMetadata": {
+        "subject": null,
+        "grades": []
+      },
+      "blocks": [
+        {
+          "id": "tim-hoc-lieu",
+          "question": "Tìm quiz phù hợp với môn lớp và chủ đề như thế nào?",
+          "characters": 488
+        },
+        {
+          "id": "xem-truoc",
+          "question": "Vì sao xem trước học liệu không có đáp án đúng?",
+          "characters": 444
+        },
+        {
+          "id": "tao-ban-sao",
+          "question": "Dùng học liệu của người khác cho lớp của tôi ra sao?",
+          "characters": 527
+        },
+        {
+          "id": "gui-duyet",
+          "question": "Gửi quiz của tôi vào kho học liệu như thế nào?",
+          "characters": 495
+        },
+        {
+          "id": "trang-thai-duyet",
+          "question": "Các trạng thái của học liệu gửi duyệt có ý nghĩa gì?",
+          "characters": 475
+        },
+        {
+          "id": "link-va-nguon-rag",
+          "question": "Tại sao chatbot chưa tìm thấy một học liệu tôi vừa chia sẻ?",
+          "characters": 512
+        },
+        {
+          "id": "nguon-khong-con",
+          "question": "Nguồn học liệu từng mở được nay báo không còn thì xử lý thế nào?",
+          "characters": 508
+        }
+      ],
+      "evidence": [
+        {
+          "path": "src/components/library/library-browser.tsx",
+          "sha256": "9b88999d6e0e4200a2b5e6890fe50bca0cf2b809f9d818da5495a3b67e1d8fde"
+        },
+        {
+          "path": "src/components/library/library-preview.tsx",
+          "sha256": "7ad60682b0ee2a6de2f3f131d8120ee9296125abf1e2ed35174b0966b84e5e0a"
+        },
+        {
+          "path": "src/components/library/publication-form.tsx",
+          "sha256": "c28ecaef749eb5ab2b5cb615dd58d93d567e6f47262fa06122e5653883c00ffd"
+        },
+        {
+          "path": "src/lib/library/api.ts",
+          "sha256": "9d0e71b3936cedd9e58d34eb9b3f7fcb67fd584e91375b6b197fa17a0cbee2b1"
+        },
+        {
+          "path": "src/lib/library/types.ts",
+          "sha256": "275430f2cc068a288ba1cab1897744a8e2b50d85e0261274a36c8a34bdb6f741"
+        },
+        {
+          "path": "src/lib/library/limits.ts",
+          "sha256": "4229cca830741639d512849d8fa92028c2a0924f4550be855d37e4e90fe5fdfd"
+        },
+        {
+          "path": "src/lib/rag/jobs.ts",
+          "sha256": "e537d1d6d0388d6c51df4d293b5c2160ec21a58d59ce7fdc4b4c36e76901c3bb"
+        },
+        {
+          "path": "src/lib/chat/retrieval-filters.ts",
+          "sha256": "a2c04d11228886c6d32d11a785afa80d9671321ff2ef3a0ab8ef547ff3d2dc11"
+        }
+      ]
+    },
+    {
+      "id": "07-tien-ich-va-kho-game",
+      "title": "Sử dụng tiện ích lớp học và kho game",
+      "version": "2026-11-16.1",
+      "uploadFile": "ready/07-tien-ich-va-kho-game.docx",
+      "editableFile": "source/07-tien-ich-va-kho-game.md",
+      "bytes": 39497,
+      "sha256": "b25d2fd03bb065e14b57a4048a031f0c68b2784bb4eebfe41731d0ffe4cca228",
+      "ragMetadata": {
+        "subject": null,
+        "grades": []
+      },
+      "blocks": [
+        {
+          "id": "mo-tien-ich",
+          "question": "Các tiện ích lớp học nằm ở đâu và có cần đăng nhập không?",
+          "characters": 434
+        },
+        {
+          "id": "dong-ho",
+          "question": "Dùng đồng hồ đếm ngược và âm báo như thế nào?",
+          "characters": 457
+        },
+        {
+          "id": "boc-tham",
+          "question": "Bốc thăm tên để không lặp học sinh như thế nào?",
+          "characters": 426
+        },
+        {
+          "id": "chia-nhom",
+          "question": "Chia nhóm theo số nhóm hoặc số người ra sao?",
+          "characters": 488
+        },
+        {
+          "id": "bang-trang",
+          "question": "Bảng trắng hỗ trợ những thao tác nào?",
+          "characters": 459
+        },
+        {
+          "id": "toan-man-hinh",
+          "question": "Có thể chiếu công cụ lớp học toàn màn hình không?",
+          "characters": 466
+        },
+        {
+          "id": "kho-game",
+          "question": "Tìm trò chơi và xử lý game không còn hiển thị ra sao?",
+          "characters": 476
+        }
+      ],
+      "evidence": [
+        {
+          "path": "src/components/countdown-tool.tsx",
+          "sha256": "db9a1cd2750fa621f734169e285c712751e895ee40682444be47e2c1642aa36d"
+        },
+        {
+          "path": "src/components/draw-tool.tsx",
+          "sha256": "ab2b51ea8692c99e82637a3d9477c456105dbc9c4799d7fd7f03eb28f26436fe"
+        },
+        {
+          "path": "src/components/groups-tool.tsx",
+          "sha256": "0a19db97691ac635d46efd4fcca61132163795af32608228dbe4756b39869fa2"
+        },
+        {
+          "path": "src/components/whiteboard-tool.tsx",
+          "sha256": "82721dccabb8bd3460b122885a37b4a1797e5f5ebe47aea9839bd804d90bd8fe"
+        },
+        {
+          "path": "src/components/saved-class-picker.tsx",
+          "sha256": "5f4bb206cbdeed3ea09e42a670a0eac14ee12c90cdbf7f034a0d91680b2cd0c2"
+        },
+        {
+          "path": "src/components/tool-stage.tsx",
+          "sha256": "8baca1b4905e77b9f3ebe2d9bd6ec9a76d76f215da53d138161633a6200724e7"
+        },
+        {
+          "path": "src/components/game-browser.tsx",
+          "sha256": "d94ec9f71f83cbbbaa9b6e2b1b28db57135496f0c5c3e46cbeedcd379b8f06be"
+        },
+        {
+          "path": "src/app/games/[id]/page.tsx",
+          "sha256": "f3fb38d07abd4fbf6d69f90c17228e758bf30c1a8d7410a6b04c2e12635ad9fe"
+        },
+        {
+          "path": "src/lib/site/settings.ts",
+          "sha256": "9f80d9a4e509b01fca6a8688ad0920b78782520f09ab3eb875cd0d610ddbeec1"
+        }
+      ]
+    },
+    {
+      "id": "08-goi-thanh-vien-va-thanh-toan",
+      "title": "Gói thành viên Premium và trạng thái thanh toán",
+      "version": "2026-11-16.1",
+      "uploadFile": "ready/08-goi-thanh-vien-va-thanh-toan.docx",
+      "editableFile": "source/08-goi-thanh-vien-va-thanh-toan.md",
+      "bytes": 39389,
+      "sha256": "58b06f63e6d9ea51046843055d2bbd6907ca2772ef51c44cfcfdd2ce2b174648",
+      "ragMetadata": {
+        "subject": null,
+        "grades": []
+      },
+      "blocks": [
+        {
+          "id": "quyen-free",
+          "question": "Gói Free dùng được gì và Premium mở thêm gì?",
+          "characters": 503
+        },
+        {
+          "id": "gia-goi",
+          "question": "Giá Premium tháng và năm hiện tại là bao nhiêu?",
+          "characters": 451
+        },
+        {
+          "id": "gia-han",
+          "question": "Premium còn hạn mà mua thêm thì có cộng dồn không?",
+          "characters": 508
+        },
+        {
+          "id": "payos-hoan",
+          "question": "Có thanh toán payOS thật được ngay không?",
+          "characters": 528
+        },
+        {
+          "id": "trang-thai-don",
+          "question": "Quay lại từ trang thanh toán có nghĩa là đã được nâng cấp chưa?",
+          "characters": 525
+        },
+        {
+          "id": "het-han",
+          "question": "Premium hết hạn thì dữ liệu quiz lớp và bài giao có bị mất ngay không?",
+          "characters": 549
+        }
+      ],
+      "evidence": [
+        {
+          "path": "src/lib/membership/plans.ts",
+          "sha256": "37aa2927076bb48ecae9527e6ec1e4cb592a7cefc3aaea46160e4ab44c3610a5"
+        },
+        {
+          "path": "src/components/membership-plans.tsx",
+          "sha256": "90613c5adaf0759f6608c58f0061f7ad41fa97c5831068729cefb583b8eacd2e"
+        },
+        {
+          "path": "src/components/membership/require-premium.tsx",
+          "sha256": "aafa94191fe8311037b0c01fb350b3fcbc15f5995aa6df6ad45584cdc1d58325"
+        },
+        {
+          "path": "src/components/membership/membership-checkout.tsx",
+          "sha256": "17e6625cdd6a8866994cc7d87e24f1582dacf26ee54c5362cf77ac5ec961fb7b"
+        },
+        {
+          "path": "src/lib/membership/service.ts",
+          "sha256": "49d06668f85e0cf9f7c163af5a8007c437c13a055c5d4bf50c6283014dc95f31"
+        },
+        {
+          "path": "supabase/migrations/20261115090000_membership_payos.sql",
+          "sha256": "03d5c625c5acfdcc7aa74bb1afb0235f9bbb89bef801369e991b6fffa104e139"
+        },
+        {
+          "path": "plans/20261115-admin-rag-chatbot/plan.md",
+          "sha256": "d13aa93babf077d1b6903828307c7b236f48fb61b182920ae7190a86abf60882"
+        },
+        {
+          "path": "docs/admin-rag-operations.md",
+          "sha256": "0a3e911cfcf604f58b3719696adee6694d307417e24ebee39531a2f937da14c2"
+        }
+      ]
+    },
+    {
+      "id": "09-tro-ly-rag-va-xu-ly-su-co",
+      "title": "Sử dụng trợ lý RAG và kiểm tra câu trả lời",
+      "version": "2026-11-16.1",
+      "uploadFile": "ready/09-tro-ly-rag-va-xu-ly-su-co.docx",
+      "editableFile": "source/09-tro-ly-rag-va-xu-ly-su-co.md",
+      "bytes": 40013,
+      "sha256": "332017553a81e22576be347e5ea5089ef7f137eab7814ae11eea28db73506fa1",
+      "ragMetadata": {
+        "subject": null,
+        "grades": []
+      },
+      "blocks": [
+        {
+          "id": "mo-chat",
+          "question": "Chatbot Hỏi SmartTeach xuất hiện ở đâu và dành cho ai?",
+          "characters": 535
+        },
+        {
+          "id": "pham-vi-cau-hoi",
+          "question": "Nên hỏi chatbot những gì để có câu trả lời hữu ích?",
+          "characters": 471
+        },
+        {
+          "id": "rag-la-gi",
+          "question": "RAG dùng tài liệu và vector để trả lời như thế nào?",
+          "characters": 529
+        },
+        {
+          "id": "xem-nguon",
+          "question": "Tôi kiểm tra nguồn và độ tin cậy câu trả lời ra sao?",
+          "characters": 542
+        },
+        {
+          "id": "thieu-nguon",
+          "question": "Khi trợ lý báo chưa đủ nguồn hoặc hỏi lại thì làm gì?",
+          "characters": 474
+        },
+        {
+          "id": "gioi-han-chat",
+          "question": "Một ngày được hỏi bao nhiêu và vì sao không gửi được tin?",
+          "characters": 567
+        },
+        {
+          "id": "lich-su",
+          "question": "Lịch sử trò chuyện được lưu bao lâu và xóa ngay thế nào?",
+          "characters": 539
+        },
+        {
+          "id": "du-lieu-gui-ai",
+          "question": "Nội dung nào được gửi đến AI và có nên nhập thông tin học sinh không?",
+          "characters": 513
+        }
+      ],
+      "evidence": [
+        {
+          "path": "src/components/chat/chat-widget.tsx",
+          "sha256": "62cbffc8e6bdacf49a9143ff95f194f27dc8fe89a36550d073efe1c01826f825"
+        },
+        {
+          "path": "src/components/chat/source-viewer.tsx",
+          "sha256": "e952ebd49bbf6b17902452637416bac0de6bf1a835198d07875372fdf48c0c62"
+        },
+        {
+          "path": "src/lib/chat/visibility.ts",
+          "sha256": "69c0ea9f5beec0aa22fdd3e7bfc02d04bcab59c2c325aa0cabb4ebd40f7ac7da"
+        },
+        {
+          "path": "src/lib/chat/service.ts",
+          "sha256": "e5b268755c8b0cb2405e556a77ba38b310a1a265eadad234f6d3d50dd4180e77"
+        },
+        {
+          "path": "src/lib/chat/answer.ts",
+          "sha256": "c0a00b65c54f0199e646dc3ffc97d69e22238aa09231c7cf95f6db94eae3df88"
+        },
+        {
+          "path": "src/lib/chat/retrieval-filters.ts",
+          "sha256": "a2c04d11228886c6d32d11a785afa80d9671321ff2ef3a0ab8ef547ff3d2dc11"
+        },
+        {
+          "path": "src/lib/ai/gemini.ts",
+          "sha256": "9f8ffc9bc3ac5c793d931a2dbbe60b825fcce33e601655a59295f4d11e886a0f"
+        },
+        {
+          "path": "src/app/privacy/page.tsx",
+          "sha256": "4f8b44dc112b06c7c0d3081cd33ddc57afc58407bee1d6cbde2452cd00c1ff10"
+        },
+        {
+          "path": "plans/20261115-admin-rag-chatbot/contracts.md",
+          "sha256": "3ecc8037c9f36c8e1ce99aabe80fc33e89bef78baa54e4a4891acf416fbdd810"
+        }
+      ]
+    }
+  ]
+}

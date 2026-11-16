@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { cleanupLive, loginAs, newQuiz, newTeacher } from "./helpers/live";
+import { cleanupLive, loginAs, newQuiz, newTeacher, grantPremiumForTest } from "./helpers/live";
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
@@ -36,6 +36,7 @@ test.describe("giao bài không cần tài khoản", () => {
   test("giáo viên theo dõi được hai học sinh; học sinh lưu, làm lại và nộp bài", async ({ page, browser }) => {
     test.setTimeout(60_000);
     const teacher = await newTeacher("assignment-e2e");
+    await grantPremiumForTest(teacher);
     const createdClass = await teacher.client.rpc("create_class_with_students", {
       class_name: "Lớp assignment e2e",
       student_names: ["An", "Bình"],

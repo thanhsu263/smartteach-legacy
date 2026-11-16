@@ -8,9 +8,9 @@ import RubberSegment from "./rubber-segment";
 
 const links = [
   ["tinh-nang", "Tính năng"],
-  ["hoc-lieu", "Kho học liệu"],
-  ["cach-dung", "Cách hoạt động"],
   ["giao-vien", "Dành cho giáo viên"],
+  ["cach-dung", "Cách hoạt động"],
+  ["hoc-lieu", "Kho học liệu"],
 ] as const;
 
 function landingUrl() {
@@ -131,11 +131,21 @@ export function LandingHeader({ brand, account }: { brand: ReactNode; account: R
       scrollToSection(target);
       if (inMenu || event.detail === 0) {
         cancelAnimationFrame(focusFrame);
-        focusFrame = requestAnimationFrame(() => target.querySelector("h2")?.focus({ preventScroll: true }));
+        // Animated wrappers may hydrate after the menu. Focusing an ancestor
+        // with visibility:hidden is ignored, so wait until its heading is visible.
+        let remaining = 120;
+        const focusHeading = () => {
+          const heading = target.querySelector("h2");
+          if (heading && heading.getClientRects().length && getComputedStyle(heading).visibility === "visible") {
+            heading.focus({ preventScroll: true });
+          } else if (--remaining > 0) focusFrame = requestAnimationFrame(focusHeading);
+        };
+        focusFrame = requestAnimationFrame(focusHeading);
       }
     }
 
     function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Tab") cancelAnimationFrame(focusFrame);
       if (event.key === "Escape" && menu!.open) {
         event.preventDefault();
         menu!.open = false;
@@ -144,6 +154,7 @@ export function LandingHeader({ brand, account }: { brand: ReactNode; account: R
     }
 
     function onPointerDown(event: PointerEvent) {
+      cancelAnimationFrame(focusFrame);
       touchInput = event.pointerType === "touch";
       if (touchInput) show();
       if (anchorPending) releaseAnchor();

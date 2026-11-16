@@ -8,6 +8,8 @@ Giai đoạn 1 (MVP) gồm: hub, kho game có lọc theo môn và lớp, nhúng 
 
 ## Yêu cầu
 
+Quản trị toàn hệ thống và trợ lý RAG: xem [runbook thiết lập/vận hành](docs/admin-rag-operations.md). Code local có khu vực /admin và popup giáo viên; cần cấu hình Gemini, khóa mã hóa, Vault/Cron và nạp nguồn trước khi bật. payOS tiếp tục hoãn kích hoạt.
+
 - Node.js 24 và npm.
 - Docker Desktop, chỉ khi chạy hoặc kiểm thử phần đăng nhập và lưu dữ liệu ở máy (Supabase cục bộ).
 
@@ -57,7 +59,22 @@ Lần đầu chạy e2e cần cài trình duyệt: `npx playwright install chrom
 | `NEXT_PUBLIC_SUPABASE_URL` | Địa chỉ dự án Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Khoá công khai (anon / publishable) của dự án |
 
-Mẫu ở [.env.example](.env.example). Không bao giờ đặt khoá `service_role` trong ứng dụng, trong repo hay ở biến `NEXT_PUBLIC_*`. Khoá này chỉ dùng ở máy cho `npm run test:db` và lấy từ stack cục bộ.
+Mẫu ở [.env.example](.env.example). Các khóa bí mật không được commit hoặc đặt trong biến `NEXT_PUBLIC_*`. Phần thanh toán dùng `SUPABASE_SERVICE_ROLE_KEY` chỉ trên máy chủ, trong các module có `server-only`; trình duyệt chỉ nhận khóa công khai.
+
+### Gói thành viên và payOS
+
+Free giữ quiz và trò chơi cơ bản. Premium mở khóa luồng `/assignments`: 50.000đ/1 tháng hoặc 500.000đ/1 năm. Mua thêm cộng tháng/năm theo lịch vào hạn đang còn hiệu lực; nếu đã hết hạn tính từ thời điểm xác nhận. Không tự động gia hạn. Khi hết hạn, dữ liệu và kết quả vẫn đọc được, học sinh tiếp tục làm đề đã phát hành; tạo, sửa và phát hành đề mới cần Premium.
+
+Trước khi vận hành thanh toán:
+
+1. Áp migration `20261115090000_membership_payos.sql` vào Supabase của môi trường đích theo quy trình triển khai bên dưới. Ở máy dùng `npx supabase migration up --local` nếu stack đã chạy từ trước.
+2. Cấu hình các biến **server**: `SUPABASE_SERVICE_ROLE_KEY`, `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY`; đặt `APP_BASE_URL` là origin chính xác của website (ví dụ `https://smartteach.example`, không thêm đường dẫn). `http://localhost:3000` chỉ dùng ở máy. Khóa Supabase phải thuộc cùng dự án với hai biến công khai.
+3. Trên kênh thanh toán payOS, cấu hình webhook HTTPS: `https://<tên-miền>/api/payos/webhook`. Endpoint xác minh chữ ký bằng SDK, đối soát mã đơn, payment link và số tiền qua API trước khi cấp Premium; callback trên trình duyệt không cấp quyền. Không cần người dùng đang mở trang để webhook cập nhật được quyền.
+4. Triển khai lại sau khi đặt biến môi trường. Mở `/membership` bằng tài khoản giáo viên để xem gói và hạn; trang đơn tự cập nhật khoảng 2 phút và có nút kiểm tra lại. Thiếu khóa sẽ báo thanh toán chưa sẵn sàng, không tạo thành công giả.
+
+payOS [không có sandbox riêng](https://payos.vn/docs/moi-truong-test/). Test tự động dùng SDK xác minh chữ ký, gateway giả lập và Supabase cục bộ; không chuyển tiền. Nghiệm thu giao dịch thật và cấu hình webhook cần thực hiện riêng trên kênh của chủ dự án. Xem [SDK chính thức](https://payos.vn/docs/sdks/back-end/node/).
+
+`npm run supabase:env` ghi lại `.env.local`; nếu chạy lại lệnh này cần bổ sung lại các biến thanh toán server. Không đưa khóa thật vào test hoặc log.
 
 ## Cấu trúc
 

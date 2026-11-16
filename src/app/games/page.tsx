@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { GameBrowser } from "@/components/game-browser";
-import { games } from "@/data/games";
+import { getPublicGames } from "@/lib/site/settings";
 import styles from "./games.module.css";
 
 export const metadata: Metadata = {
@@ -8,7 +8,8 @@ export const metadata: Metadata = {
   description: "Trò chơi học tập cho giờ học, lọc theo môn và lớp. Mở ngay trên trình duyệt.",
 };
 
-export default function GamesPage() {
+export default async function GamesPage() {
+  const games = await getPublicGames();
   return (
     <div className={`container ${styles.page}`}>
       <header className={`${styles.hero} on-primary`}>

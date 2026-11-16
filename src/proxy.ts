@@ -55,5 +55,5 @@ function redirectWithCookies(url: URL, from: NextResponse) {
 
 // Giữ khớp với PROTECTED_PREFIXES trong src/lib/auth/protected-paths.ts.
 export const config = {
-  matcher: ["/dashboard/:path*", "/assignments/:path*", "/my-classes/:path*", "/my-quizzes/:path*", "/shared/:path*", "/host/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/assignments/:path*", "/my-classes/:path*", "/my-quizzes/:path*", "/my-exams/:path*", "/shared/:path*", "/host/:path*", "/membership/:path*", "/admin/:path*", "/help/sources/:path*", "/account/:path*", "/feedback/:path*", "/login"],
 };

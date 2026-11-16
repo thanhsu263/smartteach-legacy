@@ -24,5 +24,8 @@ export async function RequireUser({ fallbackNext, children }: RequireUserProps) 
   }
   const { data } = await supabase.auth.getClaims();
   if (!data?.claims) redirect(`/login?next=${encodeURIComponent(fallbackNext)}`);
+  const state = await supabase.rpc("account_session");
+  if (state.error) return <div className="container"><p role="alert">Chưa thể kiểm tra tài khoản. Vui lòng thử lại.</p></div>;
+  if (state.data?.status === "blocked") redirect("/account-disabled");
   return <>{children}</>;
 }

@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { admin, anon, buildQuiz, cleanupUsers, createQuiz, saveQuestion, signUp, simpleQuestion, type TestUser } from "./helpers";
+import { admin, anon, buildQuiz, cleanupUsers, createQuiz, saveQuestion, signUp, simpleQuestion, grantPremiumForTest, type TestUser } from "./helpers";
 
 let a: TestUser;
 let b: TestUser;
@@ -28,6 +28,7 @@ async function createAssignment(user: TestUser, overrides: Record<string, unknow
 beforeAll(async () => {
   a = await signUp("assignment-a");
   b = await signUp("assignment-b");
+  await Promise.all([grantPremiumForTest(a), grantPremiumForTest(b)]);
   classA = await createClass(a, "Lớp 7A assignment");
   quizA = await buildQuiz(a.client, "Quiz assignment", [simpleQuestion("Câu snapshot")]);
 }, 60_000);
@@ -104,6 +105,7 @@ describe("assignment core: quyền và tạo snapshot", () => {
 describe("assignment core: lifecycle, list và retention", () => {
   it("không cho vượt 100 assignment kể cả khi tạo đồng thời", async () => {
     const limited = await signUp("assignment-limit");
+    await grantPremiumForTest(limited);
     const limitedClass = await createClass(limited, "Lớp giới hạn assignment");
     const limitedQuiz = await buildQuiz(limited.client, "Quiz giới hạn assignment", [simpleQuestion("Câu giới hạn")]);
     const attempts = await Promise.all(

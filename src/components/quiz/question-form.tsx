@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent, type RefObject } from "react";
+import { useLocalDraft } from "@/components/drafts/use-local-draft";
 import { Button, IconButton } from "@/components/button";
 import { WorkspaceFeedback } from "@/components/workspace-feedback";
 import { TrashIcon } from "@/components/icons";
@@ -24,6 +25,11 @@ const LETTERS = ["A", "B", "C", "D", "E", "F"];
 type SaveResult = { ok: true } | { ok: false; message: string };
 
 type QuestionFormProps = {
+  quizId: string;
+  restored?: QuestionInput;
+  draftRevision?: number;
+  draftBaseline?: string;
+  draftActionsRef: RefObject<{ discard: () => Promise<boolean> } | null>;
   initial: QuestionInput;
   isNew: boolean;
   onSave: (payload: QuestionInput) => Promise<SaveResult>;
@@ -32,11 +38,13 @@ type QuestionFormProps = {
   onDirtyChange?: (dirty: boolean) => void;
 };
 
-export function QuestionForm({ initial, isNew, onSave, onCancel, onDirtyChange }: QuestionFormProps) {
-  const [draft, setDraft] = useState<QuestionInput>(initial);
+export function QuestionForm({ initial, isNew, onSave, onCancel, onDirtyChange, quizId, restored, draftRevision, draftBaseline, draftActionsRef }: QuestionFormProps) {
+  const [draft, setDraft] = useState<QuestionInput>(restored ?? initial);
   // Bản đã lưu gần nhất (dạng chuỗi) để biết bản nháp có khác không.
   const [saved, setSaved] = useState(() => JSON.stringify(initial));
   const dirty = JSON.stringify(draft) !== saved;
+  const localDraft = useLocalDraft({ entity: "quiz", entityId: quizId, target: initial.id ?? null, baseline: draftBaseline ?? JSON.stringify(initial), payload: draft, dirty, initialRevision: draftRevision ?? null });
+  useEffect(() => { draftActionsRef.current = { discard: localDraft.discard }; return () => { draftActionsRef.current = null; }; }, [draftActionsRef, localDraft.discard]);
   const requestFocus = useFocusRequest();
   const [showErrors, setShowErrors] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -95,13 +103,14 @@ export function QuestionForm({ initial, isNew, onSave, onCancel, onDirtyChange }
     setSaving(false);
     // Giữ nguyên nội dung đang gõ khi lưu thất bại.
     if (!result.ok) setSaveError(result.message);
-    else setSaved(snapshot);
+    else { setSaved(snapshot); await localDraft.clearSaved(JSON.parse(snapshot) as QuestionInput); }
     // Nút bị khoá trong lúc lưu nên mất focus; trả focus về nút để bấm tiếp hoặc đọc kết quả.
     requestFocus(`${baseId}-submit`);
   }
 
   return (
     <form onSubmit={submit} className={styles.form} noValidate>
+      {localDraft.message && <p role="status">{localDraft.message}</p>}
       <p className={styles.kind}>{KIND_LABELS[kind]}</p>
 
       <div className={styles.field}>

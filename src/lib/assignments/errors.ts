@@ -8,6 +8,7 @@ const GENERIC = "Có lỗi xảy ra. Thầy cô thử lại nhé.";
 export function describeAssignmentError(error: ErrorLike): string {
   if (!error) return GENERIC;
   const message = error.message ?? "";
+  if (message.includes("premium_required") || error.code === "PT402") return "Thầy cô cần Premium còn hạn để soạn hoặc phát hành đề. Vào Gói thành viên để nâng cấp hoặc gia hạn nhé.";
   if (message.includes("assignment_limit_exceeded")) return `Thầy cô đã có ${MAX_ASSIGNMENTS} bài đã giao, là giới hạn tối đa.`;
   if (message.includes("quiz_not_playable")) return "Quiz chưa đủ điều kiện để giao. Thầy cô kiểm tra lại câu hỏi và đáp án nhé.";
   if (message.includes("class_not_found")) return "Không tìm thấy lớp này. Có thể lớp đã bị xoá.";

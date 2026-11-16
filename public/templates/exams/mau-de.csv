@@ -1,0 +1,5 @@
+﻿"section","kind","prompt","option_a","option_b","option_c","option_d","option_e","option_f","correct","accepted_answers","ignore_diacritics","points"
+"Phần I","single","Số nào sau đây là số nguyên tố?","12","17","21","27","","","B","[]","false","1.25"
+"Phần I","true_false","Trái Đất quay quanh Mặt Trời.","Đúng","Sai","","","","","A","[]","false","0.75"
+"Phần II","multi","Chọn các số chẵn.","2","3","4","5","6","7","A|C|E","[]","false","2.5"
+"Phần II","short_text","Con vật nào kêu meo meo?","","","","","","","","[""mèo"",""con mèo""]","true","1.5"

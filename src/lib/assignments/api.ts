@@ -40,6 +40,7 @@ export function validateAssignmentDraft(input: AssignmentDraftInput): string | n
 }
 function mapSummary(row: Record<string, unknown>): AssignmentSummary {
   return {
+    ...(row.snapshot_version === 2 ? { snapshotVersion: 2 as const, examId: row.exam_id as string | null, durationSeconds: row.duration_seconds as number | null } : {}),
     id: row.id as string,
     classId: row.class_id as string,
     className: row.class_name as string,
@@ -138,6 +139,7 @@ export async function getAssignmentRoster(supabase: SupabaseClient, id: string):
   return {
     ok: true,
     roster: (data as Record<string, unknown>[]).map((row) => ({
+      ...(typeof row.max_points === "number" ? { maxPoints: row.max_points, scorePoints: typeof row.score_points === "number" ? row.score_points : null } : {}),
       studentId: row.student_id as string,
       name: row.name as string,
       attemptStatus: (row.attempt_status as AssignmentRosterEntry["attemptStatus"]) ?? null,
@@ -163,6 +165,7 @@ export async function getAssignmentAttemptDetail(supabase: SupabaseClient, assig
   if (error || !data || typeof data !== "object") return fail(error ?? { message: "assignment_not_found" });
   const row = data as Record<string, unknown>;
   return { ok: true, attempt: {
+    ...(typeof row.max_points === "number" ? { maxPoints: row.max_points, scorePoints: typeof row.score_points === "number" ? row.score_points : null } : {}),
     studentId: row.student_id as string, name: row.name as string, status: (row.status as AssignmentAttemptDetail["status"]) ?? null,
     startedAt: (row.started_at as string | null) ?? null, submittedAt: (row.submitted_at as string | null) ?? null,
     score: typeof row.score === "number" ? row.score : null, correct: typeof row.correct === "number" ? row.correct : null, total: typeof row.total === "number" ? row.total : null,
@@ -207,6 +210,7 @@ function mapStudentState(row: Record<string, unknown>): StudentAssignmentState |
   const result = row.result as Record<string, unknown> | null;
   return {
     phase: row.phase as StudentAssignmentState["phase"],
+    ...(row.snapshot_version === 2 && typeof row.deadline_at === "string" && typeof row.server_now === "string" ? { snapshotVersion: 2 as const, deadlineAt: row.deadline_at, serverNow: row.server_now } : {}),
     title: row.title,
     description: typeof row.description === "string" ? row.description : "",
     attemptId: row.attempt_id,
@@ -216,12 +220,13 @@ function mapStudentState(row: Record<string, unknown>): StudentAssignmentState |
       kind: question.kind as StudentAssignmentState["questions"][number]["kind"],
       prompt: question.prompt as string,
       timeLimitSeconds: Number(question.time_limit_seconds) || 0,
+      ...(typeof question.points === "number" ? { points: question.points, sectionTitle: String(question.section_title ?? "") } : {}),
       options: Array.isArray(question.options) ? question.options.filter((option): option is string => typeof option === "string") : [],
     })),
     answers: (row.answers && typeof row.answers === "object" ? row.answers : {}) as Record<string, StudentAnswer>,
     submittedAt: (row.submitted_at as string | null) ?? null,
     result: result && typeof result.score === "number" && typeof result.correct === "number" && typeof result.total === "number"
-      ? { score: result.score, correct: result.correct, total: result.total }
+      ? { score: result.score, correct: result.correct, total: result.total, ...(typeof result.score_points === "number" && typeof result.max_points === "number" ? { scorePoints: result.score_points, maxPoints: result.max_points } : {}) }
       : null,
   };
 }
@@ -233,7 +238,8 @@ export async function getStudentAssignmentState(supabase: SupabaseClient, token:
 }
 
 export async function saveStudentAssignmentAnswer(supabase: SupabaseClient, token: string, position: number, answer: StudentAnswer): Promise<Result<object>> {
-  const { error } = await supabase.rpc("save_assignment_answer", { p_token: token, p_position: position, p_answer: answer });
+  const { data, error } = await supabase.rpc("save_assignment_answer", { p_token: token, p_position: position, p_answer: answer });
+  if (!error && data?.saved === false) return { ok: false, message: "Bài đã hết giờ hoặc đã nộp; câu trả lời mới không được lưu." };
   return error ? studentFail(error) : { ok: true };
 }
 

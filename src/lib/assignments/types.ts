@@ -13,6 +13,9 @@ export type AssignmentQuestionSnapshot = {
 export type AssignmentSnapshot = { title: string; questions: AssignmentQuestionSnapshot[] };
 
 export type AssignmentSummary = {
+  snapshotVersion?: 1 | 2;
+  examId?: string | null;
+  durationSeconds?: number | null;
   id: string;
   classId: string;
   className: string;
@@ -50,6 +53,8 @@ export type AssignmentProgress = {
 };
 
 export type AssignmentRosterEntry = {
+  scorePoints?: number | null;
+  maxPoints?: number | null;
   studentId: string;
   name: string;
   attemptStatus: "in_progress" | "submitted" | "invalidated" | null;
@@ -63,6 +68,8 @@ export type AssignmentRosterEntry = {
 export type AssignmentQuestionAnalytics = { position: number; answered: number; correct: number; unanswered: number };
 
 export type AssignmentAttemptDetail = {
+  scorePoints?: number | null;
+  maxPoints?: number | null;
   studentId: string;
   name: string;
   status: AssignmentRosterEntry["attemptStatus"];
@@ -82,6 +89,8 @@ export type IssuedCredential = {
 };
 
 export type StudentAssignmentQuestion = {
+  sectionTitle?: string;
+  points?: number;
   index: number;
   kind: AssignmentQuestionSnapshot["kind"];
   prompt: string;
@@ -92,6 +101,9 @@ export type StudentAssignmentQuestion = {
 export type StudentAnswer = number | number[] | string;
 
 export type StudentAssignmentState = {
+  snapshotVersion?: 2;
+  deadlineAt?: string;
+  serverNow?: string;
   phase: "in_progress" | "submitted" | "invalidated" | "unavailable";
   title: string;
   description: string;
@@ -100,5 +112,5 @@ export type StudentAssignmentState = {
   questions: StudentAssignmentQuestion[];
   answers: Record<string, StudentAnswer>;
   submittedAt: string | null;
-  result: { score: number; correct: number; total: number } | null;
+  result: { score: number; correct: number; total: number; scorePoints?: number; maxPoints?: number } | null;
 };

@@ -6,6 +6,18 @@ nav.track {
   background: var(--color-surface-subtle, var(--pale));
 }
 
+@supports ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
+  nav.track {
+    background: rgb(240 245 255 / var(--landing-glass-opacity, .72));
+  }
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+  nav.track {
+    background: var(--color-surface-subtle, var(--pale));
+  }
+}
+
 .track a {
   position: relative;
   padding-inline: clamp(9px, 1.2vw, 18px);

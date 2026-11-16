@@ -58,7 +58,11 @@ const patterns = [
   ["khoá bí mật sb_secret_", /sb_secret_[A-Za-z0-9_-]{8,}/],
   ["chuỗi kết nối Postgres", /postgres(?:ql)?:\/\/[^\s"'`]+/],
   ["tên biến khoá service_role", /SUPABASE_SERVICE_ROLE_KEY|SERVICE_ROLE_KEY/],
+  ["tên biến khóa thanh toán payOS", /PAYOS_API_KEY|PAYOS_CHECKSUM_KEY/],
   ["Google client secret", /GOCSPX-[A-Za-z0-9_-]{10,}/],
+  ["Gemini API key", /AIza[A-Za-z0-9_-]{30,}/],
+  ["tên biến bí mật AI/worker", /AI_KEYRING_JSON|RAG_WORKER_SECRET/],
+  ["canary API key riêng", /CANARY_PRIVATE_API_KEY_[A-Za-z0-9_-]+/],
 ];
 
 const findings = [];

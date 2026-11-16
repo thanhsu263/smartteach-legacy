@@ -2,11 +2,11 @@
 
 import { useFavorites } from "@/components/favorites-provider";
 import { GameCard } from "@/components/game-card";
-import { games } from "@/data/games";
+import type { Game } from "@/lib/catalog";
 import styles from "./favorites-section.module.css";
 
 /** Danh sách game yêu thích trong "Lớp của tôi". */
-export function FavoritesSection() {
+export function FavoritesSection({games}:{games:readonly Game[]}) {
   const favorites = useFavorites();
   const favoriteGames = games.filter((game) => favorites.ids.has(game.id));
 

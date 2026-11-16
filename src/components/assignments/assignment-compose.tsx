@@ -10,6 +10,8 @@ import { listClasses, type ClassSummary } from "@/lib/classes/api";
 import { listQuizzes } from "@/lib/quiz/api";
 import type { QuizSummary } from "@/lib/quiz/types";
 import { getBrowserSupabase } from "@/lib/supabase/client";
+import { adminRequest } from "@/lib/admin/client";
+import type { ExamDetail } from "@/lib/exams/types";
 import styles from "./assignments.module.css";
 
 type Resources = { classes: ClassSummary[]; quizzes: QuizSummary[] };
@@ -26,7 +28,11 @@ export function AssignmentCompose() {
   const [submitting, setSubmitting] = useState(false);
   const [classId, setClassId] = useState(params.get("class") ?? "");
   const [quizId, setQuizId] = useState(params.get("quiz") ?? "");
+  const examId = params.get("exam");
+  const [exam, setExam] = useState<ExamDetail | null>(null);
+  const requestRef = useState(() => crypto.randomUUID())[0];
   const [title, setTitle] = useState("");
+  useEffect(() => { if (!examId) return; let live = true; adminRequest<ExamDetail>(`/api/exams/${examId}`).then(value => { if(live) { setExam(value); setTitle(value.title); } }).catch(e => { if(live) setError(e.message); }); return () => { live = false; }; }, [examId]);
   const [description, setDescription] = useState("");
   const [opensAt, setOpensAt] = useState("");
   const [dueAt, setDueAt] = useState("");
@@ -54,14 +60,19 @@ export function AssignmentCompose() {
     if (!supabase || submitting) return;
     setError(null);
     setSubmitting(true);
-    const result = await createAssignment(supabase, { classId, quizId, title, description, opensAt: toIso(opensAt), dueAt: toIso(dueAt), revealPolicy });
+    let result;
+    if (examId && exam) {
+      const r = await supabase.rpc("create_exam_assignment", { p_exam: examId, p_revision: exam.revision, p_class: classId, p_title: title, p_description: description, p_opens_at: toIso(opensAt), p_due_at: toIso(dueAt), p_reveal_policy: revealPolicy, p_request: requestRef });
+      result = r.error ? { ok: false as const, message: r.error.code === "PT402" ? "Cần Premium để phát hành kiểm tra online." : r.error.code === "PT409" ? "Đề đã thay đổi. Thầy cô tải lại trước khi giao." : "Chưa tạo được bài kiểm tra. Kiểm tra đề, lớp và thời gian rồi thử lại." } : { ok: true as const, id: r.data as string };
+    } else result = await createAssignment(supabase, { classId, quizId, title, description, opensAt: toIso(opensAt), dueAt: toIso(dueAt), revealPolicy });
     setSubmitting(false);
     if (!result.ok) { setError(result.message); return; }
     router.replace(`/assignments/${result.id}?review=1`);
   }
 
   if (resources === null) return <div className={styles.skeleton} aria-busy="true"><p className="visually-hidden" role="status">Đang tải lớp và quiz…</p><span className="glass-skeleton" /><span className="glass-skeleton" /></div>;
-  if (resources.classes.length === 0 || resources.quizzes.length === 0) {
+  if (examId && !exam) return <section className={styles.page}>{error ? <p role="alert">{error}</p> : <p role="status">Đang tải đề kiểm tra…</p>}</section>;
+  if (resources.classes.length === 0 || (!examId && resources.quizzes.length === 0)) {
     return <section className={styles.empty} data-surface="panel"><h1>Chưa đủ dữ liệu để giao bài</h1><p>Thầy cô cần có ít nhất một lớp có học sinh và một quiz hoàn chỉnh trước khi tạo bài.</p><div className={styles.actions}><ButtonLink href="/my-classes" variant="secondary">Tạo lớp</ButtonLink><ButtonLink href="/my-quizzes" variant="primary">Soạn quiz</ButtonLink></div></section>;
   }
 
@@ -76,11 +87,12 @@ export function AssignmentCompose() {
               <option value="">Chọn lớp</option>{resources.classes.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.studentCount} học sinh)</option>)}
             </select>
           </label>
-          <label htmlFor={`${baseId}-quiz`}>Quiz
+          {!examId && <label htmlFor={`${baseId}-quiz`}>Quiz
             <select id={`${baseId}-quiz`} required value={quizId} onChange={(event) => setQuizId(event.target.value)}>
               <option value="">Chọn quiz</option>{resources.quizzes.map((item) => <option key={item.id} value={item.id}>{item.title} ({item.questionCount} câu)</option>)}
             </select>
-          </label>
+          </label>}
+          {exam && <p>Đề: {exam.title} · {exam.document.durationMinutes} phút toàn bài · phiên bản {exam.revision}</p>}
           <label className={styles.wide} htmlFor={`${baseId}-title`}>Tên bài giao
             <input id={`${baseId}-title`} required maxLength={100} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ví dụ: Ôn tập chương 1" />
           </label>

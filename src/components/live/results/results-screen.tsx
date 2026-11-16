@@ -6,6 +6,8 @@ import { useEffect, useId, useState } from "react";
 import { Button, ButtonLink } from "@/components/button";
 import { useAuth } from "@/components/auth-provider";
 import { host, type LiveResult } from "@/lib/live/rpc";
+import { downloadCsv } from "@/lib/export/csv";
+import { liveResultsCsv } from "@/lib/export/results-csv";
 import {
   buildMatrix,
   correctRate,
@@ -35,6 +37,18 @@ export function ResultsScreen({ sessionId }: { sessionId: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const baseId = useId();
+  const [exporting, setExporting] = useState(false);
+  async function exportResults() {
+    const db = getBrowserSupabase();
+    if (!db || exporting) return;
+    setExporting(true); setError(null);
+    try {
+      const result = await host.results(db, sessionId);
+      if (!result.ok) { setError(result.message); return; }
+      downloadCsv(`quiz-${sessionId}.csv`, liveResultsCsv(result.results));
+    } catch { setError("Chưa thể xuất kết quả. Thầy cô thử lại nhé."); }
+    finally { setExporting(false); }
+  }
 
   useEffect(() => {
     if (!userId) return;
@@ -101,6 +115,8 @@ export function ResultsScreen({ sessionId }: { sessionId: string }) {
     <div className={styles.screen}>
       <header>
         <h1 className={styles.title}>Kết quả: {results.quiz_title}</h1>
+        <Button disabled={exporting || results.ranking.length === 0} aria-busy={exporting} onClick={() => void exportResults()}>{exporting ? "Đang xuất…" : "Xuất kết quả CSV"}</Button>
+        {error && <p role="alert">{error}</p>}
         <p className={styles.lead}>
           {formatDateTime(results.created_at)} · {results.player_count} bạn chơi · điểm trung bình {results.average_score}
           {results.speed_bonus ? " · có tính điểm tốc độ" : ""}

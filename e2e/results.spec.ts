@@ -1,5 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+import { readExamCsv } from "../src/lib/exams/import/csv";
 import { cleanupLive, fourKinds, joinPlayer, loginAs, newQuiz, newTeacher, startSession, type Teacher } from "./helpers/live";
 
 // Cần stack Supabase cục bộ có Realtime: `npm run supabase:start` rồi `npm run supabase:env`.
@@ -108,6 +110,14 @@ for (const viewport of [
       await expect(huyRow).toContainText("Chọn A. 2, C. 4");
       await expect(huyRow).toContainText("Gõ: chó");
       await audit(page, "trang kết quả");
+      const downloading = page.waitForEvent("download");
+      await page.getByRole("button", { name: "Xuất kết quả CSV", exact: true }).click();
+      const download = await downloading; const csv = await readFile((await download.path())!, "utf8");
+      expect(csv.startsWith("\uFEFF")).toBe(true); const rows = readExamCsv(csv);
+      expect(rows).toHaveLength(3); expect(rows[1][rows[0].indexOf("nickname")]).toBe("Lan");
+      expect(rows[1][rows[0].indexOf("score")]).toBe("3000");
+      expect(rows[1][rows[0].indexOf("correct")]).toBe("3");
+      expect(csv).not.toContain("player_token"); expect(csv).not.toContain("accepted_answers");
 
       // Xoá buổi có xác nhận: giữ lại thì không xoá, xoá thì quay về và buổi biến mất.
       await page.getByRole("button", { name: "Xoá buổi này" }).click();

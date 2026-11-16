@@ -1,0 +1,2 @@
+# Preview images and PDFs are local QA intermediates, not RAG sources.
+/qa/render/

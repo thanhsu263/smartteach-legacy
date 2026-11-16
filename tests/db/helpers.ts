@@ -16,6 +16,12 @@ export const anon = newClient();
 
 export type TestUser = { client: SupabaseClient; id: string };
 
+/** Explicit fixture for suites exercising Premium assignment behavior. Free users stay Free. */
+export async function grantPremiumForTest(user: TestUser) {
+  const result = await admin.from("membership_entitlements").upsert({ user_id: user.id, premium_until: new Date(Date.now() + 31 * 86400_000).toISOString() });
+  expect(result.error, "cấp Premium cho fixture").toBeNull();
+}
+
 const created: string[] = [];
 
 /** Tạo người dùng đã xác nhận và đăng nhập; được xoá ở `cleanupUsers`. */

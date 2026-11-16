@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, ReactNode, CSSProperties } from 'react';
+import { useEffect, useLayoutEffect, useRef, ReactNode, CSSProperties, HTMLAttributes } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -17,7 +17,7 @@ const WIPES: Record<string, string> = {
     'radial-gradient(farthest-corner at 50% 50%, #000 calc(var(--ac-wipe) * 140% - 40%), transparent calc(var(--ac-wipe) * 140%))'
 };
 
-interface AnimatedContentProps {
+interface AnimatedContentProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   container?: string | HTMLElement | null;
   distance?: number;
@@ -47,7 +47,6 @@ interface AnimatedContentProps {
   onDisappearanceComplete?: () => void;
   className?: string;
   style?: CSSProperties;
-  [x: string]: any;
 }
 
 const AnimatedContent = ({
@@ -84,7 +83,9 @@ const AnimatedContent = ({
 }: AnimatedContentProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const callbacksRef = useRef({ onStart, onComplete, onDisappearanceComplete });
-  callbacksRef.current = { onStart, onComplete, onDisappearanceComplete };
+  useIsomorphicLayoutEffect(() => {
+    callbacksRef.current = { onStart, onComplete, onDisappearanceComplete };
+  }, [onStart, onComplete, onDisappearanceComplete]);
 
   useIsomorphicLayoutEffect(() => {
     const el = ref.current;
@@ -115,12 +116,12 @@ const AnimatedContent = ({
         return;
       }
 
-      const from: any = {
+      const from: gsap.TweenVars = {
         [axis]: distance * sign,
         scale,
         opacity: animateOpacity ? initialOpacity : 1
       };
-      const to: any = {
+      const to: gsap.TweenVars = {
         [axis]: 0,
         scale: 1,
         opacity: 1,
@@ -157,7 +158,7 @@ const AnimatedContent = ({
 
       const disappear = () => {
         if (disappearAfter <= 0) return;
-        const out: any = {
+        const out: gsap.TweenVars = {
           [axis]: -distance * sign,
           scale: 0.8,
           opacity: animateOpacity ? initialOpacity : 0,

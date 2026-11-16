@@ -38,6 +38,7 @@ test.describe("landing theo Figma", () => {
     const features = nav.getByRole("link", { name: "Tính năng" });
     const library = nav.getByRole("link", { name: "Kho học liệu" });
     const howItWorks = nav.getByRole("link", { name: "Cách hoạt động" });
+    const teachers = nav.getByRole("link", { name: "Dành cho giáo viên" });
     const thumb = nav.locator("span[aria-hidden='true']");
     const thumbWidth = () => thumb.evaluate((element) => {
       const insets = getComputedStyle(element).clipPath.match(/^inset\(([^)]+)\)/)?.[1].split(" round ")[0];
@@ -82,6 +83,8 @@ test.describe("landing theo Figma", () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await features.focus();
     await features.press("ArrowRight");
+    await expect(teachers).toBeFocused();
+    await teachers.press("End");
     await expect(library).toBeFocused();
     await library.press("Enter");
     await expect(page.locator("#hoc-lieu h2")).toBeFocused();
@@ -370,19 +373,45 @@ test.describe("landing theo Figma", () => {
     await expect(page.getByRole("dialog", { name: "Thử một câu quiz" })).toBeVisible();
   });
 
-  test("vật thể nhận thao tác kéo và thẻ 3D mở câu hỏi mẫu", async ({ page }, testInfo) => {
+  test("vật thể phản ứng hover không nắm kéo và bộ thẻ 2.5D mở câu hỏi mẫu", async ({ page }, testInfo) => {
+    // SwiftShader renders the imported classroom in software; allow the complete hover/quiz flow.
+    test.setTimeout(90_000);
+    const shaderErrors: string[] = [];
+    page.on("console", message => {
+      if (message.type() === "error" && /WebGLProgram|Shader Error/.test(message.text())) shaderErrors.push(message.text());
+    });
+    const classroom = page.waitForResponse("**/hero/models/classroom.glb");
+    const eraser = page.waitForResponse("**/hero/models/eraser.glb");
     await page.goto("/");
+    expect((await classroom).ok()).toBe(true);
+    expect((await eraser).ok()).toBe(true);
     const stage = page.locator("[data-hero-classroom]");
-    await expect(stage).toHaveAttribute("data-scene", "running");
+    await expect(stage).toHaveAttribute("data-scene", "running", { timeout: 15_000 });
+    const deck = page.locator("[data-hero-quiz-deck]");
     const canvas = stage.locator("canvas");
+    await canvas.evaluate(element => {
+      element.addEventListener("gotpointercapture", () => { element.dataset.testPointerCapture = "true"; });
+    });
     const { x, y, width, height } = (await canvas.boundingBox())!;
     await page.mouse.move(x + width * 0.14, y + height * 0.14);
-    await expect(canvas).toHaveCSS("cursor", "grab");
+    await expect(canvas).toHaveAttribute("data-hover-object", "pencil");
+    await expect(canvas).not.toHaveCSS("cursor", /grab/);
     await page.mouse.down();
-    await expect(canvas).toHaveCSS("cursor", "grabbing");
     await page.mouse.move(x + width * 0.2, y + height * 0.26, { steps: 8 });
     await page.mouse.up();
-    await page.mouse.click(x + width * 0.738, y + height * 0.46);
+    await expect(canvas).not.toHaveAttribute("data-test-pointer-capture", "true");
+    const word = (await page.locator("[data-hero-eraser-anchor]").boundingBox())!;
+    await page.mouse.move(word.x + word.width / 2, word.y - Math.min(50, Math.max(28, word.height * 0.55)));
+    await expect(canvas).toHaveAttribute("data-hover-object", "eraser");
+    await page.mouse.move(8, 8);
+    await expect(canvas).not.toHaveAttribute("data-hover-object");
+    const stack = deck.getByRole("region", { name: "Bộ thẻ quiz SmartTeach" });
+    await stack.focus();
+    for (let step = 0; step < 3 && await deck.locator("[data-front]").getAttribute("data-swap-index") !== "2"; step++) {
+      await stack.press("ArrowRight");
+    }
+    await expect(deck.locator("[data-swap-index='2']")).toHaveAttribute("data-front", "");
+    await deck.getByRole("button", { name: "Trả lời thử" }).click();
     const dialog = page.getByRole("dialog", { name: "Thử một câu quiz" });
     await expect(dialog).toBeVisible();
     await expect(stage).toHaveAttribute("data-scene", "paused");
@@ -393,9 +422,64 @@ test.describe("landing theo Figma", () => {
     await page.screenshot({ path: testInfo.outputPath("hero-quiz.png") });
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
-    await expect(page.getByRole("button", { name: "Thử một câu quiz" })).toBeFocused();
+    await expect(deck.getByRole("button", { name: "Trả lời thử" })).toBeFocused();
     await expect(stage).toHaveAttribute("data-scene", "running");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(stage).toHaveAttribute("data-scene", "paused");
+    await page.mouse.move(x + width * 0.14, y + height * 0.14);
+    await expect(canvas).not.toHaveAttribute("data-hover-object");
     await page.screenshot({ path: testInfo.outputPath("hero-classroom-desktop.png") });
+    expect(shaderErrors).toEqual([]);
+  });
+
+  test("lỗi tải model lớp học giữ poster và phần thử quiz", async ({ page }) => {
+    const failure = page.waitForEvent("requestfailed", request => request.url().endsWith("/hero/models/classroom.glb"));
+    await page.route("**/hero/models/classroom.glb", (route) => route.abort());
+    await page.goto("/");
+    await failure;
+    const stage = page.locator("[data-hero-classroom]");
+    await expect(stage).toHaveAttribute("data-scene", "poster");
+    await expect(stage.locator("canvas")).toBeHidden();
+    await page.getByRole("button", { name: "Thử một câu quiz" }).click();
+    await expect(page.getByRole("dialog", { name: "Thử một câu quiz" })).toBeVisible();
+  });
+
+  test("CardSwap tự chuyển, dừng khi hover và hỗ trợ kéo hoặc bàn phím", async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.goto("/");
+    const deck = page.locator("[data-hero-quiz-deck]");
+    const front = deck.locator("[data-front]");
+    await expect(deck.locator("[data-swap-index]")).toHaveCount(3);
+    await expect(deck.getByLabel("Điều khiển bộ thẻ quiz")).toHaveCount(0);
+    await expect(front).toHaveAttribute("data-swap-index", "0");
+    await expect(front).toHaveAttribute("data-swap-index", "1", { timeout: 8000 });
+    await front.hover();
+    await page.waitForTimeout(5200);
+    await expect(front).toHaveAttribute("data-swap-index", "1");
+
+    const stack = deck.getByRole("region", { name: "Bộ thẻ quiz SmartTeach" });
+    await stack.focus();
+    await stack.press("ArrowRight");
+    await expect(front).toHaveAttribute("data-swap-index", "2");
+    await stack.press("ArrowLeft");
+    await expect(front).toHaveAttribute("data-swap-index", "1");
+    await page.waitForTimeout(1400);
+    const question = (await front.locator("p").boundingBox())!;
+    await page.mouse.move(question.x + 60, question.y + 15);
+    await page.mouse.down();
+    await page.mouse.move(question.x + 240, question.y + 55, { steps: 12 });
+    await page.mouse.up();
+    await expect(front).toHaveAttribute("data-swap-index", "2");
+
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(front).toHaveAttribute("data-swap-index", "0");
+    await stack.focus();
+    await stack.press("ArrowRight");
+    await expect(front).toHaveAttribute("data-swap-index", "1");
+    await expect.poll(() => front.evaluate((element) => {
+      const matrix = new DOMMatrix(getComputedStyle(element).transform);
+      return Math.atan2(matrix.b, matrix.a) * 180 / Math.PI;
+    })).toBeCloseTo(2.4, 1);
   });
 
   test("header ẩn khi cuộn xuống và hiện bằng cuộn lên, chuột hoặc bàn phím", async ({ page }, testInfo) => {

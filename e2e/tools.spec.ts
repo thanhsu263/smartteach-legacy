@@ -51,9 +51,10 @@ for (const viewport of [
 test.describe("điều hướng tới tiện ích", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test("từ trang chủ tới từng tiện ích trong 1 lần bấm", async ({ page }) => {
+  test("từ trang chủ qua kho tiện ích tới từng công cụ", async ({ page }) => {
     for (const tool of tools) {
       await page.goto("/");
+      await page.locator('a[href="/tools"]').first().click();
       await page.getByRole("link", { name: tool.title }).click();
       await expect(page).toHaveURL(new RegExp(`${tool.href}$`));
     }

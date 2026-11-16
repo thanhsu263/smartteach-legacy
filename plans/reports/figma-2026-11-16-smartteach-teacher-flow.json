@@ -1,0 +1,302 @@
+{
+  "reviewedOn": "2026-11-16",
+  "source": {
+    "fileKey": "4EEncl4e3CIzdTFNAMm0ry",
+    "nodeId": "34:4060",
+    "pageName": "01 — Teacher Desktop",
+    "url": "https://www.figma.com/design/4EEncl4e3CIzdTFNAMm0ry/SmartTeach?node-id=34-4060"
+  },
+  "filePages": [
+    {
+      "nodeId": "0:1",
+      "name": "Landing page"
+    },
+    {
+      "nodeId": "27:2",
+      "name": "00 — SmartTeach Foundations"
+    },
+    {
+      "nodeId": "34:4060",
+      "name": "01 — Teacher Desktop"
+    }
+  ],
+  "evidence": {
+    "metadataScope": "33 top-level frames on Teacher Desktop; frame inventory includes responsive and component/state examples, not 33 distinct features",
+    "screenshotsAndContextReviewed": [
+      "36:60368",
+      "36:60509",
+      "36:60928",
+      "36:39819",
+      "36:40301",
+      "34:4649"
+    ],
+    "prototypeConnectionsVerified": false,
+    "figmaModified": false
+  },
+  "frames": [
+    {
+      "nodeId": "45:6342",
+      "name": "ST/Tools/Countdown/Desktop/Finished",
+      "x": 38090,
+      "y": 0,
+      "width": 1440,
+      "height": 1040
+    },
+    {
+      "nodeId": "45:6170",
+      "name": "ST/Tools/Countdown/Desktop/Last10Seconds",
+      "x": 36530,
+      "y": 0,
+      "width": 1440,
+      "height": 1040
+    },
+    {
+      "nodeId": "45:5998",
+      "name": "ST/Tools/Countdown/Desktop/Running",
+      "x": 34970,
+      "y": 0,
+      "width": 1440,
+      "height": 1040
+    },
+    {
+      "nodeId": "45:5838",
+      "name": "ST/Tools/Countdown/Desktop",
+      "x": 33410,
+      "y": 0,
+      "width": 1440,
+      "height": 1040
+    },
+    {
+      "nodeId": "45:3421",
+      "name": "ST/Tools/Catalog/Mobile",
+      "x": 32995,
+      "y": 0,
+      "width": 375,
+      "height": 1646
+    },
+    {
+      "nodeId": "45:3235",
+      "name": "ST/Tools/Catalog/Desktop",
+      "x": 31435,
+      "y": 0,
+      "width": 1440,
+      "height": 1040
+    },
+    {
+      "nodeId": "36:60928",
+      "name": "ST/Quiz/Import/Error",
+      "x": 29955,
+      "y": 0,
+      "width": 1440,
+      "height": 1248
+    },
+    {
+      "nodeId": "36:60509",
+      "name": "ST/Quiz/Import/Preview",
+      "x": 28355,
+      "y": 0,
+      "width": 1440,
+      "height": 1514
+    },
+    {
+      "nodeId": "36:60368",
+      "name": "ST/Quiz/Import/Upload",
+      "x": 26755,
+      "y": 0,
+      "width": 1440,
+      "height": 1124
+    },
+    {
+      "nodeId": "36:58242",
+      "name": "ST/Quiz/Editor/Mobile/Settings",
+      "x": 26340,
+      "y": 0,
+      "width": 375,
+      "height": 1533
+    },
+    {
+      "nodeId": "36:58018",
+      "name": "ST/Quiz/Editor/Mobile/Questions",
+      "x": 25869,
+      "y": 0,
+      "width": 375,
+      "height": 1533
+    },
+    {
+      "nodeId": "36:57773",
+      "name": "ST/Quiz/Editor/Tablet/Settings",
+      "x": 25005,
+      "y": 0,
+      "width": 768,
+      "height": 1463
+    },
+    {
+      "nodeId": "36:57601",
+      "name": "ST/Quiz/Editor/Mobile",
+      "x": 24534,
+      "y": 0,
+      "width": 375,
+      "height": 1533
+    },
+    {
+      "nodeId": "36:57415",
+      "name": "ST/Quiz/Editor/Tablet",
+      "x": 23670,
+      "y": 0,
+      "width": 768,
+      "height": 1463
+    },
+    {
+      "nodeId": "36:40301",
+      "name": "ST/Quiz/Editor/Desktop/SaveError",
+      "x": 22190,
+      "y": 0,
+      "width": 1440,
+      "height": 1099
+    },
+    {
+      "nodeId": "36:40059",
+      "name": "ST/Quiz/Editor/Desktop/Saving",
+      "x": 20630,
+      "y": 0,
+      "width": 1440,
+      "height": 1099
+    },
+    {
+      "nodeId": "36:39819",
+      "name": "ST/Quiz/Editor/Desktop",
+      "x": 19070,
+      "y": 0,
+      "width": 1440,
+      "height": 1099
+    },
+    {
+      "nodeId": "36:34735",
+      "name": "ST/Quiz/List/Desktop/States",
+      "x": 17430,
+      "y": 0,
+      "width": 1600,
+      "height": 1820
+    },
+    {
+      "nodeId": "36:34615",
+      "name": "ST/Quiz/List/Desktop/Empty",
+      "x": 15910,
+      "y": 0,
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "nodeId": "36:34356",
+      "name": "ST/Quiz/List/Desktop",
+      "x": 14390,
+      "y": 0,
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "nodeId": "36:28117",
+      "name": "ST/Classes/Edit/Mobile",
+      "x": 13975,
+      "y": 0,
+      "width": 375,
+      "height": 1040
+    },
+    {
+      "nodeId": "36:27780",
+      "name": "ST/Classes/Detail/Desktop/DeleteStudent",
+      "x": 12415,
+      "y": 0,
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "nodeId": "36:27428",
+      "name": "ST/Classes/Detail/Desktop/Rename",
+      "x": 10855,
+      "y": 0,
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "nodeId": "36:27124",
+      "name": "ST/Classes/Detail/Desktop",
+      "x": 9295,
+      "y": 0,
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "nodeId": "34:7853",
+      "name": "ST/Classes/List/Desktop/Card states",
+      "x": 8055,
+      "y": 0,
+      "width": 1200,
+      "height": 588
+    },
+    {
+      "nodeId": "34:7707",
+      "name": "ST/Classes/List/Desktop/Empty",
+      "x": 6535,
+      "y": 0,
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "nodeId": "34:7501",
+      "name": "ST/Classes/List/Desktop",
+      "x": 5015,
+      "y": 0,
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "nodeId": "34:4769",
+      "name": "ST/Auth/Login/Mobile",
+      "x": 4600,
+      "y": 346,
+      "width": 375,
+      "height": 812
+    },
+    {
+      "nodeId": "34:4649",
+      "name": "ST/Auth/Login/Desktop",
+      "x": 3000,
+      "y": 346,
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "nodeId": "34:3800",
+      "name": "ST/Shell/Desktop",
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "nodeId": "34:3894",
+      "name": "ST/Shell/Desktop/Collapsed",
+      "x": 1520,
+      "y": 0,
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "nodeId": "34:4083",
+      "name": "ST/Shell/Icon Action",
+      "x": 0,
+      "y": 1120,
+      "width": 352,
+      "height": 112
+    },
+    {
+      "nodeId": "34:4120",
+      "name": "ST/Shell/Navigation Item",
+      "x": 440,
+      "y": 1120,
+      "width": 360,
+      "height": 368
+    }
+  ]
+}

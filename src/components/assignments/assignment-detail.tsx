@@ -22,6 +22,8 @@ import {
 import type { AssignmentAttemptDetail, AssignmentDetail as AssignmentDetailType, AssignmentProgress, AssignmentQuestionAnalytics, AssignmentRosterEntry, IssuedCredential } from "@/lib/assignments/types";
 import { getClass, type Student } from "@/lib/classes/api";
 import { getBrowserSupabase } from "@/lib/supabase/client";
+import { downloadCsv } from "@/lib/export/csv";
+import { assignmentResultsCsv } from "@/lib/export/results-csv";
 import styles from "./assignments.module.css";
 
 type LoadState = { detail: AssignmentDetailType; progress: AssignmentProgress; questions: AssignmentQuestionAnalytics[]; roster: AssignmentRosterEntry[]; students: Student[] };
@@ -58,6 +60,19 @@ export function AssignmentDetail({ assignmentId }: { assignmentId: string }) {
   const [attemptDetail, setAttemptDetail] = useState<AssignmentAttemptDetail | null>(null);
   const [loadingAttempt, setLoadingAttempt] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [exporting, setExporting] = useState(false);
+  async function exportResults() {
+    const db = getBrowserSupabase();
+    if (!db || exporting) return;
+    setExporting(true); setError(null);
+    try {
+      const [detail, roster] = await Promise.all([getAssignmentDetail(db, assignmentId), getAssignmentRoster(db, assignmentId)]);
+      if (!detail.ok) { setError(detail.message); return; }
+      if (!roster.ok) { setError(roster.message); return; }
+      downloadCsv(`bai-giao-${assignmentId}.csv`, assignmentResultsCsv(detail.assignment, roster.roster));
+    } catch { setError("Chưa thể xuất kết quả. Thầy cô thử lại nhé."); }
+    finally { setExporting(false); }
+  }
 
   function reload() { setLoaded(null); setError(null); setReloadKey((value) => value + 1); }
 
@@ -150,6 +165,7 @@ export function AssignmentDetail({ assignmentId }: { assignmentId: string }) {
       <header className={styles.header}>
         <div><p className={styles.kicker}>{detail.className} · {detail.status === "draft" ? "Bản nháp" : detail.status === "published" ? "Đang giao" : "Đã đóng"}</p><h1>{detail.title}</h1>{detail.description ? <p>{detail.description}</p> : null}</div>
         <div className={styles.actions}>
+          <Button disabled={exporting || loaded.roster.length === 0} aria-busy={exporting} onClick={() => void exportResults()}>{exporting ? "Đang xuất…" : "Xuất kết quả CSV"}</Button>
           {detail.status === "draft" ? <Button variant="primary" onClick={() => setConfirming({ kind: "publish" })}>Phát hành bài</Button> : null}
           {detail.status === "published" ? <Button variant="secondary" onClick={() => setConfirming({ kind: "close" })}>Đóng bài</Button> : null}
           {detail.status === "draft" ? <Button variant="secondary" onClick={() => setConfirming({ kind: "delete" })}>Xoá bản nháp</Button> : null}
@@ -180,7 +196,7 @@ export function AssignmentDetail({ assignmentId }: { assignmentId: string }) {
             const credential = credentials[student.id];
             const shareUrl = credential && typeof studentLink === "function" ? studentLink(credential.credential) : "";
             return <li key={student.id} className={styles.rosterRow}>
-              <div><strong>{student.name}</strong><span className={styles.assignmentMeta}>{result ? attemptLabel(result) : "Chưa bắt đầu"}{result?.score !== null && result?.score !== undefined ? ` · ${result.score}/${result.total}` : ""}</span></div>
+              <div><strong>{student.name}</strong><span className={styles.assignmentMeta}>{result ? attemptLabel(result) : "Chưa bắt đầu"}{result?.scorePoints !== null && result?.scorePoints !== undefined ? ` · ${result.scorePoints}/${result.maxPoints} điểm` : result?.score !== null && result?.score !== undefined ? ` · ${result.score}/${result.total}` : ""}</span></div>
               <div className={styles.rosterActions}>
                 <Button variant="secondary" disabled={busy} onClick={() => issue(student)}>{credential ? "Đổi mã" : "Tạo mã"}</Button>
                 {result && result.attemptStatus ? <><Button variant="secondary" disabled={loadingAttempt === result.studentId} onClick={() => void inspectAttempt(result)}>{loadingAttempt === result.studentId ? "Đang mở…" : "Xem chi tiết"}</Button><Button variant="secondary" disabled={busy} onClick={() => setConfirming({ kind: "reset", student: result })}>Đặt lại lượt</Button></> : null}
@@ -191,7 +207,7 @@ export function AssignmentDetail({ assignmentId }: { assignmentId: string }) {
           })}
         </ul>}
       </section>
-      {attemptDetail ? <section className={styles.attemptPanel} data-surface="panel" aria-labelledby={`${baseId}-attempt`}><div className={styles.sectionHeading}><div><h2 id={`${baseId}-attempt`}>Lượt làm của {attemptDetail.name}</h2><p>{attemptDetail.status === "submitted" ? `Đã nộp · ${attemptDetail.score ?? 0}/${attemptDetail.total ?? 0} câu đúng` : "Đang làm"}</p></div><Button variant="secondary" onClick={() => setAttemptDetail(null)}>Đóng chi tiết</Button></div>{attemptDetail.answers.length === 0 ? <p className={styles.hint}>Học sinh chưa lưu câu trả lời nào.</p> : <ol className={styles.attemptAnswers}>{attemptDetail.answers.map((answer) => <li key={answer.position}><strong>Câu {answer.position + 1}</strong><span>{Array.isArray(answer.answer) ? answer.answer.map((value) => String.fromCharCode(65 + value)).join(", ") : typeof answer.answer === "number" ? String.fromCharCode(65 + answer.answer) : answer.answer}</span><span>{answer.isCorrect === null ? "Chưa chấm" : answer.isCorrect ? "Đúng" : "Chưa đúng"}</span></li>)}</ol>}</section> : null}
+      {attemptDetail ? <section className={styles.attemptPanel} data-surface="panel" aria-labelledby={`${baseId}-attempt`}><div className={styles.sectionHeading}><div><h2 id={`${baseId}-attempt`}>Lượt làm của {attemptDetail.name}</h2><p>{attemptDetail.status === "submitted" && attemptDetail.scorePoints !== undefined ? `Đã nộp · ${attemptDetail.scorePoints ?? 0}/${attemptDetail.maxPoints} điểm · ${attemptDetail.correct ?? 0}/${attemptDetail.total ?? 0} câu đúng` : attemptDetail.status === "submitted" ? `Đã nộp · ${attemptDetail.score ?? 0}/${attemptDetail.total ?? 0} câu đúng` : "Đang làm"}</p></div><Button variant="secondary" onClick={() => setAttemptDetail(null)}>Đóng chi tiết</Button></div>{attemptDetail.answers.length === 0 ? <p className={styles.hint}>Học sinh chưa lưu câu trả lời nào.</p> : <ol className={styles.attemptAnswers}>{attemptDetail.answers.map((answer) => <li key={answer.position}><strong>Câu {answer.position + 1}</strong><span>{Array.isArray(answer.answer) ? answer.answer.map((value) => String.fromCharCode(65 + value)).join(", ") : typeof answer.answer === "number" ? String.fromCharCode(65 + answer.answer) : answer.answer}</span><span>{answer.isCorrect === null ? "Chưa chấm" : answer.isCorrect ? "Đúng" : "Chưa đúng"}</span></li>)}</ol>}</section> : null}
       <dialog ref={dialogRef} className={styles.confirmDialog} aria-labelledby={`${baseId}-confirm-title`} onClose={() => setConfirming(null)} onClick={(event) => { if (event.target === event.currentTarget) setConfirming(null); }}><div><h2 id={`${baseId}-confirm-title`}>Xác nhận thao tác</h2><p>{confirmationText}</p><div className={styles.actions}><Button variant="secondary" autoFocus onClick={() => setConfirming(null)}>Quay lại</Button><Button variant="primary" disabled={busy} onClick={() => void confirmAction()}>{busy ? "Đang xử lý…" : "Xác nhận"}</Button></div></div></dialog>
     </div>
   );

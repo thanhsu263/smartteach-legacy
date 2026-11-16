@@ -26,6 +26,7 @@ import { KIND_LABELS, QUESTION_KINDS, type QuestionInput, type QuestionKind, typ
 import { newDraft } from "@/lib/quiz/validate";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { QuestionForm } from "./question-form";
+import { QuizDraftRecovery } from "@/components/drafts/quiz-draft-recovery";
 import { QuizProblems } from "./quiz-problems";
 import { SharePanel } from "./share-panel";
 import styles from "./quiz-editor.module.css";
@@ -39,7 +40,7 @@ type Loaded = {
  * Câu đang soạn. `id` chưa có nghĩa là câu mới; lưu lần đầu thì gắn `id` vào mà vẫn giữ nguyên form
  * (cùng `nonce`) nên nút vừa bấm không bị gỡ và focus không bị mất. `nonce` mới thì form được dựng lại.
  */
-type Mode = { nonce: number; kind: QuestionKind; id?: string } | null;
+type Mode = { nonce: number; kind: QuestionKind; id?: string; restored?: QuestionInput; draftRevision?: number; draftBaseline?: string } | null;
 
 export function QuizEditor({ quizId }: { quizId: string }) {
   const { user } = useAuth();
@@ -52,6 +53,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
   const [dirty, setDirty] = useState(false);
   const [pendingSwitch, setPendingSwitch] = useState<{ next: Mode } | null>(null);
   const nonce = useRef(0);
+  const draftActions = useRef<{ discard: () => Promise<boolean> } | null>(null);
   const focusAfterLoad = useRef<string | null>(null);
   const requestFocus = useFocusRequest();
   const [renaming, setRenaming] = useState(false);
@@ -291,6 +293,12 @@ export function QuizEditor({ quizId }: { quizId: string }) {
       {problems.length === 0 ? <PublicationForm quizId={quizId} title={quiz.title} /> : null}
 
       <WorkspaceFeedback tone={message?.kind === "error" ? "error" : "success"}>{message?.text}</WorkspaceFeedback>
+      <QuizDraftRecovery key={key} quizId={quizId} questions={questions} onRestore={row => {
+        if (dirty && !window.confirm("Thay nội dung đang soạn bằng bản nháp đã chọn?")) return false;
+        nonce.current += 1;
+        setMode({ nonce: nonce.current, kind: row.payload.kind, id: row.target ?? undefined, restored: row.payload, draftRevision: row.revision, draftBaseline: row.baseline });
+        return true;
+      }} />
 
       <div className={styles.workspace}>
         <section aria-labelledby={`${baseId}-questions`} className={`${styles.panel} ${styles.questionsPanel}`}>
@@ -384,7 +392,8 @@ export function QuizEditor({ quizId }: { quizId: string }) {
                 </Button>
                 <Button
                   variant="secondary"
-                  onClick={() => {
+                  onClick={async () => {
+                    if (draftActions.current && !(await draftActions.current.discard())) return;
                     const { next } = pendingSwitch;
                     setPendingSwitch(null);
                     setMode(next);
@@ -401,6 +410,11 @@ export function QuizEditor({ quizId }: { quizId: string }) {
           {mode ? (
             <QuestionForm
               key={mode.nonce}
+              quizId={quizId}
+              restored={mode.restored}
+              draftRevision={mode.draftRevision}
+              draftBaseline={mode.draftBaseline}
+              draftActionsRef={draftActions}
               initial={editing ?? newDraft(mode.kind)}
               isNew={mode.id === undefined}
               onSave={save}

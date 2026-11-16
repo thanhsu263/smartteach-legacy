@@ -1,0 +1,30 @@
+.page { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); min-width: 0; }
+.header, .actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.actions { justify-content: flex-start; }
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); min-width: 0; }
+.page button, .page a { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.header h1 { min-width: 0; overflow-wrap: anywhere; }
+.tabControls { display: none; }
+.panel, .fields { display: grid; gap: var(--space-4); min-width: 0; align-content: start; }
+.panel { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); }
+.fields { border: 0; padding: 0; margin: 0; }
+.field { display: grid; gap: var(--space-2); min-width: 0; }
+.field input, .field select, .field textarea { width: 100%; min-width: 0; max-width: 100%; font: inherit; }
+.field textarea { min-height: 6rem; }
+.options, .list { display: grid; gap: var(--space-3); }
+.option { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: center; }
+.option input[type=checkbox] { width: 1.25rem; height: 1.25rem; }
+.item { display: grid; gap: var(--space-2); border-bottom: 1px solid var(--color-border); padding-block: var(--space-3); overflow-wrap: anywhere; }
+.questionNav { display: grid; gap: var(--space-2); }
+.questionNav button { text-align: start; white-space: normal; overflow-wrap: anywhere; }
+.selected { font-weight: 800; color: var(--color-primary-deep); }
+.notice { border: 1px solid var(--color-border); padding: var(--space-4); background: var(--color-primary-tint); border-radius: var(--radius-sm); }
+.issues { color: var(--color-danger); display: grid; gap: var(--space-2); }
+@media(min-width: 960px) { .workspace { grid-template-columns: minmax(10rem, .65fr) minmax(16rem, 1.5fr) minmax(11rem, .7fr); align-items: start; } }
+@media (720px <= width < 960px) {
+  .tabControls { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .workspace > [data-panel] { display: none; }
+  .workspace[data-current="structure"] > [data-panel="structure"],
+  .workspace[data-current="question"] > [data-panel="question"],
+  .workspace[data-current="settings"] > [data-panel="settings"] { display: grid; }
+}

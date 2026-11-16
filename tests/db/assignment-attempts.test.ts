@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join as joinPath } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { admin, anon, buildQuiz, cleanupUsers, signUp, simpleQuestion, type TestUser } from "./helpers";
+import { admin, anon, buildQuiz, cleanupUsers, signUp, simpleQuestion, grantPremiumForTest, type TestUser } from "./helpers";
 import { psql } from "./live-helpers";
 
 let teacher: TestUser;
@@ -14,6 +14,7 @@ let submittedAttemptId = "";
 
 beforeAll(async () => {
   teacher = await signUp("attempt-teacher");
+  await grantPremiumForTest(teacher);
   const klass = await teacher.client.rpc("create_class_with_students", { class_name: "Lớp attempt", student_names: ["An", "Bình"] });
   expect(klass.error).toBeNull();
   classId = klass.data as string;

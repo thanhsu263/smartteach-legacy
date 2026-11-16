@@ -1,0 +1,2 @@
+import { dbError, failure, json, mutation, requireUser, uuid } from "@/lib/admin/http";
+export async function POST(request: Request, { params }: RouteContext<"/api/exam-imports/[id]/retry">) { try { const { client } = await requireUser(); await mutation(request); const r = await client.rpc("control_exam_import", { p_id: uuid((await params).id), p_action: "retry" }); dbError(r.error); return json(r.data); } catch(e) { return failure(e); } }

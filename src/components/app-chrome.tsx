@@ -10,7 +10,7 @@ function isLiveCanvas(pathname: string) {
 }
 
 function usesTeacherShell(pathname: string) {
-  return ["/dashboard", "/assignments", "/my-classes", "/my-quizzes", "/library", "/games", "/tools"].some(
+  return ["/dashboard", "/assignments", "/my-classes", "/my-quizzes", "/my-exams", "/library", "/games", "/tools", "/membership", "/help/sources", "/account", "/feedback"].some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 }
@@ -18,11 +18,13 @@ function usesTeacherShell(pathname: string) {
 /** Tách chrome khỏi `<main>` để `notFound()` của Server Component giữ mã HTTP. */
 export function AppHeader() {
   const pathname = usePathname();
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
   if (usesTeacherShell(pathname)) return <TeacherShell />;
   return pathname === "/" || pathname === "/login" || isLiveCanvas(pathname) ? null : <SiteHeader />;
 }
 
 export function AppFooter() {
   const pathname = usePathname();
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
   return pathname === "/" || pathname === "/login" || isLiveCanvas(pathname) || usesTeacherShell(pathname) ? null : <SiteFooter />;
 }
