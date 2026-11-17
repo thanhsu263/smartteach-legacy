@@ -55,4 +55,40 @@ Xem [runbook](../../docs/teacher-pilot-operations.md) và [ghi nhận triển kh
 
 Không đánh dấu 30 AC hoàn tất trên online. Các ô task chưa tick trong phase thể hiện phần verification/acceptance còn thiếu, không có nghĩa code chưa được triển khai. Cần review toàn candidate gồm cả thay đổi có trước khi ship; không tự commit gộp working tree.
 
+## P9.1 — Gate local trên candidate 17/11/2026
+
+Candidate: `main @ b33e7d5` + nâng `next` và `eslint-config-next` 16.4.2 → **16.4.6** (chỉ `package.json`/`package-lock.json`, chưa commit). Baseline review: `25e8529` (trước pilot). Diff: 372+38+3 file, gồm 36 migration mới. Log tại `artifacts/teacher-pilot/p9-1/`; đã quét không có mẫu token/key/connection string.
+
+**Lý do nâng Next:** build trên 16.4.2 bị Next chặn bằng `SecurityFatalError`; `npm audit` xác nhận GHSA-mfr8-8qww-v76h (moderate, `>=16.3.0 <=16.4.4`, lộ thông tin root params khi gọi `'use cache'` qua `unstable_cache()`). App không dùng `unstable_cache`/root params nên rủi ro thực tế thấp, nhưng chủ dự án đã chọn vá. Lockfile chỉ đổi gói `next`, `@next/*`, `eslint-config-next`. Không chạy `next upgrade --agent` do log gợi ý.
+
+| Lệnh/probe | Trạng thái | Log |
+|---|---|---|
+| `npm test` | VERIFIED: 44 files, 370/370 | `test.log` |
+| `npm run typecheck`, `npm run lint` | VERIFIED | `typecheck.log`, `lint.log` |
+| `npm run build` (Next 16.4.6) | VERIFIED | `build.log` |
+| `npm run scan:bundle` | VERIFIED: 1094 tệp sạch, quét sau build 16.4.6 | `scan-bundle.log` |
+| `npm audit --omit=dev` | 0 runtime vulnerability. Dev: 7 moderate, cùng nguồn `minimatch` qua typescript-eslint (chỉ lint, có từ trước), chưa sửa | — |
+| `npm run test:db` (local đủ 50 migration) | VERIFIED: 258 đạt, 1 skip opt-in AI thật; chạy trên 16.4.2 nhưng không phụ thuộc Next | `db.log` |
+| E2E toàn suite, 2 workers, build mới cổng 3100, **không** đặt APP_BASE_URL | 305 đạt / 8 lỗi / 2 skip / 3 không chạy | `e2e.log` |
+| E2E chạy lại admin-rag, apple-interface, exam-pilot, membership, teacher-pilot với `APP_BASE_URL=http://localhost:3100`, build mới | VERIFIED: 48/48 (gồm 3 case chat trước đó không chạy) | `e2e-rerun-origin.log` |
+| Hai case motion landing, `--repeat-each=5` | 2 workers: 4 đạt / 6 lỗi (FLAKY); 1 worker: **10/10 đạt** | `e2e-landing-repeat*.log` |
+
+Không cộng các lượt thành một tổng. Skip có chủ đích: `exam-ai-import` (cần `SMARTTEACH_LIVE_AI_UI=1`, không gọi Gemini thật) và `rag-worker` (Vault local đã có cấu hình người dùng, test không ghi đè).
+
+**Phân loại 8 lỗi lượt đầu:**
+- 6 lỗi (admin game, exam-pilot ×2, membership 403≠400, teacher-pilot ×2): **môi trường test**. `.env.local` để `APP_BASE_URL=http://localhost:3000` cho dev server; guard Origin so khớp chính xác nên từ chối mutation từ cổng 3100 đúng thiết kế. Chạy lại với origin đúng thì đạt. E2E phải đặt `APP_BASE_URL` trùng `PLAYWRIGHT_PORT` (như plan đã ghi).
+- 2 lỗi motion (`apple-interface` CardSwap hover/swap, header ẩn/hiện khi cuộn): **FLAKY khi chạy song song**, đạt 10/10 với 1 worker. Lượt UI trước cũng chạy file này với 1 worker và không đưa nó vào lượt 2 workers. Không sửa landing hay nới assertion. Verification gap: config chưa buộc file này chạy tuần tự.
+
+**Review an ninh tầng DB/API (đọc catalog Postgres local và route mới):**
+- Mọi hàm `SECURITY DEFINER` trong `public` đều đặt `search_path`. Hàm anon gọi được chỉ là luồng học sinh dùng token/PIN (join/play/assignment/library công khai).
+- Hàm worker/thanh toán (`rag_*` job, `exam_import_claim/checkpoint/reserve_attempt`, `ai_*`, `chat_finish`, `bind/settle_membership_payment`, `bootstrap_admin`) chỉ service_role gọi được. Toàn bộ `admin_*` cho authenticated đều gọi `private.require_admin`.
+- 18 policy `active_account_guard` là RESTRICTIVE. Mọi bảng public bật RLS; `exams`, `teacher_feedback` không có grant trực tiếp. Bucket `exam-imports`, `rag-documents` private, không có policy storage.
+- Premium chặn ở DB: `create_exam_assignment`, `reserve_exam_import`, `complete_exam_import` kiểm `has_premium`; bài giao có trigger `assignments_require_premium`.
+- Route mới đều có guard: `requireUser`/`requireUser(true)`, `billingUser` + origin, webhook xác minh chữ ký; payOS trả 503 khi thiếu env (đúng quyết định hoãn). Worker nội bộ dùng `timingSafeEqual`, secret ≥32 ký tự. CSV xuất có guard công thức `=+-@` và ký tự điều khiển đầu ô.
+- Không có finding cần sửa trong phạm vi đã review.
+
+**Chưa làm trong P9.1:** review code toàn diff (≈21k dòng) theo hs-code-review cho logic nghiệp vụ/UI. Lượt này chỉ review ranh giới quyền ở tầng DB/API. Đối chiếu Figma và ảnh 375/768/1280 dựa vào E2E UI/a11y trong suite (đạt), chưa chụp bộ ảnh riêng cho candidate này.
+
+**Ghi chú cho P9.2:** 5 migration `20261115156000`–`20261115159000` có timestamp phút ≥60 (không hợp lệ về thời gian; CLI hiển thị số thô). Thứ tự lexicographic vẫn đúng, cần lưu ý khi đối chiếu migration history online. Worker nhập đề dùng `EXAM_IMPORT_WORKER_SECRET`, fallback `RAG_WORKER_SECRET`; `.env.local` hiện chỉ có biến sau.
+
 Trước publish cần cập nhật nguồn `rag-documents/source/corpus.json` (chủ đề01/05/08) theo bản đã deploy rồi dựng/QA lại DOCX qua pipeline hiện có; chưa tải hoặc thay phiên bản trên kho RAG. Bộ hướng dẫn hiện có còn mô tả phiên bản online cũ. Không dùng runbook nội bộ hoặc corpus đề riêng làm kiến thức chung.
