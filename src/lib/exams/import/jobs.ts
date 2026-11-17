@@ -52,8 +52,10 @@ export async function runExamImportStep(generate = generateExamPreview) {
   } catch(e) {
     if (task === "cleanup") return { state: "cleanup_pending", id: job.id }; // lease expiry retries deletion; no terminal success is invented.
     if (e instanceof AppError && e.code === "lease_lost") return { state: "lease_lost", id: job.id };
+    // RPC failures arrive as AppError with the DB code in `code`; local failures carry it in `message`.
+    const known = e instanceof AppError ? e.code : e instanceof Error ? e.message : "";
     const quota = e instanceof AiUnavailableError && ["quota", "transient"].includes(e.reason);
-    const code = e instanceof AiUnavailableError || (e instanceof AppError && e.code === "ai_unavailable") ? "provider_unavailable" : e instanceof AppError && e.status === 403 ? "owner_unavailable" : e instanceof Error && ["invalid_extract", "input_too_long", "no_text", "source_changed", "attempt_budget_exhausted"].includes(e.message) ? e.message : "unsupported_file";
+    const code = e instanceof AiUnavailableError || (e instanceof AppError && e.code === "ai_unavailable") ? "provider_unavailable" : e instanceof AppError && e.status === 403 ? "owner_unavailable" : ["invalid_extract", "input_too_long", "no_text", "source_changed", "attempt_budget_exhausted"].includes(known) ? known : "unsupported_file";
     try { await checkpoint(quota ? "waiting_quota" : "failed", null, 0, quota ? "waiting_quota" : code); }
     catch(error) { if (!(error instanceof AppError && error.status === 409)) throw error; }
     return { state: quota ? "waiting_quota" : "failed", id: job.id, code: quota ? "waiting_quota" : code, ...(e instanceof AiUnavailableError ? { diagnostic: e.diagnosticCode } : {}) };

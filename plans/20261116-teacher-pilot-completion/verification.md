@@ -87,7 +87,41 @@ Không cộng các lượt thành một tổng. Skip có chủ đích: `exam-ai-
 - Route mới đều có guard: `requireUser`/`requireUser(true)`, `billingUser` + origin, webhook xác minh chữ ký; payOS trả 503 khi thiếu env (đúng quyết định hoãn). Worker nội bộ dùng `timingSafeEqual`, secret ≥32 ký tự. CSV xuất có guard công thức `=+-@` và ký tự điều khiển đầu ô.
 - Không có finding cần sửa trong phạm vi đã review.
 
-**Chưa làm trong P9.1:** review code toàn diff (≈21k dòng) theo hs-code-review cho logic nghiệp vụ/UI. Lượt này chỉ review ranh giới quyền ở tầng DB/API. Đối chiếu Figma và ảnh 375/768/1280 dựa vào E2E UI/a11y trong suite (đạt), chưa chụp bộ ảnh riêng cho candidate này.
+**Review toàn diff `25e8529..8d54661` (hs-code-review, inline, không spawn agent):** ưu tiên theo rủi ro. Đọc kỹ 36 migration mới (thi online v2, chốt bài theo hạn, guard hạn nộp, import job, feedback, chat RAG), các route `/api/admin|chat|exam-imports|internal`, `admin/http`, `ai/gemini|crypto`, `chat/service`, `exams/import/jobs`, `exams/export/pdf`, `drafts/storage`, runner học sinh và chat widget. Phần UI landing/hero/admin CSS chỉ quét tìm mẫu nguy hiểm (`dangerouslySetInnerHTML`, `innerHTML`, `eval`, link ngoài), không review từng dòng.
+
+Đã xác minh, không có lỗi:
+- Payload học sinh v2 lấy câu hỏi qua `private.assignment_public_questions`, một whitelist (`index, kind, prompt, time_limit_seconds, options[].label`), nên không lộ `is_correct`/`accepted_answers`. Test DB `online-exams.test.ts:33` cũng assert điều này.
+- Grader `private.is_answer_correct` khớp schema v2 (`kind`, `options[].label/is_correct`). Đề phát hành bắt buộc nhãn lựa chọn khác nhau, nên `key={option}` ở runner an toàn.
+- Thứ tự khóa assignment → attempt nhất quán ở exchange/state/save/submit/finalize và cron `finalize_due_exam_attempts` (`skip locked`). Bài hết hạn được ghi `submitted_at = deadline_at`.
+- Trigger `exam_answer_deadline` chỉ bắt `update of answer`, nên finalize ghi `is_correct` không bị chặn.
+- Import đề: upload qua signed URL của service role (`upsert:false`); server tự hash lại, kiểm magic bytes; worker so hash trước khi trích xuất. Lease 45 giây, tối đa 2 lần gọi AI; job hết hạn hoặc bị hủy được dọn khỏi Storage.
+- Chat: owner/generation/citation được kiểm lại trong `chat_finish`. Câu trả lời render dạng text, link nguồn là nội bộ. Font PDF có trong `.next/.../exams/[id]/export/route.js.nft.json`.
+
+Finding (đều Low, không chặn pilot; **đã sửa**, xem mục "Sửa finding review" bên dưới):
+1. **Low — job nhập đề crash ở bước trích xuất được nhận lại không giới hạn.** `exam_import_claim` chỉ kiểm `attempts` ở stage `generate`. Nếu worker chết/timeout khi trích xuất (tệp độc, PDF nặng), lease 45 giây hết thì job được claim lại khoảng mỗi phút cho tới khi hết hạn 24 giờ. Không tốn quota Gemini, chỉ tốn CPU worker và chặn giáo viên tạo lượt mới (`exam_import_busy`) cho tới khi hủy. Nguồn: `20261116130000_exam_import_jobs.sql`, `exam_import_claim`. Xác minh bằng đọc code, chưa probe runtime.
+2. **Low — mã lỗi `attempt_budget_exhausted` từ `exam_import_reserve_attempt` bị gộp thành `unsupported_file`.** `dbError` (`src/lib/admin/http.ts`) không có mã này trong `safeCodes`, nên `jobs.ts` nhận `AppError("operation_failed")` và rơi về `unsupported_file`. Chỉ xảy ra khi có race, vì claim đã chặn `attempts>=2` trước, nhưng thông báo cho giáo viên sẽ sai. Xác minh bằng đọc code.
+
+Ghi chú hiệu năng (không phải lỗi): `assignment_student_state` v2 lấy `FOR UPDATE` trên dòng assignment mỗi lần học sinh tải trạng thái, nên các lượt đọc của cả lớp được tuần tự hóa. Chấp nhận được với quy mô pilot.
+
+**Sửa finding review (17/11/2026, chưa commit):**
+- Finding 1: migration `20261117090000_exam_import_extract_stall.sql` thêm `extract_claims` và `extract_claim_cursor`, rồi thay `exam_import_claim`. Job ở stage extract được claim tối đa 3 lần tại cùng một cursor; lần thứ 4 chuyển sang `failed/unsupported_file` và vào cleanup. Batch PDF tiến cursor thì bộ đếm reset, nên không ảnh hưởng tệp lớn đang chạy tốt. Đã áp lên Supabase local bằng `supabase migration up --local` (không reset); chưa áp online.
+- Finding 2: thêm `attempt_budget_exhausted` vào `safeCodes` của `dbError`. `jobs.ts` giờ lấy mã từ `AppError.code` (lỗi RPC) hoặc `Error.message` (lỗi cục bộ).
+- Test DB mới trong `tests/db/exam-import-jobs.test.ts`: (a) trích xuất treo → 3 lần claim, sau đó `failed/unsupported_file`; (b) race hết lượt AI → kết quả và DTO giữ `attempt_budget_exhausted`.
+
+| Lệnh | Kết quả | Log (`artifacts/teacher-pilot/p9-1-review-fix/`) |
+|---|---|---|
+| `npm test` | VERIFIED 370/370 | `test.log` |
+| `npm run typecheck`, `npm run lint` | VERIFIED | `typecheck.log`, `lint.log` |
+| DB import + provider smoke | VERIFIED 7 đạt, 1 skip opt-in | `db-import.log` |
+| `npm run test:db` toàn bộ | 259 đạt / 1 lỗi / 1 skip | `db.log` |
+| Chạy lại riêng `exam-import-jobs` ×2 | VERIFIED 7/7 cả hai lượt | `db-import-rerun-1.log`, `db-import-rerun-2.log` |
+
+Lỗi trong lượt toàn bộ là test cũ "durable budget, lease fencing…" (`lease_lost` ở checkpoint `extracted`), phân loại **TEST-DEFECT/môi trường**:
+- Vault local có `smartteach_exam_worker_url` trỏ `host.docker.internal:3000`, nên cron `smartteach-exam-import` mỗi phút gọi worker thật trên dev server của người dùng (`net._http_response`: 30 lần 200 trong 15 phút). Worker đó claim job của test song song.
+- Lượt toàn suite dài khoảng 3 phút nên gặp cron tick; lượt riêng khoảng 10 giây thì không. P9.1 đạt là do trùng thời điểm.
+- Chưa sửa: không đổi Vault/cron của người dùng. Hướng xử lý sau: tạm dừng job cron trong test hoặc lọc claim theo owner.
+
+**Giới hạn review:** không chạy probe mới cho phần review. Mọi kết luận dựa trên đọc code cùng các gate P9.1 ở trên. Không đối chiếu Figma; ảnh 375/768/1280 chỉ dựa vào E2E UI/a11y trong suite (đạt), chưa chụp bộ ảnh riêng cho candidate này. Không gọi Gemini thật.
 
 **Ghi chú cho P9.2:** 5 migration `20261115156000`–`20261115159000` có timestamp phút ≥60 (không hợp lệ về thời gian; CLI hiển thị số thô). Thứ tự lexicographic vẫn đúng, cần lưu ý khi đối chiếu migration history online. Worker nhập đề dùng `EXAM_IMPORT_WORKER_SECRET`, fallback `RAG_WORKER_SECRET`; `.env.local` hiện chỉ có biến sau.
 

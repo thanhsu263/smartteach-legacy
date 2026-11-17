@@ -116,6 +116,7 @@ export function dbError(error: { code?: string; message?: string } | null) {
     "version_conflict",
     "capacity_exceeded",
     "lease_lost",
+    "attempt_budget_exhausted",
     "source_changed",
     "user_daily_cap",
     "thread_busy",
