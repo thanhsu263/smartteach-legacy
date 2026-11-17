@@ -5,7 +5,7 @@ import { AiUnavailableError, withGemini } from "@/lib/ai/gemini";
 import { examDocxText, examHash, examPdfBatch, examXlsxRows } from "./extract-server";
 import { readExamCsv } from "./csv";
 import type { SourceText } from "./types";
-import { parseAiExtraction, EXAM_EXTRACTION_INSTRUCTION, EXTRACTION_SCHEMA, type AiPreview } from "./ai-extraction";
+import { parseAiExtraction, EXAM_EXTRACTION_INSTRUCTION, EXTRACTION_SCHEMA, InvalidExtractError, type AiPreview } from "./ai-extraction";
 type Job = { id: string; owner_id: string; title: string; format: string; path: string | null; hash: string; bytes: number; cursor: number; sections: SourceText[]; text_chars: number; model: string; lease_token: string };
 export function examImportDb() { const db = getAdminSupabase(); if (!db) throw new AppError(503, "exam_worker_not_ready", "Chưa cấu hình dịch vụ nhập đề."); return db; }
 async function extract(job: Job) {
@@ -30,8 +30,10 @@ export async function generateExamPreview(job: Job): Promise<AiPreview> {
   const r = await withGemini(job.model, payload.length + EXAM_EXTRACTION_INSTRUCTION.length + 8192, (ai, signal) => ai.models.generateContent({ model: job.model, contents: payload, config: { systemInstruction: EXAM_EXTRACTION_INSTRUCTION, maxOutputTokens: 8192, responseMimeType: "application/json", responseJsonSchema: EXTRACTION_SCHEMA, temperature: 0, abortSignal: signal } }), undefined, { remaining: 1 }, async () => {
     dbError((await examImportDb().rpc("exam_import_reserve_attempt", { p_id: job.id, p_lease: job.lease_token })).error);
   });
-  if (!r.text || r.candidates?.[0]?.finishReason !== "STOP") throw new Error("invalid_extract");
-  let raw: unknown; try { raw = JSON.parse(r.text); } catch { throw new Error("invalid_extract"); }
+  const finish = r.candidates?.[0]?.finishReason;
+  if (finish !== "STOP") throw new InvalidExtractError(`finish_${String(finish ?? "missing").toLowerCase()}`);
+  if (!r.text) throw new InvalidExtractError("empty_text");
+  let raw: unknown; try { raw = JSON.parse(r.text); } catch { throw new InvalidExtractError("json"); }
   return parseAiExtraction(raw, job.sections, job.title);
 }
 export async function runExamImportStep(generate = generateExamPreview) {
@@ -52,6 +54,8 @@ export async function runExamImportStep(generate = generateExamPreview) {
   } catch(e) {
     if (task === "cleanup") return { state: "cleanup_pending", id: job.id }; // lease expiry retries deletion; no terminal success is invented.
     if (e instanceof AppError && e.code === "lease_lost") return { state: "lease_lost", id: job.id };
+    // Content-free reason so a failed extraction can be diagnosed from runtime logs without storing model output.
+    if (e instanceof InvalidExtractError) console.warn("exam_import_invalid_extract", { job: job.id, reason: e.reason });
     // RPC failures arrive as AppError with the DB code in `code`; local failures carry it in `message`.
     const known = e instanceof AppError ? e.code : e instanceof Error ? e.message : "";
     const quota = e instanceof AiUnavailableError && ["quota", "transient"].includes(e.reason);

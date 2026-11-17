@@ -19,21 +19,40 @@ export const EXTRACTION_SCHEMA = {
     unparsed: { type: "array", items: { type: "string" } },
   }, required: ["questions", "unparsed"],
 };
+/** Message stays `invalid_extract` (the job error code); `reason` is a content-free code for server logs. */
+export class InvalidExtractError extends Error {
+  constructor(public reason: string) { super("invalid_extract"); }
+}
+const fail = (reason: string): never => { throw new InvalidExtractError(reason); };
+const MAX_UNPARSED_WARNINGS = 20;
 /** A quoted source is mandatory. Answer keys without explicit supporting text are removed. */
 export function parseAiExtraction(raw: unknown, sources: SourceText[], title: string): AiPreview {
-  if (!obj(raw) || !Array.isArray(raw.questions) || !raw.questions.length || raw.questions.length > 50 || !Array.isArray(raw.unparsed) || raw.unparsed.some(x => typeof x !== "string") || raw.unparsed.length) throw new Error("invalid_extract");
+  if (!obj(raw) || !Array.isArray(raw.questions) || !Array.isArray(raw.unparsed) || raw.unparsed.some(x => typeof x !== "string")) fail("shape");
+  const questions = (raw as { questions: unknown[] }).questions, unparsed = (raw as { unparsed: string[] }).unparsed;
+  if (!questions.length) fail("no_questions");
+  if (questions.length > 50) fail("too_many_questions");
   const form = { ...emptyExam(), title }, provenance: Provenance[] = [], warnings: string[] = [];
-  for (const value of raw.questions) {
-    if (!obj(value) || !QUESTION_KINDS.includes(value.kind as never) || typeof value.prompt !== "string" || typeof value.excerpt !== "string" || typeof value.section !== "string" || !Number.isInteger(value.locatorIndex) || !Array.isArray(value.options) || !Array.isArray(value.accepted_answers) || typeof value.ignore_diacritics !== "boolean") throw new Error("invalid_extract");
-    const source = sources[Number(value.locatorIndex)];
+  // Coverage gaps go to the teacher's review instead of discarding the whole job (contracts §8).
+  const gaps = unparsed.map(x => x.replace(/\s+/g, " ").trim()).filter(Boolean);
+  for (const gap of gaps.slice(0, MAX_UNPARSED_WARNINGS)) warnings.push(`AI chưa đưa vào đề: "${gap.slice(0, 200)}${gap.length > 200 ? "…" : ""}". Thầy cô đối chiếu tệp gốc.`);
+  if (gaps.length > MAX_UNPARSED_WARNINGS) warnings.push(`Còn ${gaps.length - MAX_UNPARSED_WARNINGS} phần AI chưa đưa vào đề. Thầy cô đối chiếu tệp gốc.`);
+  for (const value of questions) {
+    if (!obj(value) || !QUESTION_KINDS.includes(value.kind as never) || typeof value.prompt !== "string" || typeof value.excerpt !== "string" || typeof value.section !== "string" || !Number.isInteger(value.locatorIndex) || !Array.isArray(value.options) || !Array.isArray(value.accepted_answers) || typeof value.ignore_diacritics !== "boolean") return fail("question_shape");
+    const start = Number(value.locatorIndex);
     // A Word question and its options can occupy consecutive paragraphs or PDF pages.
-    const sourceWindow = sources.slice(Number(value.locatorIndex), Number(value.locatorIndex) + 12).map(s => s.text).join("\n");
-    if (!source || !normalize(value.prompt) || !normalize(value.excerpt) || !normalize(sourceWindow).includes(normalize(value.excerpt)) || !normalize(value.excerpt).includes(normalize(value.prompt)) || !normalize(source.text).includes(normalize(value.prompt).slice(0, 16))) throw new Error("invalid_extract");
+    const sourceWindow = sources.slice(start, start + 12).map(s => s.text).join("\n");
+    if (!sources[start] || !normalize(value.prompt) || !normalize(value.excerpt) || !normalize(sourceWindow).includes(normalize(value.excerpt)) || !normalize(value.excerpt).includes(normalize(value.prompt))) fail("excerpt_not_quoted");
+    // The model may point at a section heading just above the question; provenance uses the part holding the prompt.
+    const promptHead = normalize(value.prompt).slice(0, 16);
+    const located = sources.slice(start, start + 12).findIndex(s => normalize(s.text).includes(promptHead));
+    if (located < 0) fail("locator_mismatch");
+    const source = sources[start + located];
     const q = emptyQuestion(value.kind as QuestionKind); q.prompt = value.prompt;
-    if (value.options.length > 6 || !value.options.every(o => obj(o) && typeof o.label === "string" && typeof o.is_correct === "boolean") || !value.accepted_answers.every(a => typeof a === "string")) throw new Error("invalid_extract");
-    q.options = value.options.map(o => ({ label: o.label as string, is_correct: o.is_correct as boolean }));
-    if (q.options.some(o => !normalize(value.excerpt as string).includes(normalize(o.label)))) throw new Error("invalid_extract");
-    q.accepted_answers = value.accepted_answers as string[]; q.ignore_diacritics = value.ignore_diacritics;
+    if (value.options.length > 6 || !value.options.every(o => obj(o) && typeof o.label === "string" && typeof o.is_correct === "boolean") || !value.accepted_answers.every(a => typeof a === "string")) fail("option_shape");
+    // Choice keys come only from options and short answers only from accepted_answers; drop the other field.
+    q.options = q.kind === "short_text" ? [] : value.options.map(o => ({ label: o.label as string, is_correct: o.is_correct as boolean }));
+    if (q.options.some(o => !normalize(value.excerpt as string).includes(normalize(o.label)))) fail("option_not_quoted");
+    q.accepted_answers = q.kind === "short_text" ? value.accepted_answers as string[] : []; q.ignore_diacritics = value.ignore_diacritics;
     q.pointUnits = value.points === null ? null : typeof value.points === "number" && Number.isFinite(value.points) && Math.abs(value.points * 100 - Math.round(value.points * 100)) < 1e-7 ? Math.round(value.points * 100) : null;
     if (q.pointUnits !== null) {
       const quoted = normalize(value.excerpt);
@@ -52,15 +71,20 @@ export function parseAiExtraction(raw: unknown, sources: SourceText[], title: st
       const key = normalize(answerExcerpt!);
       hasExplicitKey = q.options.some(o => o.is_correct) && q.options.every((o, i) => !o.is_correct || key.includes(normalize(o.label)) || new RegExp(`(?:^|[\\s:;,|().-])${String.fromCharCode(97 + i)}(?:$|[\\s;,|().-])`).test(key));
     }
+    if (hasExplicitKey && q.kind === "short_text") {
+      // Keep only answers quoted in the key; unquoted variants (e.g. "meo" for "Chấp nhận không dấu") are model-made.
+      const quoted = q.accepted_answers.filter(a => normalize(a) && normalize(answerExcerpt!).includes(normalize(a)));
+      if (quoted.length < q.accepted_answers.length) warnings.push(`Câu ${provenance.length + 1}: đã bỏ đáp án chấp nhận không có nguyên văn trong khóa; thầy cô kiểm tra.`);
+      q.accepted_answers = quoted; hasExplicitKey = quoted.length > 0;
+    }
     if (!hasExplicitKey) { q.options = q.options.map(o => ({ ...o, is_correct: false })); q.accepted_answers = []; answerExcerpt = null; warnings.push(`Câu ${provenance.length + 1}: nguồn chưa có khóa đáp án rõ ràng; thầy cô bổ sung.`); }
-    else if (q.kind === "short_text" && q.accepted_answers.some(a => !normalize(answerExcerpt!).includes(normalize(a)))) throw new Error("invalid_extract");
     if (q.pointUnits === null) warnings.push(`Câu ${provenance.length + 1}: cần xác nhận điểm.`);
     const sectionTitle = value.section.trim() || "Phần 1";
     let section = form.document.sections.find(s => s.title === sectionTitle);
     if (!section) { section = { id: crypto.randomUUID(), title: sectionTitle, questions: [] }; form.document.sections.push(section); }
     section.questions.push(q); provenance.push({ questionId: q.id, locator: source.locator, excerpt: value.excerpt, answerExcerpt });
   }
-  if (examIssues(form).length) throw new Error("invalid_extract");
+  if (examIssues(form).length) fail("exam_issues");
   warnings.push("AI có thể nhận sai hoặc thiếu câu. Đối chiếu toàn bộ tệp gốc và từng đáp án trước khi dùng đề.");
   return { form, provenance, warnings };
 }
