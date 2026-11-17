@@ -93,6 +93,24 @@ describe("AI extraction với corpus with-keys.csv", () => {
     const r = parseAiExtraction({ questions: tweak(0, { locatorIndex: 1, excerpt: rows(1, 6) }), unparsed: [] }, corpus, "Đề");
     expect(r.provenance[0].locator).toEqual({ row: 3 });
   });
+  // P9.2 online lượt 2: reason=option_not_quoted. CSV đặt lựa chọn ở dòng riêng; model chỉ trích dòng câu hỏi.
+  it("excerpt chỉ có dòng câu hỏi vẫn nhận lựa chọn và khóa ở các dòng ngay sau", () => {
+    const questions = base().map(q => ({ ...q, excerpt: corpus[q.locatorIndex].text }));
+    const qs = questionsOf(parseAiExtraction({ questions, unparsed: [] }, corpus, "Đề"));
+    expect(qs.map(q => q.pointUnits)).toEqual([125, 75, 250, null]);
+    expect(qs.map(q => q.options.flatMap((o, i) => (o.is_correct ? [i] : [])))).toEqual([[1], [0], [0, 2, 4], []]);
+  });
+  it("khóa không đánh số ở dòng ngay sau câu được nhận, không lấy khóa sau câu kế tiếp", () => {
+    const source = ["Số nào là số nguyên tố?", "A. 12", "B. 17", "Đáp án: B", "Câu 2. Chọn màu xanh.", "A. Đỏ", "B. Xanh", "Đáp án: B"].map((text, i) => ({ text, locator: { paragraph: i + 1 } }));
+    const q1 = { ...question, excerpt: source[0].text, answerExcerpt: "Đáp án: B" };
+    expect(parseAiExtraction({ questions: [q1], unparsed: [] }, source, "Đề").form.document.sections[0].questions[0].options[1].is_correct).toBe(true);
+    const q2 = { ...question, prompt: "Chọn màu xanh.", excerpt: source[4].text, options: [{ label: "Đỏ", is_correct: false }, { label: "Xanh", is_correct: true }], answerExcerpt: "Đáp án: B", locatorIndex: 4 };
+    expect(parseAiExtraction({ questions: [q2], unparsed: [] }, source, "Đề").form.document.sections[0].questions[0].options[1].is_correct).toBe(true);
+  });
+  it("không nhận lựa chọn lấy từ câu kế tiếp", () => {
+    const questions = tweak(0, { excerpt: corpus[2].text, options: [{ label: "12", is_correct: false }, { label: "Đúng", is_correct: true }] });
+    expect(() => parseAiExtraction({ questions, unparsed: [] }, corpus, "Đề")).toThrow("invalid_extract");
+  });
   it("vẫn từ chối trích đoạn không nguyên văn hoặc câu không có trong nguồn", () => {
     for (const questions of [tweak(0, { excerpt: "Câu 1 (1,25 điểm): Số nào sau đây là số nguyên tố? 12, 17, 21, 27" }), tweak(1, { prompt: "Mặt Trời quay quanh Trái Đất." })])
       expect(() => parseAiExtraction({ questions, unparsed: [] }, corpus, "Đề")).toThrow("invalid_extract");
