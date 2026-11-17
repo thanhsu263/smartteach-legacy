@@ -33,6 +33,9 @@ async function register(page: Page) {
   await page.getByRole("button", { name: "Đăng ký" }).click();
   await page.getByLabel("Email").fill(`quiz-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}@example.test`);
   await page.getByLabel("Mật khẩu").fill(password);
+  await page.getByLabel("Họ và tên").fill("Cô Lan E2E");
+  await page.getByLabel("Số điện thoại").fill("0912 345 678");
+  await page.getByRole("checkbox", { name: /Tôi đồng ý/ }).check();
   await page.getByRole("button", { name: "Tạo tài khoản" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
 }

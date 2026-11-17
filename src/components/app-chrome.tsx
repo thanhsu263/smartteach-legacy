@@ -10,9 +10,16 @@ function isLiveCanvas(pathname: string) {
 }
 
 function usesTeacherShell(pathname: string) {
+  // Q3: hub `/host` vào shell; `/host/[id]` và kết quả vẫn là canvas.
+  if (pathname === "/host") return true;
   return ["/dashboard", "/assignments", "/my-classes", "/my-quizzes", "/my-exams", "/library", "/games", "/tools", "/membership", "/help/sources", "/account", "/feedback"].some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
+}
+
+/** Trang xác thực dùng bố cục chia đôi riêng (AuthSplit), không có header/footer site. */
+function isAuthSplit(pathname: string) {
+  return pathname === "/login" || pathname === "/forgot-password" || pathname === "/reset-password";
 }
 
 /** Tách chrome khỏi `<main>` để `notFound()` của Server Component giữ mã HTTP. */
@@ -20,11 +27,11 @@ export function AppHeader() {
   const pathname = usePathname();
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
   if (usesTeacherShell(pathname)) return <TeacherShell />;
-  return pathname === "/" || pathname === "/login" || isLiveCanvas(pathname) ? null : <SiteHeader />;
+  return pathname === "/" || isAuthSplit(pathname) || isLiveCanvas(pathname) ? null : <SiteHeader />;
 }
 
 export function AppFooter() {
   const pathname = usePathname();
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
-  return pathname === "/" || pathname === "/login" || isLiveCanvas(pathname) || usesTeacherShell(pathname) ? null : <SiteFooter />;
+  return pathname === "/" || isAuthSplit(pathname) || isLiveCanvas(pathname) || usesTeacherShell(pathname) ? null : <SiteFooter />;
 }

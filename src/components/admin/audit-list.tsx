@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/button";
+import { EmptyState } from "@/components/ui/ui";
 import { adminRequest } from "@/lib/admin/client";
 import styles from "./admin.module.css";
 type Event = {
@@ -53,7 +54,7 @@ export function AuditList() {
             }}
           />
         </label>
-        {error && <p role="alert">{error}</p>}
+        {error && <p role="alert" className={styles.error}>{error}</p>}
         {items ? (
           <>
             <div className={styles.scroll}>
@@ -84,7 +85,7 @@ export function AuditList() {
                 </tbody>
               </table>
             </div>
-            {!items.length && <p>Chưa có thao tác.</p>}
+            {!items.length && <EmptyState level={3} title="Chưa có thao tác" />}
             <div className={styles.actions}>
               <Button
                 disabled={!offset}

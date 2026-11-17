@@ -1,11 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/button";
+import { EmptyState, StatusBadge, type StatusTone } from "@/components/ui/ui";
 import { adminRequest } from "@/lib/admin/client";
 import type { Game } from "@/lib/catalog";
 import { GRADES, SUBJECTS } from "@/lib/catalog";
 import type { SiteSettings } from "@/lib/site/settings";
 import s from "./admin.module.css";
+const libraryStatus: Record<string, [string, StatusTone]> = {
+  pending: ["Chờ duyệt", "warn"],
+  approved: ["Đã duyệt", "ok"],
+  rejected: ["Từ chối", "bad"],
+  hidden: ["Đã ẩn", "neutral"],
+};
 type CatalogRow = {
   id: string;
   payload: Omit<Game, "id">;
@@ -102,7 +109,7 @@ export function GamesManager() {
                 {rows.map((row) => (
                   <tr key={row.id}>
                     <td>{row.payload.title}</td>
-                    <td>{row.published ? "Công khai" : "Đã ẩn"}</td>
+                    <td><StatusBadge tone={row.published ? "ok" : "neutral"}>{row.published ? "Công khai" : "Đã ẩn"}</StatusBadge></td>
                     <td>
                       <Button onClick={() => setEdit(row)}>
                         Sửa{" "}
@@ -304,7 +311,7 @@ export function LibraryManager() {
           >
             <option value="">Tất cả bản gửi</option>
             {["pending", "approved", "rejected", "hidden"].map((x) => (
-              <option key={x}>{x}</option>
+              <option key={x} value={x}>{libraryStatus[x][0]}</option>
             ))}
           </select>
         </label>
@@ -323,7 +330,7 @@ export function LibraryManager() {
                   {items.map((item) => (
                     <tr key={item.id}>
                       <td>{item.title}</td>
-                      <td>{item.status}</td>
+                      <td><StatusBadge tone={libraryStatus[item.status]?.[1]}>{libraryStatus[item.status]?.[0] ?? item.status}</StatusBadge></td>
                       <td>
                         <Button onClick={() => setSelected(item)}>
                           Xem bản gửi
@@ -334,7 +341,7 @@ export function LibraryManager() {
                 </tbody>
               </table>
             </div>
-            {!items.length && <p>Không có bản gửi.</p>}
+            {!items.length && <EmptyState level={3} title="Không có bản gửi" />}
             <div className={s.actions}>
               <Button disabled={!offset} onClick={() => setOffset(offset - 20)}>
                 Trang trước

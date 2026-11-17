@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/button";
+import { EmptyState } from "@/components/ui/ui";
 import { adminRequest } from "@/lib/admin/client";
 import s from "./admin.module.css";
 type Config = {
@@ -235,7 +236,7 @@ export function AiSettings() {
                 </div>
               </article>
             ))}
-            {!data.credentials.length && <p>Chưa có key.</p>}
+            {!data.credentials.length && <EmptyState level={3} title="Chưa có key" />}
           </section>
           <form onSubmit={saveKey} className={s.panel + " " + s.form}>
             <h2>{editing ? "Thay khóa API" : "Thêm khóa API"}</h2>

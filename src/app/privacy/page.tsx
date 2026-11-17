@@ -76,6 +76,10 @@ export default async function PrivacyPage() {
               <strong>Email</strong> (và mã định danh tài khoản nếu thầy cô đăng nhập bằng Google), để nhận ra tài khoản.
             </li>
             <li>
+              <strong>Họ tên</strong> và <strong>số điện thoại</strong> thầy cô nhập khi tạo tài khoản bằng email, lưu cùng tài khoản đăng
+              nhập.
+            </li>
+            <li>
               <strong>Tên các lớp</strong> và <strong>tên học sinh</strong> trong từng lớp mà thầy cô tự nhập, để dùng lại cho bốc thăm
               và chia nhóm.
             </li>

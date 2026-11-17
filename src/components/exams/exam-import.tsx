@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { Button } from "@/components/button";
+import { FileDrop } from "@/components/ui/file-drop";
 import { ExamEditor } from "./exam-editor";
 import { AiExamImport } from "./ai-import";
 import type { ExamParse, SourceText } from "@/lib/exams/import/types";
@@ -37,7 +38,7 @@ export function ExamImport() {
   const count = preview?.form.document.sections.reduce((n, s) => n + s.questions.length, 0) ?? 0;
   return <><section className={styles.page}><h1>Nhập đề theo mẫu</h1><p>1. Chọn tệp → 2. Kiểm tra và sửa câu hỏi → 3. Xác nhận lưu vào tài khoản.</p><p>Tối đa 2 MiB, PDF có chữ tối đa30 trang. Bản đầu không đọc ảnh, công thức hoặc giữ bố cục nguồn. Luồng theo mẫu không gọi AI.</p>
     <div className={styles.actions}>{["csv", "xlsx", "docx", "pdf"].map(format => <a key={format} download href={`/templates/exams/mau-de.${format}`}>Mẫu {format.toUpperCase()}</a>)}<a href="/templates/exams/huong-dan.txt" download>Hướng dẫn cấu trúc</a></div>
-    <label className={styles.field}>Chọn tệp đề<input type="file" accept=".csv,.xlsx,.docx,.pdf" onChange={e => void read(e.target.files?.[0])} /></label>
+    <FileDrop label="Chọn tệp đề" hint="CSV, XLSX, DOCX hoặc PDF · kéo thả hoặc bấm để chọn" accept=".csv,.xlsx,.docx,.pdf" onChange={e => void read(e.target.files?.[0])} />
     {busy && <><p role="status">{progress}</p><Button onClick={() => { generation.current++; setBusy(false); setProgress(""); }}>Hủy đọc</Button></>}{error && <p role="alert">{error}</p>}
     {preview && <section><h2>Đã nhận {count} câu hỏi</h2><p>Kiểm tra nội dung, đáp án và điểm trước khi xác nhận. Tệp gốc không vào kho RAG.</p>{preview.issues.length > 0 && <ul className={styles.issues}>{preview.issues.map((issue, i) => <li key={i}>{JSON.stringify(issue.locator)}: {issue.message}</li>)}</ul>}{preview.issues.some(i => i.severity === "error" && !i.fixable) && <p role="alert">Tệp có phần không đọc đúng mẫu. Thầy cô sửa tệp rồi chọn lại; chưa thể xác nhận nhập thiếu nội dung.</p>}</section>}
   </section>{preview && !preview.issues.some(i => i.severity === "error" && !i.fixable) && <ExamEditor key={preview.runId} initial={{ ...preview.form, id: "new", revision: 0, updatedAt: "" }} restored={null} saveLabel="Xác nhận nhập đề" />}<AiExamImport /></>;

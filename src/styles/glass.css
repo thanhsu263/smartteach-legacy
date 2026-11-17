@@ -211,9 +211,7 @@
   color: var(--accent);
   background: var(--color-surface);
   border: 1px solid var(--color-border-strong);
-  box-shadow:
-    inset 0 1px rgb(255 255 255 / 0.9),
-    0 1px 2px rgb(var(--ink-rgb) / 0.08);
+  box-shadow: var(--control-shadow);
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -240,9 +238,7 @@
   background: color-mix(in srgb, var(--tone) var(--tone-mix), var(--color-surface));
   border: 1px solid var(--color-border);
   border-radius: var(--r-card);
-  box-shadow:
-    inset 0 1px rgb(255 255 255 / 0.82),
-    0 6px 18px -16px rgb(var(--ink-rgb) / 0.4);
+  box-shadow: var(--card-shadow);
 }
 
 [data-glass="frame"] {
@@ -264,9 +260,21 @@
   color: #fff;
   background: var(--color-primary);
   border-color: var(--color-primary);
-  box-shadow:
-    inset 0 1px rgb(255 255 255 / 0.24),
-    0 5px 14px -10px color-mix(in srgb, var(--color-primary) 68%, transparent);
+  box-shadow: var(--control-primary-shadow);
+}
+
+[data-glass="btn"][data-variant="ghost"] {
+  color: var(--accent);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+[data-glass="btn"][data-variant="danger"] {
+  color: #fff;
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  box-shadow: none;
 }
 
 [data-glass="btn"][data-variant="on-primary"] {
@@ -292,9 +300,18 @@
     background: color-mix(in srgb, var(--accent) 7%, var(--color-surface));
     border-color: color-mix(in srgb, var(--accent) 50%, var(--color-border-strong));
     transform: translateY(-1px);
-    box-shadow:
-      inset 0 1px rgb(255 255 255 / 0.9),
-      0 7px 16px -12px rgb(var(--ink-rgb) / 0.42);
+    box-shadow: var(--control-shadow-hover);
+  }
+
+  [data-glass="btn"][data-variant="ghost"]:hover:not(:disabled):not([aria-disabled="true"]) {
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  [data-glass="btn"][data-variant="danger"]:hover:not(:disabled):not([aria-disabled="true"]) {
+    color: #fff;
+    background: color-mix(in srgb, var(--color-danger) 86%, #000);
+    border-color: color-mix(in srgb, var(--color-danger) 86%, #000);
   }
 
   [data-glass="btn"][data-variant="primary"]:hover:not(:disabled):not([aria-disabled="true"]) {
@@ -319,9 +336,7 @@
   [data-glass="frame"]:hover {
     border-color: color-mix(in srgb, var(--accent) 24%, var(--color-border));
     transform: translateY(-1px);
-    box-shadow:
-      inset 0 1px rgb(255 255 255 / 0.88),
-      0 12px 24px -20px rgb(var(--ink-rgb) / 0.4);
+    box-shadow: var(--card-shadow-hover);
   }
 
   [data-glass="row"]:hover:not(:disabled):not([aria-disabled="true"]) {
@@ -457,7 +472,7 @@
 input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="hidden"]),
 select,
 textarea {
-  min-height: 44px;
+  min-height: var(--control-h);
   background: var(--glass-field);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--r-sm);

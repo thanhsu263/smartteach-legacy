@@ -250,7 +250,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
     <div className={styles.editor} data-workspace-controls>
       <Breadcrumb items={[{ label: "Quiz của tôi", href: "/my-quizzes" }, { label: quiz.title }]} />
 
-      <header className={`${styles.header} on-primary`}>
+      <header className={styles.header}>
         {renaming ? (
           <form onSubmit={submitRename} className={styles.inline}>
             <label htmlFor={`${baseId}-title`} className="visually-hidden">
@@ -274,7 +274,7 @@ export function QuizEditor({ quizId }: { quizId: string }) {
           <>
             <h1 className={styles.title}>{quiz.title}</h1>
             <Button
-              variant="on-primary"
+              variant="secondary"
               onClick={() => {
                 setTitleDraft(quiz.title);
                 setRenaming(true);

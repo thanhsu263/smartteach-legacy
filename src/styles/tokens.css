@@ -90,3 +90,31 @@
   --sheet-tab-indicator: var(--color-accent);
   --sheet-grain: radial-gradient(rgb(255 255 255 / 0.16) 0.65px, transparent 0.8px);
 }
+
+/*
+ * Component tokens theo Figma Foundations (27:18800 Button, 27:18926 Input, 27:19241 Card):
+ * control cao 48, bo 8, bề mặt phẳng-đặc. Landing `/` giữ vật liệu cũ qua scope [data-landing].
+ */
+:root {
+  --control-h: 48px;
+  --control-border-w: 1px;
+  --control-h-sm: 40px;
+  --icon-control: 44px;
+  --radius-control: var(--radius-sm);
+  --control-shadow: none;
+  --control-shadow-hover: 0 1px 2px rgb(var(--ink-rgb) / 0.08);
+  --control-primary-shadow: none;
+  --card-shadow: 0 1px 2px rgb(var(--ink-rgb) / 0.04);
+  --card-shadow-hover: 0 8px 20px -16px rgb(var(--ink-rgb) / 0.35);
+}
+
+:root:has([data-landing]) {
+  --control-h: 44px;
+  --control-border-w: 0px;
+  --radius-control: 12px;
+  --control-shadow: inset 0 1px rgb(255 255 255 / 0.9), 0 1px 2px rgb(var(--ink-rgb) / 0.08);
+  --control-shadow-hover: inset 0 1px rgb(255 255 255 / 0.9), 0 7px 16px -12px rgb(var(--ink-rgb) / 0.42);
+  --control-primary-shadow: inset 0 1px rgb(255 255 255 / 0.24), 0 5px 14px -10px color-mix(in srgb, var(--color-primary) 68%, transparent);
+  --card-shadow: inset 0 1px rgb(255 255 255 / 0.82), 0 6px 18px -16px rgb(var(--ink-rgb) / 0.4);
+  --card-shadow-hover: inset 0 1px rgb(255 255 255 / 0.88), 0 12px 24px -20px rgb(var(--ink-rgb) / 0.4);
+}

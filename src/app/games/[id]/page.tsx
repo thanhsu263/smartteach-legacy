@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { FavoriteButton } from "@/components/favorite-button";
 import { GameEmbed } from "@/components/game-embed";
+import { PageHeading, WorkspacePage } from "@/components/workspace/workspace-layout";
 import { getPublicGames } from "@/lib/site/settings";
 import { findGame, gradeLabels, subjectLabels } from "@/lib/catalog";
 import styles from "./game-page.module.css";
@@ -32,15 +33,11 @@ export default async function GamePage({ params }: PageProps<"/games/[id]">) {
   const tags = [...subjectLabels(game), ...gradeLabels(game)];
 
   return (
-    <div className={`container ${styles.page}`}>
+    <WorkspacePage className={styles.page}>
       <Breadcrumb items={[{ label: "Kho game", href: "/games" }, { label: game.title }]} />
 
-      <header className="page-head" data-surface="panel">
-        <div className={styles.titleRow}>
-          <h1 className={styles.title}>{game.title}</h1>
-          <FavoriteButton gameId={game.id} title={game.title} />
-        </div>
-        <p className={styles.description}>{game.description}</p>
+      <div className={styles.head}>
+        <PageHeading title={game.title} description={game.description} actions={<FavoriteButton gameId={game.id} title={game.title} />} />
         <ul className={styles.tags} aria-label="Môn và lớp phù hợp">
           {tags.map((tag) => (
             <li key={tag} className="glass-pill">
@@ -48,7 +45,7 @@ export default async function GamePage({ params }: PageProps<"/games/[id]">) {
             </li>
           ))}
         </ul>
-      </header>
+      </div>
 
       <GameEmbed title={game.title} src={game.embedUrl} />
 
@@ -57,6 +54,6 @@ export default async function GamePage({ params }: PageProps<"/games/[id]">) {
           <strong>Ghi nguồn:</strong> {game.credits}
         </p>
       ) : null}
-    </div>
+    </WorkspacePage>
   );
 }

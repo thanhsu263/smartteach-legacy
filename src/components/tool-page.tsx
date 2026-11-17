@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Breadcrumb } from "@/components/breadcrumb";
+import { PageHeading } from "@/components/workspace/workspace-layout";
 import { findTool, type ToolId } from "@/data/tools";
 import styles from "./tool-page.module.css";
 
@@ -9,10 +10,7 @@ export function ToolPage({ id, children }: { id: ToolId; children: ReactNode }) 
   return (
     <div className={`container ${styles.page}`}>
       <Breadcrumb items={[{ label: "Tiện ích", href: "/tools" }, { label: tool.title }]} />
-      <header className="page-head" data-surface="panel">
-        <h1 className={styles.title}>{tool.title}</h1>
-        <p className={styles.description}>{tool.description}</p>
-      </header>
+      <PageHeading title={tool.title} description={tool.description} />
       {children}
     </div>
   );

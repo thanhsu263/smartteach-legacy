@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/button";
+import { EmptyState } from "@/components/ui/ui";
 import { adminRequest } from "@/lib/admin/client";
 import s from "./admin.module.css";
 type OverviewData = {
@@ -36,7 +37,7 @@ export function Overview() {
           Số liệu tổng hợp; không truy cập nội dung riêng của giáo viên.
         </p>
       </header>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert" className={s.error}>{error}</p>}
       {data ? (
         <>
           <div className={s.grid}>
@@ -63,7 +64,7 @@ export function Overview() {
                 {status}: {n}
               </p>
             ))}
-            {!Object.keys(data.orders).length && <p>Chưa có đơn.</p>}
+            {!Object.keys(data.orders).length && <EmptyState level={3} title="Chưa có đơn" />}
             <p>payOS đang hoãn kích hoạt.</p>
           </section>
         </>
@@ -97,7 +98,7 @@ export function Operations() {
   return (
     <>
       <h1>Vận hành</h1>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert" className={s.error}>{error}</p>}
       <div className={s.grid}>
         {data ? (
           Object.entries(data).map(([key, value]) => (
@@ -268,7 +269,7 @@ export function MembershipManager() {
                 {o.planId} · {o.amount.toLocaleString("vi-VN")}đ · {o.status}
               </p>
             ))}
-            {!value.orders.length && <p>Chưa có đơn.</p>}
+            {!value.orders.length && <EmptyState level={3} title="Chưa có đơn" />}
             <h2>Điều chỉnh gần đây</h2>
             {value.adjustments.map((a) => (
               <p key={a.id}>
@@ -316,7 +317,7 @@ export function ReportsManager() {
   return (
     <section className={s.panel}>
       <h2>Báo cáo học liệu</h2>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert" className={s.error}>{error}</p>}
       <label className={s.field}>
         Kết quả xử lý
         <textarea
@@ -343,7 +344,7 @@ export function ReportsManager() {
       ) : (
         <p role="status">Đang tải…</p>
       )}
-      {rows?.length === 0 && <p>Không có báo cáo chờ xử lý.</p>}
+      {rows?.length === 0 && <EmptyState level={3} title="Không có báo cáo chờ xử lý" />}
       <div className={s.actions}>
         <Button disabled={!offset} onClick={() => setOffset((x) => x - 20)}>
           Báo cáo trước

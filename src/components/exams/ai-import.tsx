@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Button, ButtonLink } from "@/components/button";
+import { FileDrop } from "@/components/ui/file-drop";
 import { adminRequest } from "@/lib/admin/client";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
@@ -61,7 +62,7 @@ function OwnerAiExamImport() {
   const job = data?.items.find(j => j.id === selected && j.status === "needs_review");
   return <><section className={styles.page}><h2>AI nhập đề bố cục tự do · Premium</h2><p>Tệp được gửi tới nhà cung cấp Gemini để trích xuất, không đưa vào kho RAG. Chỉ nhận chữ, không OCR/ảnh/công thức. Nguồn và kết quả nhập không còn xem được sau 24 giờ hoặc khi xác nhận/hủy. Hệ thống dọn tệp gốc khi dịch vụ xử lý hoạt động; đề đã lưu không bị dọn.</p><p>Tối đa3 tệp/ngày,1 tệp đang xử lý; tối đa2 lượt gọi model mỗi tệp kể cả thử lại. AI không tự giải bài để đoán đáp án.</p>
     {error && <p role="alert">{error}</p>}{!data ? <p role="status">Đang kiểm tra dịch vụ…</p> : !data.membership.active ? <p>Cần Premium để dùng AI. Thầy cô vẫn có thể nhập miễn phí theo mẫu ở trên. <ButtonLink href="/membership">Xem gói thành viên</ButtonLink></p> : !data.preflight.ready ? <p role="status">AI nhập đề chưa sẵn sàng. Quản trị viên cần kiểm tra model/key, mã hóa và lịch worker riêng có heartbeat gần đây.</p> : <>
-      <label className={styles.field}>Tệp cho AI<input type="file" accept=".pdf,.docx,.xlsx,.csv" disabled={busy || active} onChange={e => { setFile(e.target.files?.[0] ?? null); }} /></label>
+      <FileDrop label="Tệp cho AI" hint="PDF, DOCX, XLSX hoặc CSV có chữ" selectedNames={file ? [file.name] : []} accept=".pdf,.docx,.xlsx,.csv" disabled={busy || active} onChange={e => { setFile(e.target.files?.[0] ?? null); }} />
       <label><input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} /> Tôi có quyền sử dụng tài liệu và đồng ý gửi nội dung tới Gemini để trích xuất.</label><Button disabled={busy || !file || !consent || active} onClick={() => void upload()}>{busy ? "Đang gửi…" : "Bắt đầu nhập bằng AI"}</Button>
     </>}
     {data && <ul className={styles.list}>{data.items.map(j => <li key={j.id} className={styles.item}><strong>{j.title} · {labels[j.status] ?? j.status}</strong><p>Giữ tệp tới {new Date(j.expiresAt).toLocaleString("vi-VN")}</p>{j.errorCode && <p>{errors[j.errorCode] ?? "Chưa hoàn tất xử lý. Kiểm tra lại tệp và cấu hình trước khi thử lại."}</p>}<div className={styles.actions}>{j.status === "needs_review" && <Button onClick={() => { setSelected(j.id); setReviewed(false); }}>Kiểm tra và sửa bản nhập</Button>}{j.examId && <ButtonLink href={`/my-exams/${j.examId}`}>Mở đề đã lưu</ButtonLink>}{j.status === "waiting_quota" && <Button disabled={busy || !data.membership.active} onClick={() => void control(j, "retry")}>Thử lại trong hạn mức</Button>}{!["expired", "cancelled", "applied"].includes(j.status) && <Button disabled={busy} onClick={() => void control(j, "cancel")}>Hủy và xóa tệp</Button>}</div></li>)}</ul>}

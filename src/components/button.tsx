@@ -2,10 +2,14 @@ import Link from "next/link";
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
 import styles from "./button.module.css";
 
-export type ButtonVariant = "primary" | "secondary" | "on-primary";
+/** Figma Button 27:18800: primary đặc, secondary viền, ghost không nền, danger cho thao tác phá huỷ. */
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "on-primary";
+export type ButtonSize = "md" | "sm";
 
 type CommonProps = {
   variant?: ButtonVariant;
+  /** `sm` = 40px cho toolbar dày trên màn rộng; mobile vẫn giữ 44px. */
+  size?: ButtonSize;
   children: ReactNode;
 };
 
@@ -29,21 +33,23 @@ function classes(extra?: string) {
 }
 
 /** Vai trò thị giác của nút được định nghĩa tập trung trong styles/glass.css. */
-function glass(variant: ButtonVariant) {
+function glass(variant: ButtonVariant, size: ButtonSize = "md") {
   return {
     "data-glass": "btn",
     "data-variant": variant,
+    "data-size": size === "sm" ? "sm" : undefined,
   };
 }
 
 export function ButtonLink({
   variant = "secondary",
+  size,
   className,
   children,
   ...props
 }: ButtonLinkProps) {
   return (
-    <Link className={classes(className)} {...glass(variant)} {...props}>
+    <Link className={classes(className)} {...glass(variant, size)} {...props}>
       {children}
     </Link>
   );
@@ -51,12 +57,13 @@ export function ButtonLink({
 
 export function ButtonAnchor({
   variant = "secondary",
+  size,
   className,
   children,
   ...props
 }: CommonProps & Omit<ComponentPropsWithoutRef<"a">, "children">) {
   return (
-    <a className={classes(className)} {...glass(variant)} {...props}>
+    <a className={classes(className)} {...glass(variant, size)} {...props}>
       {children}
     </a>
   );
@@ -64,13 +71,14 @@ export function ButtonAnchor({
 
 export function Button({
   variant = "secondary",
+  size,
   className,
   type = "button",
   children,
   ...props
 }: ButtonProps) {
   return (
-    <button type={type} className={classes(className)} {...glass(variant)} {...props}>
+    <button type={type} className={classes(className)} {...glass(variant, size)} {...props}>
       {children}
     </button>
   );

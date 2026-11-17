@@ -20,8 +20,8 @@
   align-items: center;
   flex: none;
   gap: var(--space-2);
-  min-height: 104px;
-  padding: var(--space-5);
+  min-height: 72px;
+  padding: var(--space-4) var(--space-5);
   color: var(--color-ink);
   font-size: 20px;
   font-weight: 800;
@@ -50,26 +50,12 @@
 }
 
 .navigation ul { display: grid; gap: var(--space-2); }
-.navigationAccount { margin-top: var(--space-4); }
-.navigationAccount { display: grid; gap: var(--space-2); }
-
-.navigationAccount a, .navigationAccount button, .account a, .account button {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 var(--space-4);
-  color: var(--color-ink);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
+/* Nhóm phụ (Figma Navigation Item): cùng kiểu mục chính, tách bằng đường kẻ. */
+.group + .group {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
 }
-
-.navigationAccount a, .navigationAccount button { width: 100%; }
 
 .navLink, .collapseButton {
   position: relative;
@@ -93,7 +79,7 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .navLink:hover, .collapseButton:hover, .navigationAccount :is(a, button):hover, .account :is(a, button):hover {
+  .navLink:hover, .collapseButton:hover {
     background: var(--color-primary-tint);
     color: var(--color-primary-deep);
   }
@@ -127,7 +113,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  height: 104px;
+  /* Figma ST/Shell 34:3800: topbar 72px. */
+  height: 72px;
   min-width: 0;
   padding: 0 var(--space-7);
   background: var(--color-surface);
@@ -139,7 +126,7 @@
   min-width: 0;
   min-height: 100dvh;
   margin-left: 240px;
-  padding: calc(104px + var(--space-7)) var(--space-7) calc(var(--space-7) + 80px);
+  padding: calc(72px + var(--space-7)) var(--space-7) calc(var(--space-7) + 80px);
   background: var(--color-bg);
 }
 
@@ -150,7 +137,7 @@
   padding-inline: 0;
 }
 
-.breadcrumb, .account span {
+.breadcrumb {
   overflow: hidden;
   color: var(--color-ink-muted);
   font-size: var(--text-sm);
@@ -158,16 +145,6 @@
   white-space: nowrap;
 }
 
-.account {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-left: auto;
-  min-width: 0;
-}
-
-.account span { max-width: 24ch; }
-.account a, .account button { justify-content: center; flex: none; }
 .mobileMenuButton, .mobileDialog { display: none; }
 
 @media (width >= 960px) {
@@ -204,7 +181,7 @@
     transition: none;
   }
 
-  .shell[data-collapsed="true"]:not([data-peek]) :is(.brand span, .navHeading, .navLink span, .navigationAccount, .collapseButton span) {
+  .shell[data-collapsed="true"]:not([data-peek]) :is(.brand span, .navHeading, .navLink span, .collapseButton span) {
     display: none;
   }
   .shell[data-collapsed="true"]:not([data-peek]) :is(.brand, .navLink, .collapseButton) {
@@ -233,7 +210,7 @@
   .sidebar .brand svg { width: 32px; height: 32px; }
   .sidebar .navLink { gap: var(--space-2); padding-inline: var(--space-2); }
   .sidebar .navLink span { overflow-wrap: anywhere; }
-  .sidebarFooter, .sidebar .navigationAccount { display: none; }
+  .sidebarFooter { display: none; }
 }
 
 @media (width < 720px) {
@@ -255,8 +232,6 @@
     border: 1px solid var(--color-border-strong);
     border-radius: var(--radius-sm);
   }
-  .account span { display: none; }
-  .account a, .account button { padding-inline: var(--space-3); }
 
   .mobileDialog {
     width: min(320px, calc(100vw - var(--space-6)));

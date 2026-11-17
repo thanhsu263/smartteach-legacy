@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { LogoMark } from "@/components/icons";
-import { SiteNav } from "@/components/site-nav";
-import { SiteNavFallback } from "@/components/site-nav-fallback";
+import { SiteHeaderAction } from "@/components/site-header-action";
 import { siteConfig } from "@/config/site";
 import styles from "./site-header.module.css";
 
+/** Header tập trung cho trang công khai ngoài shell (học sinh, chia sẻ, quyền riêng tư, 404): logo và một hành động. */
 export function SiteHeader() {
   return (
     <header className={styles.header}>
@@ -14,9 +13,7 @@ export function SiteHeader() {
           <LogoMark size={32} />
           <span>{siteConfig.name}</span>
         </Link>
-        <Suspense fallback={<SiteNavFallback />}>
-          <SiteNav />
-        </Suspense>
+        <SiteHeaderAction />
       </div>
     </header>
   );

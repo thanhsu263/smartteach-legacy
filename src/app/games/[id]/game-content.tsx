@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GameEmbed } from "@/components/game-embed";
+import { PageHeading } from "@/components/workspace/workspace-layout";
 import {getPublicGames} from "@/lib/site/settings";
 import { findGame, gradeLabels, subjectLabels } from "@/lib/catalog";
 import styles from "./game-page.module.css";
@@ -21,9 +22,8 @@ export async function GameContent({ params }: Pick<PageProps<"/games/[id]">, "pa
         <span aria-current="page">{game.title}</span>
       </nav>
 
-      <header className="page-head" data-surface="panel">
-        <h1 className={styles.title}>{game.title}</h1>
-        <p className={styles.description}>{game.description}</p>
+      <div className={styles.head}>
+        <PageHeading title={game.title} description={game.description} />
         <ul className={styles.tags} aria-label="Môn và lớp phù hợp">
           {tags.map((tag) => (
             <li key={tag} className="glass-pill">
@@ -31,7 +31,7 @@ export async function GameContent({ params }: Pick<PageProps<"/games/[id]">, "pa
             </li>
           ))}
         </ul>
-      </header>
+      </div>
 
       <GameEmbed title={game.title} src={game.embedUrl} />
 

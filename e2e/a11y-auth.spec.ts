@@ -27,6 +27,9 @@ async function registerAndSeed(page: Page) {
   await page.getByRole("button", { name: "Đăng ký" }).click();
   await page.getByLabel("Email").fill(`a11y-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}@example.test`);
   await page.getByLabel("Mật khẩu").fill("e2e-password-123");
+  await page.getByLabel("Họ và tên").fill("Cô Lan E2E");
+  await page.getByLabel("Số điện thoại").fill("0912 345 678");
+  await page.getByRole("checkbox", { name: /Tôi đồng ý/ }).check();
   await page.getByRole("button", { name: "Tạo tài khoản" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
   await page.goto("/my-classes");
@@ -81,8 +84,9 @@ for (const viewport of [
       await expectNoViolations(page, "chọn lớp trong bốc thăm");
 
       // Thanh điều hướng khi đã đăng nhập (trên điện thoại cần mở menu).
-      if (viewport.width < 720) await page.getByRole("button", { name: "Menu" }).click();
-      await expect(page.getByRole("button", { name: "Đăng xuất" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Tài khoản", exact: true })).toBeVisible();
+      if (viewport.width < 720) await page.getByRole("button", { name: "Mở menu điều hướng" }).click();
+      await expect(page.getByRole("link", { name: "Góp ý", exact: true }).filter({ visible: true })).toBeVisible();
       await expectNoViolations(page, "điều hướng đã đăng nhập");
     });
   });

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { GameBrowser } from "@/components/game-browser";
+import { PageHeading, WorkspacePage } from "@/components/workspace/workspace-layout";
 import { getPublicGames } from "@/lib/site/settings";
-import styles from "./games.module.css";
 
 export const metadata: Metadata = {
   title: "Kho game",
@@ -11,19 +11,12 @@ export const metadata: Metadata = {
 export default async function GamesPage() {
   const games = await getPublicGames();
   return (
-    <div className={`container ${styles.page}`}>
-      <header className={`${styles.hero} on-primary`}>
-        <div>
-          <p className={styles.eyebrow}>Hoạt động cho tiết học</p>
-          <h1 className={styles.title}>Kho game</h1>
-          <p className={styles.heroMessage}>Chọn một trò chơi, mở lớp ngay</p>
-          <p className={styles.lead}>
-            Lọc theo môn hoặc khối lớp, rồi chạy hoạt động trực tiếp trên trình duyệt.
-          </p>
-        </div>
-        <p className={styles.heroNote}>Không cần cài đặt</p>
-      </header>
+    <WorkspacePage>
+      <PageHeading
+        title="Kho game"
+        description="Chọn một trò chơi cho tiết học: lọc theo môn hoặc khối lớp, rồi chạy trực tiếp trên trình duyệt, không cần cài đặt."
+      />
       <GameBrowser games={games} />
-    </div>
+    </WorkspacePage>
   );
 }

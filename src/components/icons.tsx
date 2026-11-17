@@ -1,4 +1,4 @@
-import type { SVGProps } from "react";
+import { useId, type SVGProps } from "react";
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -18,6 +18,18 @@ function Icon({ size = 24, children, ...props }: IconProps) {
       {...props}
     >
       {children}
+    </svg>
+  );
+}
+
+/** Logo "G" nhiều màu theo hướng dẫn nút đăng nhập của Google; giữ màu gốc nên không dùng `Icon`. */
+export function GoogleLogo({ size = 20, ...props }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" focusable="false" {...props}>
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
     </svg>
   );
 }
@@ -180,6 +192,11 @@ export function TrashIcon(props: IconProps) {
 }
 
 export function LogoMark({ size = 32, ...props }: IconProps) {
+  // Id gradient riêng cho mỗi logo: nếu trùng id, logo đầu nằm trong vùng display:none (cột showcase,
+  // sidebar ẩn trên mobile) làm các logo sau mất nền.
+  const uid = useId();
+  const fillId = `${uid}-fill`;
+  const glossId = `${uid}-gloss`;
   return (
     <svg
       width={size}
@@ -190,18 +207,18 @@ export function LogoMark({ size = 32, ...props }: IconProps) {
       {...props}
     >
       <defs>
-        <linearGradient id="st-logo-fill" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="var(--accent)" />
           <stop offset="1" stopColor="var(--accent-2)" />
         </linearGradient>
-        <linearGradient id="st-logo-gloss" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={glossId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#fff" stopOpacity="0.4" />
           <stop offset="0.48" stopColor="#fff" stopOpacity="0.06" />
           <stop offset="0.52" stopColor="#fff" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <rect width="64" height="64" rx="14" fill="url(#st-logo-fill)" />
-      <rect width="64" height="64" rx="14" fill="url(#st-logo-gloss)" />
+      <rect width="64" height="64" rx="14" fill={`url(#${fillId})`} />
+      <rect width="64" height="64" rx="14" fill={`url(#${glossId})`} />
       <rect x="12" y="14" width="40" height="28" rx="5" fill="none" stroke="#fff" strokeWidth="4" />
       <path
         d="M22 28l7 7 13-14"
@@ -213,5 +230,142 @@ export function LogoMark({ size = 32, ...props }: IconProps) {
       />
       <path d="M20 52h24" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
     </svg>
+  );
+}
+
+export function CreditCardIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
+      <path d="M2.5 10h19M6.5 15h4" />
+    </Icon>
+  );
+}
+
+export function MessageIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M20 14.5a2.5 2.5 0 0 1-2.5 2.5H9l-5 4V6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5Z" />
+    </Icon>
+  );
+}
+
+export function ShieldCheckIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 2.8 4.5 5.6v5.8c0 4.6 3.1 8.4 7.5 9.8 4.4-1.4 7.5-5.2 7.5-9.8V5.6Z" />
+      <path d="m8.8 12 2.2 2.2 4.3-4.4" />
+    </Icon>
+  );
+}
+
+export function FileTextIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8Z" />
+      <path d="M14 2.5V8h5.5M8.5 13h7M8.5 17h5" />
+    </Icon>
+  );
+}
+
+export function SparklesIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M10 3.5 11.8 8.2 16.5 10l-4.7 1.8L10 16.5l-1.8-4.7L3.5 10l4.7-1.8Z" />
+      <path d="M18 14.5 18.9 16.6 21 17.5l-2.1.9L18 20.5l-.9-2.1-2.1-.9 2.1-.9Z" />
+    </Icon>
+  );
+}
+
+export function SettingsIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" />
+    </Icon>
+  );
+}
+
+export function ActivityIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M21.5 12h-4l-3 8.5-5-17-3 8.5h-4" />
+    </Icon>
+  );
+}
+
+export function ListIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M8.5 6h12M8.5 12h12M8.5 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
+    </Icon>
+  );
+}
+
+export function ArrowLeftIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M19 12H5M11 18l-6-6 6-6" />
+    </Icon>
+  );
+}
+
+export function UserIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
+    </Icon>
+  );
+}
+
+export function LockIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="4.5" y="10.5" width="15" height="10.5" rx="2" />
+      <path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" />
+    </Icon>
+  );
+}
+
+export function LogOutIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M9.5 21H5.5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9.5" />
+    </Icon>
+  );
+}
+
+export function UploadIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+    </Icon>
+  );
+}
+
+export function ChevronDownIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m6 9 6 6 6-6" />
+    </Icon>
+  );
+}
+
+export function HelpCircleIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="12" r="9.5" />
+      <path d="M9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.6-3 4.5M12 17.5h.01" />
+    </Icon>
+  );
+}
+
+export function InboxIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M21.5 12.5h-6l-2 3h-3l-2-3h-6" />
+      <path d="M5.9 5.1 2.5 12.5V18a2 2 0 0 0 2 2h15a2 2 0 0 0 2-2v-5.5l-3.4-7.4A2 2 0 0 0 16.3 4H7.7a2 2 0 0 0-1.8 1.1Z" />
+    </Icon>
   );
 }

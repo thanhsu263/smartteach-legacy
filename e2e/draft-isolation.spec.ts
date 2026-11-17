@@ -44,7 +44,7 @@ test("nháp giữ khi mất phiên; hủy/lỗi logout giữ nháp; logout thàn
   await page.getByRole("button", { name: "Khôi phục nháp đề", exact: true }).click();
   await expect(page.getByLabel("Tên đề", { exact: true })).toHaveValue("Nháp riêng tài khoản A");
   await page.setViewportSize({ width: 1280, height: 900 });
-  const logout = page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("button", { name: "Đăng xuất", exact: true });
+  const logout = { click: async () => { await page.getByRole("button", { name: "Tài khoản", exact: true }).click(); await page.getByRole("button", { name: "Thoát tài khoản", exact: true }).click(); } };
   page.once("dialog", d => d.dismiss()); await logout.click(); await expect(page).toHaveURL(/\/my-exams\/new$/);
   await install(page); expect(await page.evaluate(id => (window as unknown as DraftWindow).draftTest.ownerDrafts(id), a.id)).toBe(1);
   await page.route("**/auth/v1/logout*", r => r.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ message: "local logout failure probe" }) }));

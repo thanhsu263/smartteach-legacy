@@ -1,13 +1,15 @@
-/* Chỉ bố cục và chữ; bề mặt kính, hover, active và biến thể nằm trong styles/glass.css ([data-glass="btn"]). */
+/* Figma Button 27:18800: cao 48 (token --control-h), bo 8, chữ 14/600. Landing giữ 44/12 qua [data-landing].
+   Chỉ bố cục và chữ; bề mặt kính, hover, active và biến thể nằm trong styles/glass.css ([data-glass="btn"]). */
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-height: 44px;
+  min-height: var(--control-h);
   padding: var(--space-3) var(--space-5);
-  border: 0;
-  border-radius: 12px;
+  /* Kiểu và màu viền lấy từ glass.css; app có viền 1px (secondary outline), landing giữ 0. */
+  border-width: var(--control-border-w);
+  border-radius: var(--radius-control);
   font-family: inherit;
   font-size: var(--text-sm);
   font-weight: 600;
@@ -17,8 +19,9 @@
 
 .button[data-icon-only] {
   flex: none;
-  width: 44px;
-  min-width: 44px;
+  width: var(--icon-control);
+  min-width: var(--icon-control);
+  min-height: var(--icon-control);
   padding: 0;
   border-radius: var(--radius-sm);
 }
@@ -63,4 +66,18 @@
 .button[data-icon-only][data-tooltip]:focus-visible::after {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+/* Toolbar dày (editor, bảng) dùng cỡ sm 40px trên màn rộng; mobile giữ vùng bấm 44px. */
+@media (width >= 720px) {
+  .button[data-size="sm"] {
+    min-height: var(--control-h-sm);
+    padding: var(--space-2) var(--space-4);
+  }
+}
+
+@media (width < 720px) {
+  .button[data-size="sm"] {
+    min-height: var(--icon-control);
+  }
 }

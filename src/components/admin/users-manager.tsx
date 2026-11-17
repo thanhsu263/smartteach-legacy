@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/button";
+import { EmptyState, StatusBadge } from "@/components/ui/ui";
 import { adminRequest } from "@/lib/admin/client";
 import styles from "./admin.module.css";
 type User = {
@@ -163,7 +164,7 @@ export function UsersManager() {
                         {user.role === "admin" ? "Quản trị" : "Giáo viên"}
                       </td>
                       <td>
-                        {user.status === "active" ? "Hoạt động" : "Đã khóa"}
+                        <StatusBadge tone={user.status === "active" ? "ok" : "bad"}>{user.status === "active" ? "Hoạt động" : "Đã khóa"}</StatusBadge>
                       </td>
                       <td>
                         <Button
@@ -184,7 +185,7 @@ export function UsersManager() {
                 </tbody>
               </table>
             </div>
-            {!data.items.length && <p>Không có tài khoản phù hợp.</p>}
+            {!data.items.length && <EmptyState level={3} title="Không có tài khoản phù hợp" />}
             <div className={styles.actions}>
               <Button
                 disabled={!offset}

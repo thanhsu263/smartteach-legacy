@@ -7,7 +7,7 @@ test("các trang biểu mẫu giữ hydration khi mở lại trực tiếp", asy
     const errors: string[] = []; const capture = (e: Error) => errors.push(e.message); page.on("pageerror", capture);
     const consoleCapture = (m: { type: () => string; text: () => string }) => { if (m.type() === "error" && /hydration|hydrated|server rendered/i.test(m.text())) errors.push(m.text()); }; page.on("console", consoleCapture);
     await page.goto(path); await expect(page.locator("main h1").filter({ visible: true }).first()).toBeVisible();
-    await page.getByRole("button", { name: "Thoát tài khoản", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Tài khoản", exact: true }).waitFor();
     page.off("pageerror", capture); page.off("console", consoleCapture); expect(errors, path).toEqual([]);
   }
 });

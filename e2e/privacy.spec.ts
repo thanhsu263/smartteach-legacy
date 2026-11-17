@@ -10,8 +10,10 @@ test.describe("trang Quyền riêng tư", () => {
     await expect(page).toHaveURL(/\/privacy$/);
     await expect(page.getByRole("heading", { level: 1, name: "Quyền riêng tư" })).toBeVisible();
 
+    // Form tạo tài khoản dẫn tới chính sách từ checkbox đồng ý điều khoản.
     await page.goto("/login");
-    await page.getByRole("link", { name: "Xem cách ứng dụng dùng dữ liệu" }).click();
+    await page.getByRole("button", { name: "Đăng ký" }).click();
+    await page.getByRole("link", { name: "Chính sách quyền riêng tư" }).click();
     await expect(page).toHaveURL(/\/privacy$/);
   });
 

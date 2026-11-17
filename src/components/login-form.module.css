@@ -92,12 +92,58 @@
   cursor: pointer;
 }
 
-.privacy {
-  color: var(--color-ink-muted);
-  font-size: var(--text-xs);
+.fieldError {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 600;
 }
 
-.privacy a {
+.field input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.forgot {
+  justify-self: end;
+  margin-top: var(--space-1);
   color: var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: 600;
   text-underline-offset: 3px;
+}
+
+/* Đồng ý điều khoản: checkbox native 20px, vùng chạm mở rộng nhờ nhãn bấm được. */
+.consent {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
+}
+
+.consent input {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.consent label {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.consent label a {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+
+.consentError {
+  grid-column: 2;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 600;
 }

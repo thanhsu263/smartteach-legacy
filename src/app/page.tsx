@@ -34,7 +34,7 @@ function Arrow() { return <span aria-hidden="true">→</span>; }
 
 export default async function HomePage() {
   const settings = await getPublicSettings();
-  return <div className={styles.landing}>
+  return <div className={styles.landing} data-landing>
     {settings.announcement && <p role="status">{settings.announcement}</p>}
     <LandingScroll />
     <LandingAnimatedContent />

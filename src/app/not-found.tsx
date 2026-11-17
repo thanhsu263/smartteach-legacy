@@ -13,7 +13,7 @@ export default function NotFound() {
         Đường dẫn này không còn hoặc chưa từng có. Thầy cô thử quay về trang chủ hoặc vào kho game nhé.
       </p>
       <div className={styles.actions}>
-        <ButtonLink href="/" variant="secondary">
+        <ButtonLink href="/" variant="primary">
           Về trang chủ
         </ButtonLink>
         <ButtonLink href="/games" variant="secondary">

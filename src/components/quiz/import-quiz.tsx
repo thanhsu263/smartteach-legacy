@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
 import { Button } from "@/components/button";
+import { FileDrop } from "@/components/ui/file-drop";
 import { importQuiz, validateTitle } from "@/lib/quiz/api";
 import {
   buildTemplateCsv,
@@ -141,10 +142,12 @@ export function ImportQuiz() {
         {mode === "file" ? (
           <div className={styles.stack}>
             <div className={styles.field}>
-              <label htmlFor={`${baseId}-file`}>Chọn tệp Excel (.xlsx) hoặc CSV (.csv)</label>
-              <input
+              {/* Tên tệp hiện ở dòng "Đang dùng tệp" bên dưới (input được reset sau mỗi lần đọc). */}
+              <FileDrop
                 id={`${baseId}-file`}
-                type="file"
+                label="Chọn tệp Excel (.xlsx) hoặc CSV (.csv)"
+                hint="Kéo thả hoặc bấm để chọn"
+                selectedNames={[]}
                 accept=".csv,.xlsx"
                 onChange={(event) => {
                   const input = event.target;

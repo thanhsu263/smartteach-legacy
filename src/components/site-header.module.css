@@ -45,3 +45,9 @@
 .brand:hover {
   color: var(--color-ink);
 }
+
+.actionPlaceholder {
+  display: block;
+  width: 7.5rem;
+  height: var(--control-h-sm);
+}

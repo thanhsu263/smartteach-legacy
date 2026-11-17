@@ -8,6 +8,8 @@ async function register(page: Page) {
   const email = `pilot-${crypto.randomUUID()}@example.test`;
   await page.goto("/login"); await page.getByRole("button", { name: "Đăng ký", exact: true }).click();
   await page.getByLabel("Email", { exact: true }).fill(email); await page.getByLabel("Mật khẩu", { exact: true }).fill(password);
+  await page.getByLabel("Họ và tên").fill("Cô Lan E2E"); await page.getByLabel("Số điện thoại").fill("0912345678");
+  await page.getByRole("checkbox", { name: /Tôi đồng ý/ }).check();
   await page.getByRole("button", { name: "Tạo tài khoản", exact: true }).click(); await expect(page).toHaveURL(/\/dashboard$/); return email;
 }
 test("recovery error và form responsive", async ({ page }) => {
@@ -50,7 +52,8 @@ test("khôi phục nháp câu mới rồi dọn đúng khi lưu", async ({ page 
 });
 test("email recovery Mailpit thật, link chỉ dùng một lần", async ({ page, request }) => {
   const email = await register(page);
-  await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("button", { name: "Đăng xuất", exact: true }).click();
+  await page.getByRole("button", { name: "Tài khoản", exact: true }).click();
+  await page.getByRole("button", { name: "Thoát tài khoản", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   await page.goto("/forgot-password"); await page.getByLabel("Email", { exact: true }).fill(email); await page.getByRole("button", { name: "Gửi liên kết khôi phục", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("Nếu email này");

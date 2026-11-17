@@ -4,12 +4,11 @@
   align-items: center;
   gap: var(--space-4);
   max-width: min(100% - (var(--gutter) * 2), 48rem);
-  margin-inline: auto;
+  margin: var(--space-8) auto;
   padding: var(--space-7) var(--space-5);
-  background: var(--panel-bg);
-  -webkit-backdrop-filter: var(--glass-blur-card);
-  backdrop-filter: var(--glass-blur-card);
-  box-shadow: var(--panel-shadow);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--card-shadow);
   border-radius: var(--radius-lg);
   text-align: center;
 }
@@ -24,8 +23,8 @@
 .title {
   font-size: var(--text-2xl);
   font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
+  line-height: var(--line-height-heading);
+  letter-spacing: var(--letter-spacing-display);
 }
 
 .text {

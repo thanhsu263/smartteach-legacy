@@ -1,0 +1,373 @@
+/* Primitives theo Figma Foundations (27:19465 Empty State, 27:19506 Progress, 27:19241 Card). Chỉ dùng trong app. */
+
+.card {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--card-shadow);
+}
+
+.card[data-size="lg"] {
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+}
+
+.cardHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.cardHead h2,
+.cardHead h3 {
+  font-size: var(--text-lg);
+  line-height: var(--line-height-title);
+}
+
+.cardHead p {
+  margin-top: var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-5);
+  text-align: center;
+}
+
+.emptyIcon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  color: var(--color-primary);
+  background: var(--color-primary-tint);
+  border-radius: var(--radius-pill);
+}
+
+.emptyIcon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.empty h2,
+.empty h3 {
+  font-size: var(--text-lg);
+  line-height: var(--line-height-title);
+}
+
+.empty p {
+  max-width: 46ch;
+  color: var(--color-ink-muted);
+}
+
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.badge {
+  --tone: var(--color-ink-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 24px;
+  padding: 2px var(--space-2);
+  color: color-mix(in srgb, var(--tone) 88%, #000);
+  background: color-mix(in srgb, var(--tone) 10%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--tone) 28%, var(--color-surface));
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.badge::before {
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  border-radius: 50%;
+  content: "";
+}
+
+.badge[data-tone="ok"] { --tone: var(--color-success); }
+.badge[data-tone="warn"] { --tone: var(--color-warning); }
+.badge[data-tone="bad"] { --tone: var(--color-danger); }
+.badge[data-tone="info"] { --tone: var(--color-primary); }
+
+.progress {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.progressHead {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.progressHead span:last-child {
+  color: var(--color-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress progress {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  appearance: none;
+  background: var(--color-primary-tint);
+  border: 0;
+  border-radius: var(--radius-pill);
+}
+
+.progress progress::-webkit-progress-bar {
+  background: var(--color-primary-tint);
+  border-radius: var(--radius-pill);
+}
+
+.progress progress::-webkit-progress-value {
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+}
+
+.progress progress::-moz-progress-bar {
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+}
+
+.progress[data-tone="warn"] progress::-webkit-progress-value { background: var(--color-warning); }
+.progress[data-tone="warn"] progress::-moz-progress-bar { background: var(--color-warning); }
+.progress[data-tone="bad"] progress::-webkit-progress-value { background: var(--color-danger); }
+.progress[data-tone="bad"] progress::-moz-progress-bar { background: var(--color-danger); }
+
+/* Bảng: cuộn ngang trong khung, không làm tràn trang. */
+.table {
+  min-width: 0;
+  overflow-x: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overscroll-behavior-x: contain;
+}
+
+.table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.table th,
+.table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.table th {
+  color: var(--color-ink-muted);
+  background: color-mix(in srgb, var(--color-primary-tint) 60%, var(--color-surface));
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table caption {
+  padding: var(--space-3) var(--space-4) 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  text-align: start;
+}
+
+.drop {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  background: color-mix(in srgb, var(--color-primary-tint) 55%, var(--color-surface));
+  border: 1.5px dashed color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+  border-radius: var(--radius-md);
+  transition: border-color var(--motion-state) var(--ease-fluid), background-color var(--motion-state) var(--ease-fluid);
+}
+
+.drop[data-dragging] {
+  background: color-mix(in srgb, var(--color-primary) 9%, var(--color-surface));
+  border-color: var(--color-primary);
+}
+
+.drop:has(input:focus-visible) {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.drop input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.drop:has(input:disabled) { opacity: 0.6; }
+.drop input[type="file"]:disabled { cursor: not-allowed; }
+
+.dropIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--color-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.drop strong {
+  font-size: var(--text-sm);
+}
+
+.drop small,
+.dropFile {
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+
+.dropFile {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.help {
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+}
+
+.error {
+  color: var(--color-danger);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.skeleton {
+  display: block;
+  height: 1em;
+  background: linear-gradient(90deg, var(--color-primary-tint), color-mix(in srgb, var(--color-primary-tint) 40%, var(--color-surface)), var(--color-primary-tint));
+  background-size: 200% 100%;
+  border-radius: var(--radius-sm);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+/* Chip chọn nhiều: checkbox thật ẩn thị giác, trạng thái hiện bằng nền + dấu. */
+.chips {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.chips legend {
+  margin-bottom: var(--space-2);
+  padding: 0;
+  font-weight: 600;
+}
+
+.chips > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--motion-state) var(--ease-fluid), border-color var(--motion-state) var(--ease-fluid);
+}
+
+.chip input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.chip:has(input:checked) {
+  color: var(--color-primary-deep);
+  background: var(--color-primary-tint);
+  border-color: var(--color-primary);
+}
+
+.chip:has(input:checked)::before {
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  content: "";
+}
+
+.chip:has(input:focus-visible) {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.chips:disabled .chip {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover { border-color: var(--color-primary); }
+}
+
+@media (width < 720px) {
+  .chip { min-height: 44px; }
+}

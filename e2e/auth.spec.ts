@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 import { games } from "../src/data/games";
+import { localConfig } from "./helpers/live";
 
 // Các test này cần stack Supabase cục bộ: `npm run supabase:start` rồi `npm run supabase:env`.
 test.skip(
@@ -22,8 +24,16 @@ async function register(page: Page, loginUrl = "/login") {
   await page.getByRole("button", { name: "Đăng ký" }).click();
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Mật khẩu").fill(password);
+  await fillSignUpProfile(page);
   await page.getByRole("button", { name: "Tạo tài khoản" }).click();
   return email;
+}
+
+/** Họ tên, số điện thoại và đồng ý điều khoản: chỉ có khi tạo tài khoản. */
+async function fillSignUpProfile(page: Page) {
+  await page.getByLabel("Họ và tên").fill("Cô Lan E2E");
+  await page.getByLabel("Số điện thoại").fill("0912 345 678");
+  await page.getByRole("checkbox", { name: /Tôi đồng ý/ }).check();
 }
 
 async function signIn(page: Page, email: string, loginUrl = "/login") {
@@ -34,7 +44,9 @@ async function signIn(page: Page, email: string, loginUrl = "/login") {
 }
 
 async function signOut(page: Page) {
-  await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("button", { name: "Đăng xuất" }).click();
+  // Q2: thoát nằm trong menu "Tài khoản" trên topbar.
+  await page.getByRole("button", { name: "Tài khoản", exact: true }).click();
+  await page.getByRole("button", { name: "Thoát tài khoản", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("link", { name: "Đăng nhập", exact: true }).first()).toBeVisible();
 }
@@ -68,7 +80,7 @@ test.describe("đăng nhập và phiên", () => {
     const nav = page.getByRole("navigation", { name: "Điều hướng chính" });
     await expect(nav.getByRole("link", { name: "Tổng quan" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Lớp của tôi" })).toBeVisible();
-    await expect(nav.getByRole("button", { name: "Đăng xuất" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Tài khoản", exact: true })).toBeVisible();
 
     await signOut(page);
     await page.goto("/my-classes");
@@ -89,6 +101,69 @@ test.describe("đăng nhập và phiên", () => {
     await page.getByRole("button", { name: "Đăng nhập", exact: true }).last().click();
     await expect(page.locator("p[role='alert']")).toContainText("Email hoặc mật khẩu chưa đúng");
     await expect(page).toHaveURL(/\/login/);
+  });
+
+  test("đăng nhập không có checkbox điều khoản; Quên mật khẩu nằm dưới ô mật khẩu", async ({ page }) => {
+    await page.goto("/login");
+    await expect(page.getByRole("heading", { level: 1, name: "Đăng nhập" })).toBeVisible();
+    await expect(page.getByRole("checkbox")).toHaveCount(0);
+    await expect(page.getByLabel("Họ và tên")).toHaveCount(0);
+    await expect(page.getByLabel("Số điện thoại")).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Xem cách ứng dụng dùng dữ liệu" })).toHaveCount(0);
+    await page.getByRole("link", { name: "Quên mật khẩu?" }).click();
+    await expect(page).toHaveURL(/\/forgot-password$/);
+  });
+
+  test("tạo tài khoản cần họ tên, số điện thoại hợp lệ và đồng ý điều khoản", async ({ page }) => {
+    await page.goto("/login");
+    // Tiêu đề đổi theo chế độ, chuyển qua lại không lẫn.
+    await page.getByRole("button", { name: "Đăng ký" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Tạo tài khoản" })).toBeVisible();
+    await page.getByRole("button", { name: "Đăng nhập", exact: true }).last().click();
+    await expect(page.getByRole("heading", { level: 1, name: "Đăng nhập" })).toBeVisible();
+    await page.getByRole("button", { name: "Đăng ký" }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Tạo tài khoản");
+    const name = page.getByLabel("Họ và tên");
+    const phone = page.getByLabel("Số điện thoại");
+    const consent = page.getByRole("checkbox", { name: /Tôi đồng ý/ });
+    const consentWarning = page.getByText("Thầy cô cần đồng ý với điều khoản để tiếp tục.");
+    const createButton = page.getByRole("button", { name: "Tạo tài khoản" });
+
+    const email = uniqueEmail();
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Mật khẩu").fill(password);
+    await createButton.click();
+    await expect(name).toBeFocused();
+    await expect(name).toHaveAttribute("aria-invalid", "true");
+    await expect(name).toHaveAccessibleDescription(/họ và tên/);
+    await expect(phone).toHaveAttribute("aria-invalid", "true");
+    await expect(consent).toHaveAttribute("aria-invalid", "true");
+    await expect(consentWarning).toBeVisible();
+
+    await name.fill("  Nguyễn   Thị Lan ");
+    await phone.fill("0212 345 678");
+    await createButton.click();
+    await expect(phone).toBeFocused();
+    await expect(phone).toHaveAccessibleDescription(/chưa đúng/);
+    await expect(name).not.toHaveAttribute("aria-invalid", "true");
+
+    // Google khi tạo tài khoản cũng cần đồng ý trước, nên không rời trang.
+    await page.getByRole("button", { name: "Tiếp tục với Google" }).click();
+    await expect(consent).toBeFocused();
+    await expect(page).toHaveURL(/\/login$/);
+
+    await phone.fill("+84 912 345 678");
+    await consent.check();
+    await expect(consentWarning).toHaveCount(0);
+    await createButton.click();
+    await expect(page).toHaveURL(/\/dashboard$/);
+
+    // Họ tên và số điện thoại đã chuẩn hoá được lưu vào hồ sơ đăng nhập.
+    const { url, anonKey } = localConfig();
+    const reader = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data, error } = await reader.auth.signInWithPassword({ email, password });
+    expect(error).toBeNull();
+    expect(data.user?.user_metadata).toMatchObject({ full_name: "Nguyễn Thị Lan", phone_number: "0912345678" });
   });
 
   test("đã đăng nhập mà vào /login thì được đưa tới trang đích", async ({ page }) => {
@@ -295,6 +370,7 @@ test.describe("game yêu thích", () => {
     await page.getByRole("button", { name: "Đăng ký" }).click();
     await page.getByLabel("Email").fill(uniqueEmail());
     await page.getByLabel("Mật khẩu").fill(password);
+    await fillSignUpProfile(page);
     await page.getByRole("button", { name: "Tạo tài khoản" }).click();
     await expect(page).toHaveURL(new RegExp(`/games/${game.id}$`));
   });

@@ -9,7 +9,7 @@ import { EXAM_SAMPLE_ROWS } from "../../src/lib/exams/import/template";
 
 export const uiViewports = [{ width: 375, height: 812 }, { width: 768, height: 900 }, { width: 1280, height: 800 }];
 export const capturePhase = process.env.UI_CAPTURE_PHASE === "baseline" ? "baseline" : "after";
-export const evidenceRoot = `artifacts/ui-unification/${capturePhase}`;
+export const evidenceRoot = `${process.env.UI_EVIDENCE_DIR ?? "artifacts/ui-unification"}/${capturePhase}`;
 
 export async function uiFixtures() {
   const teacher = await newTeacher("ui-teacher");
@@ -41,7 +41,7 @@ export async function uiFixtures() {
 }
 
 export async function captureUi(page: Page, key: string, pattern: string) {
-  if (["/dashboard", "/my-classes", "/my-quizzes", "/my-exams", "/assignments", "/feedback", "/membership", "/account/", "/library", "/games", "/tools", "/help/sources"].some(prefix => pattern.startsWith(prefix))) {
+  if (["/dashboard", "/my-classes", "/my-quizzes", "/my-exams", "/assignments", "/feedback", "/membership", "/account/", "/library", "/games", "/tools", "/help/sources"].some(prefix => pattern.startsWith(prefix)) || pattern === "/host") {
     // AppHeader streams separately from main; an h1 alone is not a settled layout.
     if (page.viewportSize()!.width >= 720) await expect(page.locator("#teacher-sidebar")).toBeVisible();
     else await expect(page.getByRole("button", { name: "Mở menu điều hướng", exact: true })).toBeVisible();

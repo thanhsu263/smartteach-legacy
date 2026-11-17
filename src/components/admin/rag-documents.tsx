@@ -5,6 +5,8 @@ import { Button } from "@/components/button";
 import { adminRequest } from "@/lib/admin/client";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { GRADES, SUBJECTS } from "@/lib/catalog";
+import { FileDrop } from "@/components/ui/file-drop";
+import { ChoiceChips, EmptyState, ProgressMeter, StatusBadge, TableFrame, type StatusTone } from "@/components/ui/ui";
 import s from "./admin.module.css";
 type Document = {
   id: string;
@@ -47,6 +49,21 @@ const errors: Record<string, string> = {
   source_changed: "Nguồn đã thay đổi hoặc được gỡ.",
   storage_cleanup_failed: "Đang chờ dọn tệp.",
 };
+// Nhãn trạng thái: ưu tiên lượt xử lý (job), sau đó trạng thái phiên bản.
+const statusLabels: Record<string, [string, StatusTone]> = {
+  queued: ["Đang chờ", "info"],
+  running: ["Đang xử lý", "info"],
+  waiting_quota: ["Chờ hạn mức AI", "warn"],
+  succeeded: ["Đã nạp", "ok"],
+  cancelled: ["Đã hủy", "neutral"],
+  reserved: ["Chờ tải tệp", "neutral"],
+  extracting: ["Đang đọc tệp", "info"],
+  embedding: ["Đang lập chỉ mục", "info"],
+  ready: ["Đã nạp", "ok"],
+  failed: ["Lỗi", "bad"],
+  deleted: ["Đã gỡ", "neutral"],
+};
+const capacityTone = (used: number, max: number) => (used >= max ? "bad" : used / max >= 0.8 ? "warn" : undefined);
 export function RagDocuments() {
   const [data, setData] = useState<Data | null>(null),
     [error, setError] = useState(""),
@@ -227,11 +244,14 @@ export function RagDocuments() {
         </p>
       )}
       {data && (
-        <p>
-          {data.capacity.documents}/50 tài liệu ·{" "}
-          {(data.capacity.bytes / 1048576).toFixed(1)}/512 MiB ·{" "}
-          {data.capacity.chunks}/20.000 chunk
-        </p>
+        <section className={s.panel} aria-labelledby="rag-capacity">
+          <h2 id="rag-capacity">Hạn mức kho</h2>
+          <div className={s.grid}>
+            <ProgressMeter label="Tài liệu" value={data.capacity.documents} max={50} valueText={`${data.capacity.documents}/50`} tone={capacityTone(data.capacity.documents, 50)} />
+            <ProgressMeter label="Dung lượng" value={data.capacity.bytes} max={512 * 1048576} valueText={`${(data.capacity.bytes / 1048576).toFixed(1)}/512 MiB`} tone={capacityTone(data.capacity.bytes, 512 * 1048576)} />
+            <ProgressMeter label="Chunk" value={data.capacity.chunks} max={20000} valueText={`${data.capacity.chunks.toLocaleString("vi-VN")}/20.000`} tone={capacityTone(data.capacity.chunks, 20000)} />
+          </div>
+        </section>
       )}
       <form className={s.panel + " " + s.form} onSubmit={upload}>
         <h2>{replacement ? "Thay phiên bản tài liệu" : "Thêm tài liệu"}</h2>
@@ -255,38 +275,27 @@ export function RagDocuments() {
             ))}
           </select>
         </label>
-        <label className={s.field}>
-          Khối lớp
-          <select
-            multiple
-            value={grades}
-            onChange={(e) =>
-              setGrades(Array.from(e.target.selectedOptions, (x) => x.value))
-            }
-          >
-            {GRADES.map((x) => (
-              <option key={x.id} value={x.id}>
-                {x.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={s.field}>
-          Tệp PDF hoặc DOCX
-          <input
-            ref={fileRef}
-            type="file"
-            required
-            accept=".pdf,.docx"
-            disabled={busy}
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          />
-        </label>
+        <ChoiceChips
+          legend="Khối lớp"
+          options={GRADES.map((x) => ({ value: x.id, label: x.label }))}
+          value={grades}
+          onChange={setGrades}
+        />
+        <FileDrop
+          ref={fileRef}
+          label="Tệp PDF hoặc DOCX"
+          hint="Kéo thả hoặc bấm để chọn · tối đa 10 MiB"
+          required
+          accept=".pdf,.docx"
+          disabled={busy}
+          selectedNames={file ? [file.name] : []}
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        />
         <p>
           Chỉ tải tài liệu bạn được phép chia sẻ với giáo viên và gửi tới Google
           AI. Không đưa dữ liệu học sinh hoặc nội dung riêng vào kho.
         </p>
-        {busy && <p role="status">Đang tải {progress}%</p>}
+        {busy && <ProgressMeter label="Đang tải tệp" value={progress} max={100} valueText={`${progress}%`} />}
         <div className={s.actions}>
           <Button
             type="submit"
@@ -305,8 +314,8 @@ export function RagDocuments() {
       <section className={s.panel}>
         <h2>Kho tài liệu</h2>
         {data ? (
-          <div className={s.scroll}>
-            <table className={s.table}>
+          <TableFrame>
+            <table>
               <thead>
                 <tr>
                   <th>Tài liệu</th>
@@ -324,7 +333,11 @@ export function RagDocuments() {
                       </p>
                     </td>
                     <td>
-                      {d.jobStatus ?? d.status}
+                      {(() => {
+                        const key = d.jobStatus ?? d.status;
+                        const [label, tone] = statusLabels[key] ?? [key, "neutral"];
+                        return <StatusBadge tone={tone}>{label}</StatusBadge>;
+                      })()}
                       {d.activeVersion && d.status !== "ready" && (
                         <p>Bản trước vẫn hoạt động</p>
                       )}
@@ -375,12 +388,13 @@ export function RagDocuments() {
               </tbody>
             </table>
             {!data.items.length && (
-              <p>
-                Chưa có tài liệu hướng dẫn. Chatbot sẽ không tự bịa hướng dẫn
-                khi thiếu nguồn.
-              </p>
+              <EmptyState
+                level={3}
+                title="Chưa có tài liệu hướng dẫn"
+                description="Chatbot sẽ không tự bịa hướng dẫn khi thiếu nguồn."
+              />
             )}
-          </div>
+          </TableFrame>
         ) : (
           <p role="status">Đang tải…</p>
         )}

@@ -1,0 +1,52 @@
+.gate {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: var(--space-6) var(--space-4);
+  background: var(--color-bg);
+}
+
+.card {
+  width: min(100%, 34rem);
+}
+
+.card h1 {
+  font-size: var(--text-xl);
+  line-height: var(--line-height-heading);
+}
+
+.loading {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: 100dvh;
+  background: var(--color-bg);
+}
+
+.loadingSidebar {
+  background: var(--color-ink);
+}
+
+.loadingBody {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 75rem;
+  padding: calc(72px + var(--space-7)) var(--space-7) var(--space-7);
+}
+
+.loadingText {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+@media (720px <= width < 960px) {
+  .loading { grid-template-columns: 208px minmax(0, 1fr); }
+  .loadingBody { padding-inline: var(--space-6); }
+}
+
+@media (width < 720px) {
+  .loading { grid-template-columns: minmax(0, 1fr); }
+  .loadingSidebar { display: none; }
+  .loadingBody { padding: calc(64px + var(--space-4)) var(--space-4) var(--space-4); }
+}

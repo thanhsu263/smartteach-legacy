@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ToolsCatalogue } from "@/components/tools-catalogue";
+import { PageHeading } from "@/components/workspace/workspace-layout";
 import { tools } from "@/data/tools";
 import styles from "./tools.module.css";
 
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 export default function ToolsPage() {
   return (
     <div className={styles.page}>
-      <header className={styles.hero}><div><h1>Tiện ích lớp học</h1><p>Mở một công cụ trong vài giây, sẵn sàng để chiếu lên màn hình lớp.</p></div><span>4 công cụ</span></header>
+      <PageHeading title="Tiện ích lớp học" description="Mở một công cụ trong vài giây, sẵn sàng để chiếu lên màn hình lớp." actions={<span className={styles.count}>{tools.length} công cụ</span>} />
       <ToolsCatalogue tools={tools} />
     </div>
   );

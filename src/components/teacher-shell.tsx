@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { AccountMenu, type AccountMenuLink } from "@/components/account-menu";
 import { useAuth } from "@/components/auth-provider";
-import { BlocksIcon, ClipboardListIcon, CloseIcon, DashboardIcon, GamepadIcon, LogoMark, MenuIcon, PanelLeftIcon, SchoolIcon } from "@/components/icons";
+import { BlocksIcon, ClipboardListIcon, CloseIcon, CreditCardIcon, DashboardIcon, GamepadIcon, LogoMark, MenuIcon, MessageIcon, PanelLeftIcon, SchoolIcon, SettingsIcon, ShieldCheckIcon } from "@/components/icons";
 import styles from "./teacher-shell.module.css";
 
 type NavigationItem = { href: "/dashboard" | "/assignments" | "/my-classes" | "/my-quizzes" | "/my-exams" | "/library" | "/games" | "/tools"; label: string; Icon: typeof SchoolIcon };
@@ -20,11 +21,17 @@ const navigation: readonly NavigationItem[] = [
   { href: "/tools", label: "Tiện ích", Icon: BlocksIcon },
 ];
 
+// Q2: email, bảo mật, gói thành viên và thoát gom vào nút "Tài khoản" trên topbar.
+const accountLinks: readonly AccountMenuLink[] = [
+  { href: "/account/security", label: "Bảo mật tài khoản", icon: <ShieldCheckIcon size={18} /> },
+  { href: "/membership", label: "Gói thành viên", icon: <CreditCardIcon size={18} /> },
+];
+
 function current(pathname: string, href: string) { return pathname === href || pathname.startsWith(`${href}/`); }
 
 function Navigation({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { status, user, signOut } = useAuth();
+  const { status, user } = useAuth();
   const [adminFor,setAdminFor] = useState<string|null>(null);
   useEffect(()=>{if(!user)return;let live=true;fetch("/api/admin/session",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{if(live)setAdminFor(d?.role==="admin"?user.id:null);}).catch(()=>{if(live)setAdminFor(null);});return()=>{live=false;};},[user]);
   const navRef = useRef<HTMLElement>(null);
@@ -50,30 +57,30 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
   }, [pathname]);
 
   return <nav ref={navRef} aria-label="Điều hướng chính" className={styles.navigation}>
-    <p className={styles.navHeading}>Không gian dạy học</p>
-    <ul>{navigation.map(({ href, label, Icon }) => <li key={href}>
-      <Link href={href} className={styles.navLink} aria-current={current(pathname, href) ? "page" : undefined} aria-label={label} onClick={onNavigate}>
-        <Icon size={20} /><span>{label}</span>
-      </Link>
-    </li>)}</ul>
-    <div className={styles.navigationAccount}>
-      {user && adminFor===user.id && <Link href="/admin" onClick={onNavigate}>Quản trị hệ thống</Link>}
-      <Link href="/membership" aria-current={pathname === "/membership" ? "page" : undefined} onClick={onNavigate}>Gói thành viên</Link>
-      {status === "signed-in" && <Link href="/feedback" aria-current={pathname === "/feedback" ? "page" : undefined} onClick={onNavigate}>Góp ý</Link>}
-      {status === "signed-in" && <Link href="/account/security" aria-current={pathname === "/account/security" ? "page" : undefined} onClick={onNavigate}>Bảo mật tài khoản</Link>}
-      {status === "signed-in" ? (
-        <button type="button" onClick={() => { void signOut(); onNavigate?.(); }}>Đăng xuất</button>
-      ) : (
-        <Link href="/login" onClick={onNavigate}>Đăng nhập</Link>
-      )}
+    <div className={styles.group}>
+      <p className={styles.navHeading}>Không gian dạy học</p>
+      <ul>{navigation.map(({ href, label, Icon }) => <li key={href}>
+        <Link href={href} className={styles.navLink} aria-current={current(pathname, href) ? "page" : undefined} aria-label={label} onClick={onNavigate}>
+          <Icon size={20} /><span>{label}</span>
+        </Link>
+      </li>)}</ul>
     </div>
+    {status !== "loading" && <div className={styles.group}>
+      <p className={styles.navHeading}>Khác</p>
+      <ul>
+        {/* Khách không có menu Tài khoản nên gói thành viên vẫn nằm ở sidebar. */}
+        {status !== "signed-in" && <li><Link href="/membership" className={styles.navLink} aria-current={current(pathname, "/membership") ? "page" : undefined} aria-label="Gói thành viên" onClick={onNavigate}><CreditCardIcon size={20} /><span>Gói thành viên</span></Link></li>}
+        {status === "signed-in" && <li><Link href="/feedback" className={styles.navLink} aria-current={current(pathname, "/feedback") ? "page" : undefined} aria-label="Góp ý" onClick={onNavigate}><MessageIcon size={20} /><span>Góp ý</span></Link></li>}
+        {user && adminFor === user.id && <li><Link href="/admin" className={styles.navLink} aria-label="Quản trị hệ thống" onClick={onNavigate}><SettingsIcon size={20} /><span>Quản trị hệ thống</span></Link></li>}
+      </ul>
+    </div>}
   </nav>;
 }
 
 export function TeacherShell() {
   const pathname = usePathname();
   const destination = navigation.find(item => current(pathname, item.href))?.label
-    ?? (pathname.startsWith("/membership") ? "Gói thành viên" : pathname.startsWith("/feedback") ? "Góp ý" : pathname.startsWith("/account") ? "Bảo mật tài khoản" : "Nguồn học liệu");
+    ?? (pathname.startsWith("/membership") ? "Gói thành viên" : pathname.startsWith("/feedback") ? "Góp ý" : pathname.startsWith("/account") ? "Bảo mật tài khoản" : pathname === "/host" ? "Các buổi đã chơi" : "Nguồn học liệu");
   const [collapsed, setCollapsed] = useState(false);
   const [peek, setPeek] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -85,7 +92,6 @@ export function TeacherShell() {
   const keyboardInside = useRef(false);
   const blockHover = useRef(false);
   const blockFocus = useRef(false);
-  const { status, user, signOut } = useAuth();
 
   useEffect(() => {
     const mobile = matchMedia("(width < 720px)");
@@ -173,7 +179,6 @@ export function TeacherShell() {
       onKeyDown={(event) => {
         if (event.key !== "Escape" || !peek) return;
         event.preventDefault();
-        if ((event.target as HTMLElement).closest(`.${styles.navigationAccount}`)) toggleRef.current?.focus({ preventScroll: true });
         dismissPeek();
       }}
     >
@@ -189,10 +194,7 @@ export function TeacherShell() {
       <header className={styles.topbar}>
         <button ref={menuButtonRef} type="button" className={styles.mobileMenuButton} aria-label="Mở menu điều hướng" aria-expanded={mobileOpen} aria-controls="teacher-navigation" onClick={openMobileNavigation}><MenuIcon size={20} /></button>
         <p className={styles.breadcrumb}>Không gian dạy học <span aria-hidden="true"> / </span> {destination}</p>
-        <div className={styles.account}>
-          {status === "signed-in" && user?.email ? <span>{user.email}</span> : null}
-          {status === "signed-in" ? <button type="button" aria-label="Thoát tài khoản" onClick={() => void signOut()}>Thoát</button> : <Link href="/login">Đăng nhập</Link>}
-        </div>
+        <AccountMenu links={accountLinks} />
       </header>
     </div>
     <dialog ref={dialogRef} id="teacher-navigation" className={styles.mobileDialog} aria-label="Điều hướng giáo viên" onClose={(event) => {
