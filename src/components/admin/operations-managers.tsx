@@ -88,6 +88,11 @@ export function Operations() {
     scheduler: "Lịch nền",
     encryption: "Mã hóa",
     worker: "Worker",
+    examImport: "Nhập đề kiểm tra",
+    examFinalizer: "Chốt bài thi",
+    jobs: "Hàng đợi kho vector",
+    credentials: "Key Gemini",
+    authSync: "Đồng bộ tài khoản",
   };
   return (
     <>

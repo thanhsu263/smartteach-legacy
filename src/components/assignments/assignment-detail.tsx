@@ -157,7 +157,7 @@ export function AssignmentDetail({ assignmentId }: { assignmentId: string }) {
   const { detail, progress, questions, roster, students } = loaded;
   const rosterById = new Map(roster.map((item) => [item.studentId, item]));
   const studentLink = typeof window === "undefined" ? "" : (credential: string) => `${window.location.origin}/learn/${detail.publicCode}#credential=${credential}`;
-  const confirmationText = confirming?.kind === "publish" ? "Phát hành bài này cho cả lớp? Sau khi phát hành, quiz snapshot không thể sửa." : confirming?.kind === "close" ? "Đóng bài ngay bây giờ? Học sinh sẽ không thể tiếp tục hoặc bắt đầu bài." : confirming?.kind === "delete" ? "Xoá bản nháp này? Thao tác này không thể hoàn tác." : confirming?.kind === "reset" ? `Đặt lại lượt làm của ${confirming.student?.name}? Bài đã nộp cũng sẽ được đặt lại.` : `Thu hồi mã truy cập của ${confirming?.student?.name}? Học sinh sẽ cần mã mới để vào bài.`;
+  const confirmationText = confirming?.kind === "publish" ? "Phát hành bài này cho cả lớp? Sau khi phát hành, câu hỏi trong bài sẽ không sửa được nữa." : confirming?.kind === "close" ? "Đóng bài ngay bây giờ? Học sinh sẽ không thể tiếp tục hoặc bắt đầu bài." : confirming?.kind === "delete" ? "Xoá bản nháp này? Thao tác này không thể hoàn tác." : confirming?.kind === "reset" ? `Đặt lại lượt làm của ${confirming.student?.name}? Bài đã nộp cũng sẽ được đặt lại.` : `Thu hồi mã truy cập của ${confirming?.student?.name}? Học sinh sẽ cần mã mới để vào bài.`;
 
   return (
     <div className={styles.page}>

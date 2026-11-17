@@ -11,6 +11,8 @@ import { tokenKey } from "./learn-start";
 import styles from "./learn.module.css";
 import { ExamCountdown } from "./exam-countdown";
 
+const sameSelection = (a: number[], b: number[]) => a.length === b.length && [...a].sort((x, y) => x - y).join() === [...b].sort((x, y) => x - y).join();
+
 type Load = { kind: "loading" } | { kind: "error"; message: string } | { kind: "ready"; state: StudentAssignmentState };
 
 export function StudentAssignmentRunner({ code }: { code: string }) {
@@ -23,6 +25,10 @@ export function StudentAssignmentRunner({ code }: { code: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);
   const [expiredAttempt, setExpiredAttempt] = useState<string | null>(null);
+  // A save in flight (ref, so taps in the same frame see it) and the multi-choice selection shown while saving.
+  const busy = useRef(false);
+  const queuedMulti = useRef<{ index: number; answer: number[] } | null>(null);
+  const [multiDraft, setMultiDraft] = useState<{ index: number; answer: number[] } | null>(null);
 
   const normalizedCode = useMemo(() => code.toUpperCase(), [code]);
 
@@ -72,18 +78,42 @@ export function StudentAssignmentRunner({ code }: { code: string }) {
   }, [state?.attemptId, state?.deadlineAt, state?.phase, normalizedCode]);
 
   async function save(answer: StudentAnswer) {
-    if (!state || !current || saving !== null || expired) return false;
+    if (!state || !current || saving !== null || busy.current || expired) return false;
     const token = sessionStorage.getItem(tokenKey(normalizedCode));
     const supabase = getBrowserSupabase();
     if (!token || !supabase) return false;
+    busy.current = true;
     setSaving(current.index);
     setSaveMessage(null);
-    const result = await saveStudentAssignmentAnswer(supabase, token, current.index, answer);
+    let target = { index: current.index, answer };
+    for (;;) {
+      const result = await saveStudentAssignmentAnswer(supabase, token, target.index, target.answer);
+      if (!result.ok) {
+        busy.current = false; queuedMulti.current = null; setMultiDraft(null); setSaving(null);
+        setSaveMessage(result.message); if (state.deadlineAt) await fetchState(token); return false;
+      }
+      const saved = target;
+      setLoad(previous => previous.kind === "ready" && previous.state.attemptId === state.attemptId ? { kind: "ready", state: { ...previous.state, answers: { ...previous.state.answers, [String(saved.index)]: saved.answer } } } : previous);
+      // Multi-choice taps made during this request are coalesced into one follow-up save of the latest selection.
+      // No await between reading the queue and clearing `busy`, so a tap cannot land in between and be lost.
+      const queued = queuedMulti.current; queuedMulti.current = null;
+      if (!queued || (queued.index === saved.index && sameSelection(queued.answer, saved.answer as number[]))) break;
+      target = queued;
+    }
+    busy.current = false;
+    setMultiDraft(null);
     setSaving(null);
-    if (!result.ok) { setSaveMessage(result.message); if (state.deadlineAt) await fetchState(token); return false; }
-    setLoad(previous => previous.kind === "ready" && previous.state.attemptId === state.attemptId ? { kind: "ready", state: { ...previous.state, answers: { ...previous.state.answers, [String(current.index)]: answer } } } : previous);
     setSaveMessage("Đã lưu câu trả lời.");
     return true;
+  }
+  function toggleMulti(index: number) {
+    if (!current || expired) return;
+    const base = multiDraft?.index === current.index ? multiDraft.answer : Array.isArray(currentAnswer) ? currentAnswer : [];
+    const next = base.includes(index) ? base.filter(value => value !== index) : [...base, index].sort((a, b) => a - b);
+    if (next.length === 0) return;
+    setMultiDraft({ index: current.index, answer: next });
+    if (busy.current) { queuedMulti.current = { index: current.index, answer: next }; return; }
+    void save(next);
   }
 
   async function submit() {
@@ -116,7 +146,8 @@ export function StudentAssignmentRunner({ code }: { code: string }) {
   const answered = state.questions.filter((question) => state.answers[String(question.index)] !== undefined).length;
   const firstUnanswered = state.questions.findIndex((question) => state.answers[String(question.index)] === undefined);
   const isMulti = current.kind === "multi";
-  const selected = Array.isArray(currentAnswer) ? currentAnswer : [];
+  const selected = multiDraft?.index === current.index ? multiDraft.answer : Array.isArray(currentAnswer) ? currentAnswer : [];
+  const savingHere = saving === current.index;
   async function navigate(next: number) { if (!expired && !(await flushCurrentText())) return; setPosition(next); setSaveMessage(null); }
-  return <main className={styles.runner}><section className={styles.runnerHeader} data-surface="panel"><div><p className={styles.kicker}>Bài đang làm</p><h1>{state.title}</h1>{state.description ? <p>{state.description}</p> : null}</div><p><strong>{answered}/{state.questions.length}</strong> câu đã lưu</p>{state.deadlineAt && state.serverNow && <ExamCountdown deadline={state.deadlineAt} serverNow={state.serverNow} onExpire={() => { setExpiredAttempt(state.attemptId); const token = sessionStorage.getItem(tokenKey(normalizedCode)); if (token) void fetchState(token); }} />}</section><div className={styles.runnerLayout}><aside className={styles.questionNav} aria-label="Câu hỏi"><p>Tiến độ</p><ol>{state.questions.map((question, index) => <li key={question.index}><button type="button" aria-current={index === position ? "step" : undefined} data-answered={state.answers[String(question.index)] !== undefined || undefined} onClick={() => navigate(index)}>Câu {index + 1}</button></li>)}</ol>{firstUnanswered >= 0 ? <Button variant="secondary" onClick={() => navigate(firstUnanswered)}>Đến câu chưa trả lời</Button> : null}</aside><section className={styles.questionPanel} data-surface="panel" aria-labelledby={`${id}-question`}><div className={styles.questionHead}><span>Câu {position + 1}/{state.questions.length}</span>{current.sectionTitle && <span>{current.sectionTitle}</span>}{current.points !== undefined && <span>{current.points} điểm</span>}{current.timeLimitSeconds ? <span>{current.timeLimitSeconds} giây</span> : null}</div><h2 id={`${id}-question`}>{current.prompt}</h2>{current.kind === "short_text" ? <div className={styles.textAnswer}><label htmlFor={`${id}-text`}>Câu trả lời của bạn</label><textarea disabled={expired} key={current.index} ref={textRef} id={`${id}-text`} maxLength={200} rows={4} defaultValue={typeof currentAnswer === "string" ? currentAnswer : ""} /><Button variant="secondary" disabled={saving !== null || expired} onClick={() => { const answer = textRef.current?.value.trim(); if (answer) void save(answer); }}>{saving === current.index ? "Đang lưu…" : "Lưu câu trả lời"}</Button></div> : <div className={styles.answers} role="group" aria-label="Các đáp án">{current.options.map((option, index) => { const checked = isMulti ? selected.includes(index) : currentAnswer === index; return <button key={option} type="button" className={styles.answer} aria-pressed={checked} disabled={saving !== null || expired} onClick={() => { const next = isMulti ? (checked ? selected.filter((value) => value !== index) : [...selected, index]) : index; if (isMulti && (next as number[]).length === 0) return; void save(next); }}><span>{String.fromCharCode(65 + index)}</span>{option}</button>; })}</div>}{saveMessage ? <p role="status" className={saveMessage.startsWith("Đã") ? styles.saved : styles.error}>{saveMessage}</p> : null}<div className={styles.runnerActions}><Button variant="secondary" disabled={position === 0} onClick={() => navigate(position - 1)}>Câu trước</Button>{position < state.questions.length - 1 ? <Button variant="primary" onClick={() => navigate(position + 1)}>Câu tiếp</Button> : <Button variant="primary" disabled={saving !== null || expired} onClick={() => void prepareSubmit()}>Xem lại và nộp bài</Button>}</div></section></div><dialog ref={dialogRef} className={styles.confirmDialog} aria-labelledby={`${id}-submit-title`} onClose={() => setConfirmSubmit(false)} onClick={(event) => { if (event.target === event.currentTarget) setConfirmSubmit(false); }}><div><h2 id={`${id}-submit-title`}>Nộp bài?</h2><p>Bạn đã lưu {answered}/{state.questions.length} câu. Sau khi nộp, bạn không thể sửa câu trả lời.</p><div className={styles.runnerActions}><Button variant="secondary" autoFocus onClick={() => setConfirmSubmit(false)}>Quay lại làm tiếp</Button><Button variant="primary" disabled={saving !== null || expired} onClick={() => void submit()}>Nộp bài</Button></div></div></dialog></main>;
+  return <main className={styles.runner}><section className={styles.runnerHeader} data-surface="panel"><div><p className={styles.kicker}>Bài đang làm</p><h1>{state.title}</h1>{state.description ? <p>{state.description}</p> : null}</div><p><strong>{answered}/{state.questions.length}</strong> câu đã lưu</p>{state.deadlineAt && state.serverNow && <ExamCountdown deadline={state.deadlineAt} serverNow={state.serverNow} onExpire={() => { setExpiredAttempt(state.attemptId); const token = sessionStorage.getItem(tokenKey(normalizedCode)); if (token) void fetchState(token); }} />}</section><div className={styles.runnerLayout}><aside className={styles.questionNav} aria-label="Câu hỏi"><p>Tiến độ</p><ol>{state.questions.map((question, index) => <li key={question.index}><button type="button" aria-current={index === position ? "step" : undefined} data-answered={state.answers[String(question.index)] !== undefined || undefined} onClick={() => navigate(index)}>Câu {index + 1}</button></li>)}</ol>{firstUnanswered >= 0 ? <Button variant="secondary" onClick={() => navigate(firstUnanswered)}>Đến câu chưa trả lời</Button> : null}</aside><section className={styles.questionPanel} data-surface="panel" aria-labelledby={`${id}-question`}><div className={styles.questionHead}><span>Câu {position + 1}/{state.questions.length}</span>{current.sectionTitle && <span>{current.sectionTitle}</span>}{current.points !== undefined && <span>{current.points} điểm</span>}{current.timeLimitSeconds ? <span>{current.timeLimitSeconds} giây</span> : null}</div><h2 id={`${id}-question`}>{current.prompt}</h2>{current.kind === "short_text" ? <div className={styles.textAnswer}><label htmlFor={`${id}-text`}>Câu trả lời của bạn</label><textarea disabled={expired} key={current.index} ref={textRef} id={`${id}-text`} maxLength={200} rows={4} defaultValue={typeof currentAnswer === "string" ? currentAnswer : ""} /><Button variant="secondary" disabled={saving !== null || expired} onClick={() => { const answer = textRef.current?.value.trim(); if (answer) void save(answer); }}>{saving === current.index ? "Đang lưu…" : "Lưu câu trả lời"}</Button></div> : <div className={styles.answers} role="group" aria-label="Các đáp án">{current.options.map((option, index) => { const checked = isMulti ? selected.includes(index) : currentAnswer === index; return <button key={option} type="button" className={styles.answer} aria-pressed={checked} disabled={expired || (saving !== null && !(isMulti && savingHere))} onClick={() => { if (isMulti) toggleMulti(index); else void save(index); }}><span>{String.fromCharCode(65 + index)}</span>{option}</button>; })}</div>}{saveMessage ? <p role="status" className={saveMessage.startsWith("Đã") ? styles.saved : styles.error}>{saveMessage}</p> : isMulti && savingHere ? <p role="status">Đang lưu lựa chọn…</p> : null}<div className={styles.runnerActions}><Button variant="secondary" disabled={position === 0} onClick={() => navigate(position - 1)}>Câu trước</Button>{position < state.questions.length - 1 ? <Button variant="primary" onClick={() => navigate(position + 1)}>Câu tiếp</Button> : <Button variant="primary" disabled={saving !== null || expired} onClick={() => void prepareSubmit()}>Xem lại và nộp bài</Button>}</div></section></div><dialog ref={dialogRef} className={styles.confirmDialog} aria-labelledby={`${id}-submit-title`} onClose={() => setConfirmSubmit(false)} onClick={(event) => { if (event.target === event.currentTarget) setConfirmSubmit(false); }}><div><h2 id={`${id}-submit-title`}>Nộp bài?</h2><p>Bạn đã lưu {answered}/{state.questions.length} câu. Sau khi nộp, bạn không thể sửa câu trả lời.</p><div className={styles.runnerActions}><Button variant="secondary" autoFocus onClick={() => setConfirmSubmit(false)}>Quay lại làm tiếp</Button><Button variant="primary" disabled={saving !== null || expired} onClick={() => void submit()}>Nộp bài</Button></div></div></dialog></main>;
 }

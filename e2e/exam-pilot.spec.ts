@@ -63,7 +63,12 @@ test("Premium giao đề → học sinh làm/nộp → điểm và CSV có trọ
   await expect(pupil.getByLabel("Thời gian còn lại", { exact: true })).toContainText("Còn 0:");
   await pupil.getByRole("button", { name: /B.*17/ }).click(); await expect(pupil.getByRole("status")).toContainText("Đã lưu"); await pupil.getByRole("button", { name: "Câu tiếp", exact: true }).click();
   await pupil.getByRole("button", { name: /A.*Đúng/ }).click(); await expect(pupil.getByRole("status")).toContainText("Đã lưu"); await pupil.getByRole("button", { name: "Câu tiếp", exact: true }).click();
-  for(const pattern of [/^A\s*2$/, /^C\s*4$/, /^E\s*6$/]) { const option = pupil.getByRole("group", { name: "Các đáp án" }).getByRole("button", { name: pattern }); await option.click(); await expect(option).toHaveAttribute("aria-pressed", "true"); }
+  // Tap quickly like a phone user: later taps land while the first save is in flight. `force` skips Playwright's
+  // wait-for-enabled, so a button locked during saving would swallow the tap (the P9.2 smoke bug) and fail below.
+  const options = [/^A\s*2$/, /^C\s*4$/, /^E\s*6$/].map(pattern => pupil.getByRole("group", { name: "Các đáp án" }).getByRole("button", { name: pattern }));
+  for (const option of options) await option.click({ force: true });
+  for (const option of options) await expect(option).toHaveAttribute("aria-pressed", "true");
+  await expect(pupil.getByRole("status")).toContainText("Đã lưu");
   await pupil.getByRole("button", { name: "Câu tiếp", exact: true }).click(); await pupil.getByLabel("Câu trả lời của bạn", { exact: true }).fill("con meo");
   await pupil.getByRole("button", { name: "Xem lại và nộp bài", exact: true }).click(); await pupil.getByRole("dialog").getByRole("button", { name: "Nộp bài", exact: true }).click();
   await expect(pupil.getByRole("heading", { name: "Đã nộp bài", exact: true })).toBeVisible(); await expect(pupil.getByText("6/6", { exact: false })).toBeVisible();

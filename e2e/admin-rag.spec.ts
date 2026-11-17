@@ -32,6 +32,11 @@ for (const width of [375, 768, 1280]) {
           page.getByRole("heading", { name: title, exact: true }),
         ).toBeVisible();
         await expect(page.locator("main [role=alert]")).toHaveCount(0);
+        if (path === "operations") {
+          await expect(page.getByRole("heading", { name: "Nhập đề kiểm tra", exact: true })).toBeVisible();
+          // Every API key has a Vietnamese label; a raw camelCase key means a new field was added without one.
+          expect(await page.locator("main h2").allTextContents()).not.toContainEqual(expect.stringMatching(/^[a-z]+[A-Z]?[a-zA-Z]*$/));
+        }
         if(path==="rag/documents"&&!process.env.AI_KEYRING_JSON){
           await page.getByLabel("Tệp PDF hoặc DOCX").filter({visible:true}).setInputFiles("tests/fixtures/rag/smartteach-vietnamese.pdf");
           await expect(page.getByRole("button",{name:"Tải và nạp tài liệu"})).toBeDisabled();

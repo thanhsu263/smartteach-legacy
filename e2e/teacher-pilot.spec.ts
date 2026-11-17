@@ -32,7 +32,7 @@ test("đổi mật khẩu, gửi góp ý và giữ trạng thái sau reload", as
   await page.goto("/login"); await page.getByLabel("Email", { exact: true }).fill(email); await page.getByLabel("Mật khẩu", { exact: true }).fill(password); await page.getByRole("button", { name: "Đăng nhập", exact: true }).last().click();
   await expect(page.getByRole("alert").filter({ hasText: "chưa đúng" })).toBeVisible();
   await page.getByLabel("Mật khẩu", { exact: true }).fill("Pilot-updated-123!"); await page.getByRole("button", { name: "Đăng nhập", exact: true }).last().click(); await expect(page).toHaveURL(/\/dashboard$/);
-  await page.goto("/feedback"); await page.getByLabel("Nội dung", { exact: true }).filter({ visible: true }).fill("Góp ý thử nghiệm: cần hướng dẫn nhập tệp rõ hơn."); await page.getByRole("button", { name: "Gửi góp ý", exact: true }).filter({ visible: true }).click();
+  await page.goto("/feedback"); await expect(page).toHaveTitle(/^Góp ý · /); await page.getByLabel("Nội dung", { exact: true }).filter({ visible: true }).fill("Góp ý thử nghiệm: cần hướng dẫn nhập tệp rõ hơn."); await page.getByRole("button", { name: "Gửi góp ý", exact: true }).filter({ visible: true }).click();
   await expect(page.getByRole("status")).toContainText("Đã gửi góp ý"); await page.reload(); await expect(page.getByText("Góp ý thử nghiệm: cần hướng dẫn nhập tệp rõ hơn.", { exact: true })).toBeVisible();
 });
 test("khôi phục nháp câu mới rồi dọn đúng khi lưu", async ({ page }) => {
