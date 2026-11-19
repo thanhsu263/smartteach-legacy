@@ -53,13 +53,6 @@
   mask-image: linear-gradient(180deg, rgb(0 0 0 / .3), #000 29%, #000 76%, rgb(0 0 0 / .32));
 }
 
-.controls {
-  position: absolute;
-  z-index: 3;
-  inset-inline-end: max(20px, env(safe-area-inset-right, 0px));
-  inset-block-end: 20px;
-}
-
 .dialog {
   position: fixed;
   inset: 0;
@@ -89,7 +82,6 @@
   .stage::after {
     background: linear-gradient(90deg, rgb(240 245 255 / .95) 25%, rgb(240 245 255 / .90) 49%, transparent 92%);
   }
-  .controls { inset-inline-end: max(12px, env(safe-area-inset-right, 0px)); inset-block-end: 12px; }
 }
 
 @media (width <= 650px) {

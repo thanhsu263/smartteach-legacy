@@ -149,7 +149,7 @@ test.describe("landing trên điện thoại", () => {
     await expect(page.locator("header").filter({ has: page.getByLabel("Menu", { exact: true }) })).toHaveCSS("height", "46px");
     await expect(page.getByLabel("Menu", { exact: true })).toHaveCSS("height", "44px");
     await expect(page.getByRole("navigation", { name: "Điều hướng landing" })).toBeHidden();
-    const cta = page.getByRole("link", { name: /Tạo lớp học miễn phí/ });
+    const cta = page.getByRole("link", { name: /Tham gia quiz ngay/ });
     await expect(cta).toBeVisible();
     expect((await cta.boundingBox())?.height).toBeGreaterThanOrEqual(44);
   });
@@ -184,10 +184,20 @@ for (const width of [375, 768]) {
       await expect(stage).toBeVisible();
       await expect(stage).toHaveAttribute("data-scene", "running", { timeout: 15_000 });
       await expect(stage.locator("canvas")).toBeVisible();
-      await page.getByRole("button", { name: "Thử một câu quiz" }).tap();
+      // At 768px the deck sits below the fold and the landing's scroll handling ignores scrollIntoView,
+      // so scroll the page explicitly before tapping the front card's "Trả lời thử".
+      const tryQuestion = page.locator("[data-hero-quiz-deck] [data-front]").getByRole("button", { name: "Trả lời thử" });
       const quiz = page.getByRole("dialog", { name: "Thử một câu quiz" });
-      await quiz.getByRole("button", { name: "5/6" }).tap();
-      await expect(quiz.getByRole("status")).toContainText("Chính xác");
+      // The deck auto-swaps every few seconds and a mid-swap tap is intercepted by the deck itself, so pause it
+      // (autoplay stops while focus is inside the deck) and retry until the front card's dialog opens.
+      await expect(async () => {
+        await tryQuestion.evaluate(el => scrollTo({ top: scrollY + el.getBoundingClientRect().top - innerHeight / 2, behavior: "instant" }));
+        await tryQuestion.focus();
+        await tryQuestion.tap({ timeout: 3000 });
+        await expect(quiz).toBeVisible({ timeout: 1500 });
+      }).toPass({ timeout: 20_000 });
+      await quiz.getByRole("group", { name: "Các đáp án" }).getByRole("button").first().tap();
+      await expect(quiz.getByRole("status")).not.toHaveText("Chọn một đáp án.");
       await quiz.getByRole("button", { name: "Đóng" }).tap();
       await expect(quiz).toBeHidden();
       await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
@@ -219,4 +229,16 @@ test("landing vẫn hiển thị hero và dùng được menu khi tắt JavaScri
   } finally {
     await context.close();
   }
+});
+
+test("Bắt đầu miễn phí mở form đăng ký, Đăng nhập mở form đăng nhập", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Bắt đầu miễn phí", exact: true }).first().click();
+  await expect(page).toHaveURL(/\/login\?mode=sign-up$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Tạo tài khoản" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Tạo tài khoản", exact: true })).toBeVisible();
+  await page.goto("/");
+  await page.getByRole("link", { name: "Đăng nhập", exact: true }).first().click();
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Đăng nhập" })).toBeVisible();
 });

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "./button";
-import { LandingButtonEffects } from "./landing-button-effects";
 import { HeroQuizDeck } from "./hero-quiz-deck";
 import { heroQuizCards } from "@/data/hero-quiz";
 import type { mountClassroom } from "./hero-classroom-scene";
@@ -13,7 +12,6 @@ const motionPreference = "(prefers-reduced-motion: no-preference)";
 export function LandingHeroClassroom() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const quizButton = useRef<HTMLButtonElement>(null);
   const quizTrigger = useRef<HTMLElement | null>(null);
   const [answer, setAnswer] = useState<string | null>(null);
   const [quizIndex, setQuizIndex] = useState(2);
@@ -25,7 +23,7 @@ export function LandingHeroClassroom() {
   function openQuiz(index = 2) {
     const dialog = dialogRef.current;
     if (!dialog || dialog.open) return;
-    quizTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : quizButton.current;
+    quizTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setQuizIndex(index);
     setQuizOpen(true);
     setAnswer(null);
@@ -101,14 +99,9 @@ export function LandingHeroClassroom() {
         <canvas ref={canvasRef} className={styles.canvas} />
       </div>
       <HeroQuizDeck active={!quizOpen} onOpen={openQuiz} />
-      <div className={styles.controls}>
-        <Button ref={quizButton} aria-haspopup="dialog" onClick={() => openQuiz()}>
-          <LandingButtonEffects tone="glass">Thử một câu quiz <span aria-hidden="true">↗</span></LandingButtonEffects>
-        </Button>
-      </div>
       <dialog ref={dialogRef} className={styles.dialog} aria-labelledby="hero-quiz-title" onClose={() => {
         setQuizOpen(false);
-        (quizTrigger.current?.isConnected ? quizTrigger.current : quizButton.current)?.focus({ preventScroll: true });
+        (quizTrigger.current?.isConnected ? quizTrigger.current : null)?.focus({ preventScroll: true });
         syncScene.current?.();
       }}>
         <div className={styles.quizHeader}>

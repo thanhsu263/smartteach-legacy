@@ -22,7 +22,8 @@ export function LoginForm() {
   const next = safeNextPath(params.get("next"), "/dashboard");
   const callbackFailed = params.get("error") === "callback";
 
-  const [mode, setMode] = useState<Mode>("sign-in");
+  // `?mode=sign-up` (landing "Bắt đầu miễn phí") opens the sign-up form directly.
+  const [mode, setMode] = useState<Mode>(params.get("mode") === "sign-up" ? "sign-up" : "sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");

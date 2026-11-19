@@ -180,9 +180,8 @@ test.describe("landing theo Figma", () => {
 
   test("CTA dịch chuyển cả nút và sáng viền khi chuột đến gần, với bề mặt theo màu", async ({ page }) => {
     await page.goto("/");
-    const cta = page.getByRole("link", { name: /Tạo lớp học miễn phí/ });
-    const glass = page.getByRole("link", { name: "Khám phá bản demo" });
-    const quiz = page.getByRole("button", { name: "Thử một câu quiz" });
+    const cta = page.getByRole("link", { name: /Tham gia quiz ngay/ });
+    const glass = page.getByRole("link", { name: "Tạo lớp học miễn phí", exact: true });
     const badge = page.locator("p").filter({ hasText: "Một không gian. Muôn cách học hay." });
     const gradient = page.getByRole("heading", { level: 1 }).locator("[data-gradient-text='cobalt']");
     const navyGradient = page.getByRole("heading", { level: 1 }).locator("[data-gradient-text='navy']");
@@ -214,11 +213,6 @@ test.describe("landing theo Figma", () => {
     await expect(glass.locator("feImage")).toHaveAttribute("href", /^data:image\/svg\+xml,/);
     await expect(glass).toHaveCSS("background-image", /linear-gradient/);
     await expect(glass).toHaveCSS("background-color", "rgba(255, 255, 255, 0.05)");
-    const readSurface = (control: typeof glass) => control.evaluate((element) => {
-      const style = getComputedStyle(element);
-      return [style.color, style.backgroundColor, style.borderTopColor, style.borderRadius, style.boxShadow, style.transform];
-    });
-    expect(await readSurface(glass)).toEqual(await readSurface(quiz));
     await expect(glass.locator("[data-button-rim]")).toHaveCSS("display", "block");
     await expect(badge.locator("[data-button-rim]")).toHaveCSS("display", "block");
     await page.mouse.move(bounds.x + bounds.width / 2, bounds.y - 105);
@@ -236,11 +230,8 @@ test.describe("landing theo Figma", () => {
     await expect(gradient).toHaveCSS("animation-name", "none");
     expect(await cta.boundingBox()).toEqual(bounds);
 
-    await quiz.hover();
-    await expect(quiz).toHaveCSS("background-color", "rgba(255, 255, 255, 0.1)");
-    const quizHover = await readSurface(quiz);
     await glass.hover();
-    await expect.poll(() => readSurface(glass)).toEqual(quizHover);
+    await expect(glass).toHaveCSS("background-color", "rgba(255, 255, 255, 0.1)");
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.mouse.down();
     await expect(glass).toHaveCSS("transform", "matrix(0.97, 0, 0, 0.97, 0, 0)");
@@ -248,15 +239,15 @@ test.describe("landing theo Figma", () => {
     await page.mouse.up();
   });
 
-  test("nút kính demo giữ focus và điều hướng bằng bàn phím", async ({ page }) => {
+  test("nút kính Tạo lớp học miễn phí giữ focus và điều hướng bằng bàn phím", async ({ page }) => {
     await page.goto("/");
-    const glass = page.getByRole("link", { name: "Khám phá bản demo" });
+    const glass = page.getByRole("link", { name: "Tạo lớp học miễn phí", exact: true });
     await glass.focus();
     await expect(glass).toBeFocused();
     await expect(glass).toHaveCSS("outline-style", "solid");
     await glass.press("Enter");
-    await expect(page.locator("#tinh-nang h2")).toBeFocused();
-    await expect(page).toHaveURL("/");
+    // Guests land on login with `next`; signed-in teachers go straight to their classes.
+    await expect(page).toHaveURL(/\/(my-classes|login)(\?|$)/);
   });
 
   test("parallax bù 60% quãng cuộn và tắt hoàn toàn khi giảm chuyển động", async ({ page }) => {
@@ -319,7 +310,7 @@ test.describe("landing theo Figma", () => {
 
   test("CTA phản hồi khi hover và nhấn", async ({ page }) => {
     await page.goto("/");
-    const cta = page.getByRole("link", { name: /Tạo lớp học miễn phí/ });
+    const cta = page.getByRole("link", { name: /Tham gia quiz ngay/ });
     await page.evaluate(() => document.fonts.ready);
     const resting = await cta.boundingBox();
     const background = await cta.evaluate((el) => getComputedStyle(el).backgroundColor);
@@ -337,13 +328,14 @@ test.describe("landing theo Figma", () => {
     await page.keyboard.press("Tab");
     expect(parseFloat(await cta.evaluate((el) => getComputedStyle(el).outlineWidth))).toBeGreaterThanOrEqual(2);
     await cta.press("Enter");
-    await expect(page).toHaveURL(/\/(my-classes|login)(\?|$)/);
+    // Joining a quiz needs no account: the CTA opens the PIN entry directly.
+    await expect(page).toHaveURL(/\/play$/);
   });
 
   test("cảnh lớp học tự chạy và dừng theo vùng nhìn hoặc tùy chọn giảm chuyển động", async ({ page }) => {
     await page.goto("/");
     const stage = page.locator("[data-hero-classroom]");
-    const cta = page.getByRole("link", { name: /Tạo lớp học miễn phí/ });
+    const cta = page.getByRole("link", { name: /Tham gia quiz ngay/ });
     await page.evaluate(() => document.fonts.ready);
     const ctaResting = await cta.boundingBox();
     await expect(stage).toHaveAttribute("data-scene", "running");
@@ -378,8 +370,8 @@ test.describe("landing theo Figma", () => {
     await page.goto("/");
     expect((await poster).ok()).toBe(true);
     await expect(page.locator("[data-hero-classroom] canvas")).toBeHidden();
-    await expect(page.getByRole("link", { name: /Tạo lớp học miễn phí/ })).toBeVisible();
-    await page.getByRole("button", { name: "Thử một câu quiz" }).click();
+    await expect(page.getByRole("link", { name: /Tham gia quiz ngay/ })).toBeVisible();
+    await page.locator("[data-hero-quiz-deck] [data-front]").getByRole("button", { name: "Trả lời thử" }).click();
     await expect(page.getByRole("dialog", { name: "Thử một câu quiz" })).toBeVisible();
   });
 
@@ -450,7 +442,7 @@ test.describe("landing theo Figma", () => {
     const stage = page.locator("[data-hero-classroom]");
     await expect(stage).toHaveAttribute("data-scene", "poster");
     await expect(stage.locator("canvas")).toBeHidden();
-    await page.getByRole("button", { name: "Thử một câu quiz" }).click();
+    await page.locator("[data-hero-quiz-deck] [data-front]").getByRole("button", { name: "Trả lời thử" }).click();
     await expect(page.getByRole("dialog", { name: "Thử một câu quiz" })).toBeVisible();
   });
 
@@ -601,7 +593,7 @@ test.describe("giảm chuyển động", () => {
       return violations;
     });
     expect(await lastingMotion()).toEqual([]);
-    const cta = page.getByRole("link", { name: /Tạo lớp học miễn phí/ });
+    const cta = page.getByRole("link", { name: /Tham gia quiz ngay/ });
     const durations = await cta.evaluate((el) => getComputedStyle(el).transitionDuration.split(",").map(Number.parseFloat));
     expect(Math.max(...durations)).toBeLessThan(0.001);
     await page.mouse.wheel(0, 520);

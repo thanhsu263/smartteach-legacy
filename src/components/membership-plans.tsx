@@ -16,7 +16,7 @@ export function MembershipPlans() {
       <article data-animated-content>
         <h3><ScrollFloat>Free</ScrollFloat></h3><strong>0đ</strong>
         <p>Tạo quiz, cùng lớp học và chơi mỗi ngày.</p>
-        <Link className={styles.secondary} href="/my-quizzes"><LandingButtonEffects tone="glass">Bắt đầu miễn phí</LandingButtonEffects></Link>
+        <Link className={styles.secondary} href="/login?mode=sign-up"><LandingButtonEffects tone="glass">Bắt đầu miễn phí</LandingButtonEffects></Link>
           <ul><li><CheckIcon size={16} />Tạo và quản lý quiz</li><li><CheckIcon size={16} />Các trò chơi cơ bản</li><li><CheckIcon size={16} />Soạn, nhập theo mẫu và xuất đề Word/PDF</li></ul>
       </article>
       {Object.values(premiumPlans).map(plan => <article data-animated-content key={plan.id} data-featured={plan.months === 1 || undefined}>

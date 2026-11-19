@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ButtonAnchor } from "@/components/button";
+import { ButtonLink } from "@/components/button";
 import CountUp from "@/components/count-up";
 import { GradientText } from "@/components/gradient-text";
 import ScrollFloat from "@/components/scroll-float";
@@ -40,7 +40,7 @@ export default async function HomePage() {
     <LandingAnimatedContent />
     <LandingHeader
       brand={<Link href="/" className={styles.brand} aria-label={siteConfig.name}><LogoMark size={36} /><span>{siteConfig.name}</span></Link>}
-      account={<div className={styles.accountActions}><Link href="/login">Đăng nhập</Link><Link className={styles.primarySmall} href="/login"><LandingButtonEffects tone="blue">Bắt đầu miễn phí</LandingButtonEffects></Link></div>}
+      account={<div className={styles.accountActions}><Link href="/login">Đăng nhập</Link><Link className={styles.primarySmall} href="/login?mode=sign-up"><LandingButtonEffects tone="blue">Bắt đầu miễn phí</LandingButtonEffects></Link></div>}
     />
 
     <section className={styles.hero}>
@@ -49,8 +49,8 @@ export default async function HomePage() {
         <h1><GradientText tone="navy">Bật hứng <span data-hero-eraser-anchor>khởi.</span></GradientText>{" "}<GradientText>Mở tri thức.</GradientText></h1>
         <p className={styles.heroLead}>Từ quản lý lớp học, tạo quiz đến trò chơi và tiện ích — biến mỗi tiết học thành một trải nghiệm đáng mong chờ.</p>
         <div className={styles.actions}>
-          <Link className={styles.primary} href="/my-classes"><LandingButtonEffects tone="blue">Tạo lớp học miễn phí <Arrow /></LandingButtonEffects></Link>
-          <ButtonAnchor href="#tinh-nang"><LandingButtonEffects tone="glass">Khám phá bản demo</LandingButtonEffects></ButtonAnchor>
+          <Link className={styles.primary} href="/play"><LandingButtonEffects tone="blue">Tham gia quiz ngay <Arrow /></LandingButtonEffects></Link>
+          <ButtonLink href="/my-classes"><LandingButtonEffects tone="glass">Tạo lớp học miễn phí</LandingButtonEffects></ButtonLink>
         </div>
         <div className={styles.reassurance}>
           <span><CheckIcon size={14} /> Không cần thẻ tín dụng</span>
